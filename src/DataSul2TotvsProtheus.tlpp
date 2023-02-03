@@ -1,0 +1,807 @@
+#define __NToS
+
+#include "totvs.ch"
+#include "dbstruct.ch"
+
+#include "jsonhash.ch"
+#include "jsonarray.ch"
+
+//datasul2totvs.Protheus():Activate()
+namespace datasul2totvs
+
+class Protheus
+    static method Activate() as logical
+end class
+
+static method Activate() class Protheus
+
+    local cGetFileMask as character
+    local cGetFileTitle as character
+
+    local lActivate as logical
+
+    local nGetFileOptions as numeric
+
+    local oDlg as object
+    local oMenu as object
+    local oFWDefSize as object
+
+    begin sequence
+
+        cGetFileMask:="Arquivo de Configuração | DataSul2Protheus.ini"
+        cGetFileTitle:="Arquivo de Configuração DataSul2Protheus.ini"
+        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
+        cINIfile:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+
+        MsAguarde({||lActivate:=readIniFile(@cINIfile)},"Loading Settings","Wait")
+        if (!lActivate)
+            break
+        endif
+
+        MsAguarde({||lActivate:=readTableDefinition()},"Loading structure of tables","Wait")
+        if (!lActivate)
+            break
+        endif
+
+        oFWDefSize:=FWDefSize():New(.T.,.T.)//Sem enchoicebar
+        oFWDefSize:lLateral:=.F.//Calculo vertical
+        oFWDefSize:AddObject("TMENU",100,100,.T.,.T.)//TMENU
+
+        oFWDefSize:Process()
+
+        nTop:=oFWDefSize:aWindSize[1]
+        nLeft:=oFWDefSize:aWindSize[2]
+        nBottom:=oFWDefSize:aWindSize[3]
+        nRight:=oFWDefSize:aWindSize[4]
+
+        DEFINE MSDIALOG oDlg TITLE "DataSul2TotvsProtheus" FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
+
+            MENU oMenu IMAGE "" OF oDlg
+                MENUITEM "DataSul To Protheus"
+                MENU
+                    MENUITEM "Import SRF" ACTION Processa({||importSRF()},"Importing  SRF","Wait!")
+                    MENUITEM "Import SR8" ACTION Processa({||importSR8()},"Importing  SR8","Wait!")
+                ENDMENU 
+                MENU
+                    MENUITEM "Exit" ACTION oDlg:End()
+                ENDMENU    
+            ENDMENU
+
+            oMenu:align:=CONTROL_ALIGN_LEFT
+            oDlg:SetMenu(oMenu)
+
+        ACTIVATE DIALOG oDlg CENTERED
+
+    end sequence
+
+    cacheData():delSection("datasul2totvs")
+
+return(lActivate)
+
+static function readIniFile(cINIfile as character) as logical
+
+    local cRootPath as character
+
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
+    
+    local lreadIniFile:=.F. as logical
+
+    local oTFIni as object
+
+    begin sequence
+        
+        lreadIniFile:=(!empty(cINIfile).and.(File(cINIfile)))
+        if (!lreadIniFile)
+            ApMsgAlert("Configuration file invalid or not found","Attention")
+            break
+        endif
+
+        SplitPath(cINIfile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+
+        cRootPath:=cSPPDrive
+        cRootPath+=cSPPPath
+
+        cacheData():Set("datasul2totvs","cRootPath",cRootPath)
+
+        oTFIni:=TFIni():New(cINIfile,";")
+
+        cacheData():Set("datasul2totvs","readIniFile",oTFIni)
+
+    end sequence
+
+return(lreadIniFile)
+
+static function readTableDefinition() as logical
+
+    local aFieldDef as array
+    local aFieldDefTmp as array
+    local aFieldsDef:=array(0) as array
+    local aTablesImport as array
+    
+    local cTable as character
+    local cRootPath as character
+    local cTablesDefinition as character
+    local cFileTablesDefinition as character
+    
+    local nft_fRecNo as numeric
+    local nft_fHandle as numeric
+
+    local nTableImport as numeric
+
+    local lSkipTable:=.F. as logical
+    local lreadTableDefinition:=.F. as logical
+
+    local oTFIni as object
+    local oFTFDb as object
+
+    begin sequence
+
+        oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
+
+        aTablesImport:=oTFIni:GetAllProperties("TablesImport")
+        lreadTableDefinition:=(!empty(aTablesImport))
+        if (!lreadTableDefinition)
+            ApMsgAlert("Invalid import tables","Attention")
+            break
+        endif
+
+        cTablesDefinition:=allTrim(oTFIni:GetPropertyValue("Tables","TablesDefinition",""))
+        lreadTableDefinition:=(!empty(cTablesDefinition))
+        if (!lreadTableDefinition)
+            ApMsgAlert("Invalid TablesDefinition","Attention")
+            break
+        endif
+
+        cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+        cFileTablesDefinition:=(cRootPath+".."+cTablesDefinition)
+        lreadTableDefinition:=file(cFileTablesDefinition)
+        if (!lreadTableDefinition)
+            ApMsgAlert("File ("+cFileTablesDefinition+") with the definitions of the tables not found","Attention")
+            break
+        endif
+
+        oFTFDb:=fTdb():New()        
+
+        nft_fHandle:=oFTFDb:ft_fUse(cFileTablesDefinition)
+        lreadTableDefinition:=(nft_fHandle>=0)
+        if (!lreadTableDefinition)
+            ApMsgAlert("Could not open the file: "+cFileTablesDefinition,"Attention")
+            break
+        endif
+
+        oFTFDb:ft_fGoTop()
+
+        while (!oFTFDb:ft_fEof())
+            cLine:=DecodeUTF8(oFTFDb:ft_fReadLN())
+            begin sequence
+                if (empty(cLine))
+                    break
+                endif
+                cTable:=""
+                nTableImport:=0
+                if ("Table:"==Left(cLine,6))
+                    cTable:=strTran(cLine,"Table:","")
+                    cTable:=allTrim(cTable)
+                    nTableImport:=aScan(aTablesImport,{|x|x[2]==cTable})
+                    lSkipTable:=(nTableImport==0)
+                    if (lSkipTable)
+                        break
+                    else
+                        oFTFDb:ft_fSkip()
+                    endif
+                    aSize(aFieldsDef,0)
+                    while (!oFTFDb:ft_fEof())
+                        cLine:=DecodeUTF8(oFTFDb:ft_fReadLN())
+                        if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
+                            oFTFDb:ft_fSkip()
+                            loop
+                        endif
+                        if ("Table:"==Left(cLine,6))
+                            cacheData():Set("datasul2totvs",cTable,aClone(aFieldsDef))
+                            aSize(aFieldsDef,0)
+                            nft_fRecNo:=oFTFDb:ft_fRecNo()
+                            oFTFDb:ft_fGoTo(nft_fRecNo-1)
+                            break
+                        endif
+                        while ("  "$cLine)
+                            cLine:=strTran(cLine,"  "," ")
+                        end while
+                        aFieldDef:=strTokArr2(cLine," ")
+                        if (len(aFieldDef)==3)
+                            aFieldDefTmp:=array(4)
+                            aFieldDefTmp[1]:=aFieldDef[1]
+                            aFieldDefTmp[2]:=aFieldDef[2]
+                            aFieldDefTmp[3]:=""
+                            aFieldDefTmp[4]:=aFieldDef[3]
+                            aFieldDef:=aFieldDefTmp
+                        endif
+                        aAdd(aFieldsDef,aFieldDef)
+                        oFTFDb:ft_fSkip()
+                    end while
+                    cacheData():Set("datasul2totvs",cTable,aClone(aFieldsDef))
+                    aSize(aFieldsDef,0)
+                elseif (lSkipTable)
+                    break
+                endif
+            end sequence
+            oFTFDb:ft_fSkip()
+        end while
+
+        oFTFDb:ft_fUse()
+
+    end sequence
+
+return(lreadTableDefinition)
+
+static function importSRF() as logical
+
+    local aLine as array
+    local aFieldsDef as array
+    local aSRFStruct:=SRF->(dbStruct()) as array
+    local aSRFFieldsDef as array
+
+    local cAlias:=getNextAlias() as character
+    local cLine as character
+    local cField as character
+    local cSRFFile as character
+    local cSRFTable as character
+    local cRootPath as character
+    local cDataPath as character
+
+    local cRecCount as character
+
+    local cSRFIndexID as character
+    local cSRFIndexKey:="RF_FILIAL+RF_MAT+DTOS(RF_DATABAS)+RF_PD" as character
+
+    local cIncProc as character
+    local cTimeRemaining as character
+
+    local lFound as logical
+    local lAddNew as logical
+    local lImportSRF as logical
+
+    local nField as numeric
+    local nFields as numeric
+
+    local nSRFIndexKey:=retOrder("SRF",cSRFIndexKey) as numeric
+    
+    local nRecCount as numeric
+
+    local nft_fRecNo as numeric
+    local nft_fHandle as numeric
+
+    local oTFIni as object
+    local oFTFDb as object
+    local oProgress as object
+    local oTimeRemaining as object 
+    local oFWTemporaryTable as object
+
+    begin sequence
+
+        oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
+
+        cSRFTable:=allTrim(oTFIni:GetPropertyValue("TablesImport","SRF",""))
+        lImportSRF:=(!empty(cSRFTable))
+        if (!lImportSRF)
+            ApMsgAlert("There is no setting for the vacation table","Attention")
+            break
+        endif
+
+        cDataPath:=allTrim(oTFIni:GetPropertyValue("Tables","TablesData",""))
+        lImportSRF:=(!empty(cDataPath))
+        if (!lImportSRF)
+            ApMsgAlert("Invalida Data Path ("+cDataPath+")","Attention")
+            break
+        endif
+
+        cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+        cSRFFile:=(cRootPath+".."+cDataPath+cSRFTable+".csv")
+        lImportSRF:=file(cSRFFile)
+        if (!lImportSRF)
+            ApMsgAlert("File ("+cSRFFile+") not found","Attention")
+            break
+        endif
+
+        aFieldsDef:=cacheData():Get("datasul2totvs",cSRFTable,aFieldsDef)
+        lImportSRF:=(!empty(aFieldsDef))
+        if (!lImportSRF)
+            ApMsgAlert("Field definitions for the "+cSRFTable+" table not found","Attention")
+            break
+        endif
+
+        aSRFFieldsDef:=oTFIni:GetAllProperties(cSRFTable)
+        lImportSRF:=(!empty(aFieldsDef))
+        if (!lImportSRF)
+            ApMsgAlert("Field definitions for the SRF table not found","Attention")
+            break
+        endif
+
+        nFields:=Len(aSRFFieldsDef)
+        for nField:=1 to nFields
+            cField:=Upper(aSRFFieldsDef[nField][1])
+            aSRFFieldsDef[nField][1]:=cField
+            nSRFFieldPos:=aScan(aSRFStruct,{|x|(x[DBS_NAME]==cField)})
+            aAdd(aSRFFieldsDef[nField],nSRFFieldPos)
+        next nField
+
+        oFTFDb:=fTdb():New() 
+
+        MsAguarde({||nft_fHandle:=oFTFDb:ft_fUse(cSRFFile)},"Loading Data File","Wait")
+        lImportSRF:=(nft_fHandle>=0)
+        if (!lImportSRF)
+            ApMsgAlert("Could not open the file: "+cSRFFile,"Attention")
+            break
+        endif
+
+        oFWTemporaryTable:=FWTemporaryTable():New(@cAlias,@aSRFStruct)
+        oFWTemporaryTable:AddIndex("01",{"RF_FILIAL","RF_MAT","RF_DATABAS","RF_PD"})
+        oFWTemporaryTable:Create()
+
+        nRecCount:=oFTFDb:ft_fLastRec()
+        cRecCount:=cTools():NToS(nRecCount)
+        procRegua(nRecCount)
+        oTimeRemaining:=timeRemaining():New(nRecCount)
+
+        oProgress:=txtProgress():New()       
+
+        oFTFDb:ft_fGoTop()
+        while (!oFTFDb:ft_fEof())
+            nft_fRecNo:=oFTFDb:ft_fRecNo()
+            cLine:=oFTFDb:ft_fReadLN()
+            if (empty(cLine))
+                oFTFDb:ft_fSkip()   
+                loop
+            endif
+            aLine:=strTokArr2(cLine,";",.T.)
+            if (cAlias)->(recLock(cAlias,.T.))
+                for nField:=1 to nFields
+                    cField:=aSRFFieldsDef[nField][1]
+                    nSRFFieldPos:=aSRFFieldsDef[nField][Len(aSRFFieldsDef[nField])]
+                    if (nSRFFieldPos==0)
+                        loop
+                    endif
+                    xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSRFFieldsDef[nField],aSRFStruct,@aFieldsDef))
+                    (cAlias)->(FieldPut(nSRFFieldPos,xValue))
+                next nField
+                (cAlias)->(msUnLock())
+            endif
+            oTimeRemaining:Calcule(.T.)
+            cTimeRemaining:=" ["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
+            cIncProc:="["+oProgress:Eval()+"] "
+            cIncProc+="Processing Record: "
+            cIncProc+=cTools():NToS(nft_fRecNo)
+            cIncProc+="/"
+            cIncProc+=cRecCount
+            cIncProc+=cTimeRemaining
+            IncProc(cIncProc)
+            oFTFDb:ft_fSkip()
+        end while
+
+        oFTFDb:ft_fUse()
+
+        nRecCount:=(cAlias)->(recCount())
+        cRecCount:=cTools():NToS(nRecCount)
+        procRegua(nRecCount)
+        oTimeRemaining:SetRemaining(nRecCount)
+
+        SRF->(dbSetOrder(nSRFIndexKey))
+
+        (cAlias)->(dbGoTop())
+        while (cAlias)->(!eof())
+            cSRFIndexID:=(cAlias)->(&(cSRFIndexKey))
+            lFound:=SRF->(dbSeek(cSRFIndexID,.F.))
+            lAddNew:=(!lFound)
+            if (SRF->(recLock("SRF",lAddNew)))
+                for nField:=1 to nFields
+                    nSRFFieldPos:=aSRFFieldsDef[nField][Len(aSRFFieldsDef[nField])]
+                    if (nSRFFieldPos==0)
+                        loop
+                    endif
+                    xValue:=(cAlias)->(FieldGet(nSRFFieldPos))
+                    SRF->(FieldPut(nSRFFieldPos,xValue))
+                next nField
+                SRF->(msUnLock())
+            endif
+            cTimeRemaining:=" ["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
+            cIncProc:="["+oProgress:Eval()+"] "
+            cIncProc+="Updating Record: "
+            cIncProc+=cTools():NToS((cAlias)->(recNo()))
+            cIncProc+="/"
+            cIncProc+=cRecCount
+            cIncProc+=cTimeRemaining
+            IncProc(cIncProc)
+            (cAlias)->(dbSkip())
+        end while
+
+        (cAlias)->(dbCloseArea())
+
+        oFWTemporaryTable:Delete()
+        FreeObj(oFWTemporaryTable)
+
+    end sequence
+
+return(lImportSRF)
+
+static function importSR8() as logical
+
+    local aLine as array
+    local aFieldsDef as array
+    local aSR8Struct:=SR8->(dbStruct()) as array
+    local aSR8FieldsDef as array
+
+    local cAlias:=getNextAlias() as character
+    local cLine as character
+    local cField as character
+    local cSR8File as character
+    local cSR8Table as character
+    local cRootPath as character
+    local cDataPath as character
+
+    local cRecCount as character
+
+    local cIncProc as character
+    local cTimeRemaining as character
+
+    local cSR8IndexID as character
+    local cSR8IndexKey:="R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO" as character
+*    local cSR8UniqueKey:="R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO+R8_TIPOAFA" as character
+
+    local lFound as logical
+    local lAddNew as logical
+    local lImportSR8 as logical
+
+    local nField as numeric
+    local nFields as numeric
+
+    local nSR8IndexKey:=retOrder("SR8",cSR8IndexKey) as numeric
+    
+    local nRecCount as numeric
+
+    local nft_fRecNo as numeric
+    local nft_fHandle as numeric
+
+    local oTFIni as object
+    local oFTFDb as object
+    local oProgress as object
+    local oTimeRemaining as object 
+    local oFWTemporaryTable as object
+
+    begin sequence
+
+        oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
+
+        cSR8Table:=allTrim(oTFIni:GetPropertyValue("TablesImport","SR8",""))
+        lImportSR8:=(!empty(cSR8Table))
+        if (!lImportSR8)
+            ApMsgAlert("There is no setting for the vacation table","Attention")
+            break
+        endif
+
+        cDataPath:=allTrim(oTFIni:GetPropertyValue("Tables","TablesData",""))
+        lImportSR8:=(!empty(cDataPath))
+        if (!lImportSR8)
+            ApMsgAlert("Invalida Data Path ("+cDataPath+")","Attention")
+            break
+        endif
+
+        cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+        cSR8File:=(cRootPath+".."+cDataPath+cSR8Table+".csv")
+        lImportSR8:=file(cSR8File)
+        if (!lImportSR8)
+            ApMsgAlert("File ("+cSR8File+") not found","Attention")
+            break
+        endif
+
+        aFieldsDef:=cacheData():Get("datasul2totvs",cSR8Table,aFieldsDef)
+        lImportSR8:=(!empty(aFieldsDef))
+        if (!lImportSR8)
+            ApMsgAlert("Field definitions for the "+cSR8Table+" table not found","Attention")
+            break
+        endif
+
+        aSR8FieldsDef:=oTFIni:GetAllProperties(cSR8Table)
+        lImportSR8:=(!empty(aFieldsDef))
+        if (!lImportSR8)
+            ApMsgAlert("Field definitions for the SR8 table not found","Attention")
+            break
+        endif
+
+        nFields:=Len(aSR8FieldsDef)
+        for nField:=1 to nFields
+            cField:=Upper(aSR8FieldsDef[nField][1])
+            aSR8FieldsDef[nField][1]:=cField
+            nSR8FieldPos:=aScan(aSR8Struct,{|x|(x[DBS_NAME]==cField)})
+            aAdd(aSR8FieldsDef[nField],nSR8FieldPos)
+        next nField
+
+        oFTFDb:=fTdb():New()        
+
+        MsAguarde({||nft_fHandle:=oFTFDb:ft_fUse(cSR8File)},"Loading Data File","Wait")
+        lImportSR8:=(nft_fHandle>=0)
+        if (!lImportSR8)
+            ApMsgAlert("Could not open the file: "+cSR8File,"Attention")
+            break
+        endif
+
+        oFWTemporaryTable:=FWTemporaryTable():New(@cAlias,@aSR8Struct)
+        oFWTemporaryTable:AddIndex("01",{"R8_FILIAL","R8_MAT","R8_DATAINI","R8_TIPO","R8_TIPOAFA"})
+        oFWTemporaryTable:Create()
+
+        cacheData():Set("datasul2totvs","importSR8Alias",cAlias)
+        cacheData():Set("datasul2totvs","importSR8Table",oFWTemporaryTable:getRealName())
+
+        nRecCount:=oFTFDb:ft_fLastRec()
+        cRecCount:=cTools():NToS(nRecCount)
+        procRegua(nRecCount)
+        oTimeRemaining:=timeRemaining():New(nRecCount)
+
+        oProgress:=txtProgress():New()
+
+        oFTFDb:ft_fGoTop()
+        while (!oFTFDb:ft_fEof())
+            nft_fRecNo:=oFTFDb:ft_fRecNo()
+            cLine:=oFTFDb:ft_fReadLN()
+            if (empty(cLine))
+                oFTFDb:ft_fSkip()   
+                loop
+            endif
+            aLine:=strTokArr2(cLine,";",.T.)
+            if (cAlias)->(recLock(cAlias,.T.))
+                for nField:=1 to nFields
+                    cField:=aSR8FieldsDef[nField][1]
+                    nSR8FieldPos:=aSR8FieldsDef[nField][Len(aSR8FieldsDef[nField])]
+                    if (nSR8FieldPos==0)
+                        loop
+                    endif
+                    xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSR8FieldsDef[nField],aSR8Struct,@aFieldsDef))
+                    (cAlias)->(FieldPut(nSR8FieldPos,xValue))
+                next nField
+                (cAlias)->(msUnLock())
+            endif
+            oTimeRemaining:Calcule(.T.)
+            cTimeRemaining:="["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
+            cIncProc:="["+oProgress:Eval()+"] "
+            cIncProc+="Processing Record: "
+            cIncProc+=cTools():NToS(nft_fRecNo)
+            cIncProc+="/"
+            cIncProc+=cRecCount
+            cIncProc+=cTimeRemaining
+            IncProc(cIncProc)
+            oFTFDb:ft_fSkip()
+        end while
+
+        oFTFDb:ft_fUse()
+
+        nRecCount:=(cAlias)->(recCount())
+        cRecCount:=cTools():NToS(nRecCount)
+        procRegua(nRecCount)
+        oTimeRemaining:SetRemaining(nRecCount)
+
+        SR8->(dbSetOrder(nSR8IndexKey))
+
+        (cAlias)->(dbGoTop())
+        while (cAlias)->(!eof())
+            cSR8IndexID:=(cAlias)->(&(cSR8IndexKey))
+            lFound:=SR8->(dbSeek(cSR8IndexID,.F.))
+            lAddNew:=(!lFound)
+            if (SR8->(recLock("SR8",lAddNew)))
+                for nField:=1 to nFields
+                    nSR8FieldPos:=aSR8FieldsDef[nField][Len(aSR8FieldsDef[nField])]
+                    if (nSR8FieldPos==0)
+                        loop
+                    endif
+                    xValue:=(cAlias)->(FieldGet(nSR8FieldPos))
+                    SR8->(FieldPut(nSR8FieldPos,xValue))
+                next nField
+                SR8->(msUnLock())
+            endif
+            cTimeRemaining:=" ["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
+            cIncProc:="["+oProgress:Eval()+"] "
+            cIncProc+="Updating Record: "
+            cIncProc+=cTools():NToS((cAlias)->(recNo()))
+            cIncProc+="/"
+            cIncProc+=cRecCount
+            cIncProc+=cTimeRemaining
+            IncProc(cIncProc)
+            (cAlias)->(dbSkip())
+        end while
+
+        (cAlias)->(dbCloseArea())
+
+        oFWTemporaryTable:Delete()
+        FreeObj(oFWTemporaryTable)
+
+    end sequence
+
+return(lImportSR8)
+
+static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aTargetStruct as array,aSourceFieldsDef as array) as variant
+
+    local aValueField as array
+    local aSourceField as array
+
+    local bTransform as codeblock
+
+    local cType as character
+    local cTransform as character
+    local cSourceField as character
+    
+    local nSourceField as numeric
+    local nSourceFields as numeric
+    local nSourceFieldAT as numeric
+
+    local xValue as variant
+
+    cSourceField:=aTargetField[2]
+    aSourceField:=strToKArr2(cSourceField,"+")
+    nSourceFields:=len(aSourceField)
+    aValueField:=Array(nSourceFields,2)
+    for nSourceField:=1 to nSourceFields
+        cSourceField:=aSourceField[nSourceField]
+        nSourceFieldAT:=aScan(aSourceFieldsDef,{|x|(x[1]==cSourceField)})
+        if (nSourceFieldAT==0)
+            loop
+        endif
+        cType:=aSourceFieldsDef[nSourceFieldAT][2]
+        if (cType=="char")
+            xValue:=""
+        endif
+        aValueField[nSourceField][1]:=NormalizeData(aLine[nSourceFieldAT],cType)
+        aValueField[nSourceField][2]:=cType
+    next nSourceField
+
+    for nSourceField:=1 to nSourceFields
+        if (aValueField[nSourceField][2]=="char")
+            xValue+=aValueField[nSourceField][1]
+        else
+            xValue:=aValueField[nSourceField][1]
+        endif
+    next nSourceField
+
+    cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,"Transform",""))
+    if (cTransform=="FindInTable")
+        cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,cTransform,""))
+        bTransform:=&(cTransform)
+    elseif (!empty(cTransform))
+        bTransform:=&(cTransform)
+    endif
+
+    if (valtype(bTransform)=="B")
+        xValue:=Eval(bTransform,xValue,oTFIni,aLine,cTargetField,aTargetField,aTargetStruct,aSourceFieldsDef)
+    endif
+
+return(xValue)
+
+static function NormalizeData(xValue as variant,cType as character) as variant
+
+    if (cType=="char")
+       xValue:=strTran(xValue,'"',"") 
+    elseif (cType=="inte")
+        xValue:=Int(val(xValue))
+    elseif ("deci"$cType)
+        xValue:=val(xValue)
+    elseif (cType=="date")
+        xValue:=CToD(xValue)
+    elseif (cType=="logi")
+        xValue:=(Left(xValue,1)=="S")
+    endif
+
+return(xValue)
+
+static function FindInTable(oTFIni as object,cTable as character,xValue as variant,lTableInFile as logical)
+
+    local cType as character
+
+    local cINIfile as character
+    local cRootPath as character
+
+    local oTFIniTable as object
+
+    local xTmp
+
+    cType:=valType(xValue)
+    if (cType=="N")
+        xValue:=ctools():NToS(xValue)
+    elseif (cType!="C")
+        xValue:=cValToChar(xValue)
+    endif
+
+    if (oTFIni:ExistSection(cTable))
+        if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
+            dfv():Default(@lTableInFile,.F.)
+            if (lTableInFile)
+                oTFIniTable:=cacheData():Get("datasul2totvs",cTable,nil)
+                if (oTFIniTable==nil)
+                    cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+                    cINIfile:=cRootPath
+                    cINIfile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
+                    oTFIniTable:=TFIni():New(cINIfile,";")
+                    cacheData():Set("datasul2totvs",cTable,oTFIniTable)
+                endif
+                xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
+                if ((empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
+                    xTmp:=oTFIniTable:GetPropertyValue(cTable,"__DFV__","")
+                endif
+                xValue:=xTmp
+            else
+                cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+                cINIfile:=cRootPath
+                cINIfile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
+                oTFIniTable:=TFIni():New(cINIfile,";")
+                xValue:=FindInTable(oTFIniTable,cTable,xValue)
+            endif
+        elseif ((oTFIni:GetATProperty(cTable,xValue)>0))
+            xValue:=oTFIni:GetPropertyValue(cTable,xValue,"")
+        elseif ((oTFIni:GetATProperty(cTable,"__DFV__")>0))
+            xValue:=oTFIni:GetPropertyValue(cTable,"__DFV__","")
+        endif
+    endif
+
+return(xValue)
+
+static function getR8Seq() as character
+
+    local aArea:=FWGetArea()
+    
+    local cR8FILIAL as character
+    local cR8MAT as character
+    local dR8DATAINI as date
+    local cR8TIPO as character
+    local cR8TIPOAFA as character
+
+    local cAlias:=getNextAlias() as character
+    local cR8SEQ as character
+    local cR8DATAINI as character
+    local cTmpAlias:=cacheData():Get("datasul2totvs","importSR8Alias","") as character
+    local cTmpTable:=cacheData():Get("datasul2totvs","importSR8Table","") as character
+
+    cR8FILIAL:=(cTmpAlias)->R8_FILIAL
+    cR8MAT:=(cTmpAlias)->R8_MAT
+    dR8DATAINI:=(cTmpAlias)->R8_DATAINI
+    cR8TIPO:=(cTmpAlias)->R8_TIPO
+    cR8TIPOAFA:=(cTmpAlias)->R8_TIPOAFA
+
+    cR8DATAINI:=DToS(dR8DATAINI)
+
+    cTmpTable:="%"+cTmpTable+"%"
+
+    beginSQL alias cAlias
+        %noParser%
+        SELECT MAX(SR8.R8_SEQ) R8_SEQ
+          FROM %table:SR8% SR8
+         WHERE SR8.%notDel%
+           AND SR8.R8_FILIAL=%exp:cR8FILIAL%
+           AND SR8.R8_MAT=%exp:cR8MAT%
+           AND SR8.R8_DATAINI=%exp:cR8DATAINI%
+           AND SR8.R8_TIPO=%exp:cR8TIPO%
+           AND SR8.R8_TIPOAFA=%exp:cR8TIPOAFA%
+         UNION 
+        SELECT MAX(SR8TMP.R8_SEQ) R8_SEQ
+          FROM %exp:cTmpTable% SR8TMP  
+         WHERE SR8TMP.%notDel%
+           AND SR8TMP.R8_FILIAL=%exp:cR8FILIAL%
+           AND SR8TMP.R8_MAT=%exp:cR8MAT%
+           AND SR8TMP.R8_DATAINI=%exp:cR8DATAINI%
+           AND SR8TMP.R8_TIPO=%exp:cR8TIPO%
+           AND SR8TMP.R8_TIPOAFA=%exp:cR8TIPOAFA%
+    endSQL
+
+    while (cAlias)->(!eof())
+        cR8SEQ:=(cAlias)->R8_SEQ
+        (cAlias)->(dbSkip())
+    end while
+
+    (cAlias)->(dbCloseArea())
+
+    if (empty(cR8SEQ))
+        cR8SEQ:=Replicate("0",GetSx3Cache("R8_SEQ","X3_TAMANHO"))
+    endif
+
+    cR8SEQ:=__Soma1(cR8SEQ)
+
+    FWRestArea(aArea)
+
+return(cR8SEQ)

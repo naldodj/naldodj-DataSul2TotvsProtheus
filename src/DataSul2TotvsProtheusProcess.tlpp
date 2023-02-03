@@ -1,0 +1,4 @@
+#include "totvs.ch"
+using namespace datasul2totvs
+function u_datasul2totvsProtheus()
+return(Protheus():Activate())

@@ -1,0 +1,83 @@
+Table: period_aqst_ferias
+
+Field Name                  Data Type  Flg Format
+--------------------------- ---------- --- --------------------------------
+cdn_empresa                 char       im  x(3)
+cdn_estab                   char       im  x(5)
+cdn_funcionario             inte       im  zzzzzzz9
+dat_inic_period_aqst_ferias date       im  99/99/9999
+dat_term_period_aqst_ferias date       m   99/99/9999
+idi_sit_period_aqst_ferias  inte       im  99
+num_ano_mes_inic_adc_ferias inte       m   999999
+num_ano_mes_term_adc_ferias inte       m   999999
+log_calcula_dias_direito_au logi       m   Sim/Nao
+qtd_dias_direito_period_aqs deci-2     m   z9.99
+qtd_dias_ferias_concedid    deci-2     m   z9.99
+dat_concess_efetd           date[5]        99/99/9999
+qtd_dias_gozado             deci-2[5]  m   z9.99
+qtd_dias_abdo               deci-2[5]  m   z9.99
+qtd_dias_licenc_concedid    deci-2[5]  m   z9.99
+cod_usuar_ult_atualiz       char           x(12)
+dat_ult_atualiz             date           99/99/9999
+hra_ult_atualiz             char       m   99:99:99
+cod_livre_1                 char           x(100)
+cod_livre_2                 char           x(100)
+dat_livre_1                 date           99/99/9999
+dat_livre_2                 date           99/99/9999
+log_livre_1                 logi           Sim/Não
+log_livre_2                 logi           Sim/Não
+num_livre_1                 inte           >>>>>9
+num_livre_2                 inte           >>>>>9
+val_livre_1                 deci-4         zzz,zzz,zz9.9999
+val_livre_2                 deci-4         zzz,zzz,zz9.9999
+
+Table: sit_afast_func
+
+Field Name                  Data Type  Flg Format
+--------------------------- ---------- --- --------------------------------
+cdn_empresa                 char       im  x(3)
+cdn_estab                   char       im  x(5)
+cdn_funcionario             inte       im  zzzzzzz9
+dat_inic_sit_afast          date       im  99/99/9999
+dat_inic_proces_sit_afast   date       im  99/99/9999
+dat_term_sit_afast          date       im  99/99/9999
+dat_term_proces_sit_afast   date       m   99/99/9999
+dat_inic_pagto_inss         date           99/99/9999
+dat_integr_sit_afast_func   date           99/99/9999
+dat_ant_integr_sit_afast_fu date           99/99/9999
+num_horar_inic_sit_afast    inte       im  999999
+num_horar_term_sit_afast    inte       m   999999
+num_hora_inic_proces_sit_af inte       im  -999999
+num_horar_fim_proces_sit_af inte       m   -99999
+idi_sit_afast_func          inte           9
+log_sit_marcac_ptoelet_trat logi           Sim/Não
+cdn_sit_afast_func          inte       i   zzzz9
+num_mes_ano_refer_fp        char       i   x(6)
+qti_dias_sit_func           inte           zzzz9
+qtd_hrs_sit                 deci-5         zz9.99999
+cdn_empres_orig             char       m   x(3)
+cdn_estab_orig              char       m   x(5)
+cdn_func_orig               inte       m   zzzzzzz9
+cdn_empres_dest             char       m   x(3)
+cdn_estab_dest              char       m   x(5)
+cdn_func_dest               inte       m   zzzzzzz9
+cod_usuar_ult_atualiz       char           x(12)
+dat_ult_atualiz             date           99/99/9999
+hra_ult_atualiz             char       m   99:99:99
+cod_livre_1                 char           x(100)
+cod_livre_2                 char           x(100)
+dat_livre_1                 date           99/99/9999
+dat_livre_2                 date           99/99/9999
+log_livre_1                 logi           Sim/Não
+log_livre_2                 logi           Sim/Não
+num_livre_1                 inte           >>>>>9
+num_livre_2                 inte           >>>>>9
+val_livre_1                 deci-4         zzz,zzz,zz9.9999
+val_livre_2                 deci-4         zzz,zzz,zz9.9999
+qtd_dias_sit_func           deci-1         9999.9
+log_consid_calc_folha_compl logi       m   Sim/Não
+val_afast_maior_ferias      deci-2     m   9.99
+des_benefic_inss            char           x(20)
+val_benefic_inss            deci-2         zzz,zzz,zz9.99
+log_alter_espec_benefic     logi           Sim/Não
+cdn_origin_sit_afast        inte           zzzz9
