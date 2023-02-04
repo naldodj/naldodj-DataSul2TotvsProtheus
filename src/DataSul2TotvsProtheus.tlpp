@@ -189,12 +189,14 @@ static function readTableDefinition() as logical
                     if (lSkipTable)
                         break
                     else
+                        oFT:ft_fDelete()
                         oFT:ft_fSkip()
                     endif
                     aSize(aFieldsDef,0)
                     while (!oFT:ft_fEof())
                         cLine:=oFT:ft_fReadLN()
                         if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
+                            oFT:ft_fDelete()
                             oFT:ft_fSkip()
                             loop
                         endif
@@ -222,6 +224,7 @@ static function readTableDefinition() as logical
                         endif
                         aAdd(aFieldsDef,aClone(aFieldDef))
                         FWFreeArray(@aFieldDef)
+                        oFT:ft_fDelete()
                         oFT:ft_fSkip()
                     end while
                     cacheData():Set("datasul2totvs",cTable,aClone(aFieldsDef))
@@ -230,6 +233,7 @@ static function readTableDefinition() as logical
                     break
                 endif
             end sequence
+            oFT:ft_fDelete()
             oFT:ft_fSkip()
         end while
 
@@ -377,10 +381,13 @@ static function importSRF() as logical
 
         oProgress:=txtProgress():New()
 
+        TCSrvMap(cAlias,nil,.F.)
+
         oFT:ft_fGoTop()
         while (!oFT:ft_fEof())
             nft_fRecNo:=oFT:ft_fRecNo()
             cLine:=oFT:ft_fReadLN()
+            oFT:ft_fDelete()
             if (empty(cLine))
                 oFT:ft_fSkip()
                 loop
@@ -388,7 +395,7 @@ static function importSRF() as logical
             cLine:=DecodeUTF8(cLine)
             aLine:=strTokArr2(cLine,";",.T.)
             cLine:=""
-            if (cAlias)->(recLock(cAlias,.T.))
+            (cAlias)->(dbAppend(.F.))
                 for nField:=1 to nFields
                     nSRFFieldPos:=aSRFFieldsDef[nField][Len(aSRFFieldsDef[nField])]
                     if (nSRFFieldPos==0)
@@ -396,10 +403,12 @@ static function importSRF() as logical
                     endif
                     cField:=aSRFFieldsDef[nField][1]
                     xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSRFFieldsDef[nField],@aFieldsDef))
+                    if (empty(xValue))
+                        loop
+                    endif
                     (cAlias)->(FieldPut(nSRFFieldPos,xValue))
                 next nField
-                (cAlias)->(msUnLock())
-            endif
+            (cAlias)->(dbCommit())
             FWFreeArray(@aLine)
             oTimeRemaining:Calcule(.T.)
             cTimeRemaining:=" ["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
@@ -434,10 +443,14 @@ static function importSRF() as logical
                         loop
                     endif
                     xValue:=(cAlias)->(FieldGet(nSRFFieldPos))
+                    if (empty(xValue))
+                        loop
+                    endif
                     SRF->(FieldPut(nSRFFieldPos,xValue))
                 next nField
                 SRF->(msUnLock())
             endif
+            oTimeRemaining:Calcule(.T.)
             cTimeRemaining:=" ["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
             cIncProc:="["+oProgress:Eval()+"] "
             cIncProc+="Updating Record: "
@@ -601,10 +614,13 @@ static function importSR8() as logical
 
         oProgress:=txtProgress():New()
 
+        TCSrvMap(cAlias,nil,.F.)
+
         oFT:ft_fGoTop()
         while (!oFT:ft_fEof())
             nft_fRecNo:=oFT:ft_fRecNo()
             cLine:=oFT:ft_fReadLN()
+            oFT:ft_fDelete()
             if (empty(cLine))
                 oFT:ft_fSkip()
                 loop
@@ -612,7 +628,7 @@ static function importSR8() as logical
             cLine:=DecodeUTF8(cLine)
             aLine:=strTokArr2(cLine,";",.T.)
             cLine:=""
-            if (cAlias)->(recLock(cAlias,.T.))
+            (cAlias)->(dbAppend(.F.))
                 for nField:=1 to nFields
                     nSR8FieldPos:=aSR8FieldsDef[nField][Len(aSR8FieldsDef[nField])]
                     if (nSR8FieldPos==0)
@@ -620,10 +636,12 @@ static function importSR8() as logical
                     endif
                     cField:=aSR8FieldsDef[nField][1]
                     xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSR8FieldsDef[nField],@aFieldsDef))
+                    if (empty(xValue))
+                        loop
+                    endif
                     (cAlias)->(FieldPut(nSR8FieldPos,xValue))
                 next nField
-                (cAlias)->(msUnLock())
-            endif
+            (cAlias)->(dbCommit())
             FWFreeArray(@aLine)
             oTimeRemaining:Calcule(.T.)
             cTimeRemaining:="["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
@@ -658,10 +676,14 @@ static function importSR8() as logical
                         loop
                     endif
                     xValue:=(cAlias)->(FieldGet(nSR8FieldPos))
+                    if (empty(xValue))
+                        loop
+                    endif
                     SR8->(FieldPut(nSR8FieldPos,xValue))
                 next nField
                 SR8->(msUnLock())
             endif
+            oTimeRemaining:Calcule(.T.)
             cTimeRemaining:=" ["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
             cIncProc:="["+oProgress:Eval()+"] "
             cIncProc+="Updating Record: "
