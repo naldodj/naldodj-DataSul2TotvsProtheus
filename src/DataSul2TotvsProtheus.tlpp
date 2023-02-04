@@ -54,10 +54,10 @@ static method Activate() class Protheus
         nBottom:=oFWDefSize:aWindSize[3]
         nRight:=oFWDefSize:aWindSize[4]
 
-        DEFINE MSDIALOG oDlg TITLE "DataSul2TotvsProtheus" FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
+        DEFINE MSDIALOG oDlg TITLE "TOTVS :: DataSul To Protheus" FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
             MENU oMenu IMAGE "" OF oDlg
-                MENUITEM "DataSul To Protheus"
+                MENUITEM "TOTVS :: DataSul To Protheus"
                 MENU
                     MENUITEM "Import SRF" ACTION Processa({||importSRF()},"Importing  SRF","Wait!")
                     MENUITEM "Import SR8" ACTION Processa({||importSR8()},"Importing  SR8","Wait!")
@@ -367,6 +367,9 @@ static function importSRF() as logical
 
         FWFreeArray(@aSRFStruct)
 
+        cacheData():Set("datasul2totvs","importSRFAlias",cAlias)
+        cacheData():Set("datasul2totvs","importSRFTable",oFWTemporaryTable:getRealName())
+
         nRecCount:=oFT:ft_fLastRec()
         cRecCount:=cTools():NToS(nRecCount)
         procRegua(nRecCount)
@@ -463,6 +466,10 @@ static function importSRF() as logical
 
     if (valType(aSRFFieldsDef)=="A")
         FWFreeArray(@aSRFFieldsDef)
+    endif
+
+    if (lImportSRF)
+        ApMsgInfo("SRF Table Import Completed","Info")
     endif
 
 return(lImportSRF)
@@ -673,6 +680,11 @@ static function importSR8() as logical
 
     end sequence
 
+    if (type("oPVTHMSR8Seq")=="O")
+        oPVTHMSR8Seq:Clean()
+        oPVTHMSR8Seq:=FreeObj(oPVTHMSR8Seq)
+    endif
+
     if (valType(aSR8Struct)=="A")
         FWFreeArray(@aSR8Struct)
     endif
@@ -683,6 +695,10 @@ static function importSR8() as logical
 
     if (valType(aSR8FieldsDef)=="A")
         FWFreeArray(@aSR8FieldsDef)
+    endif
+
+    if (lImportSR8)
+        ApMsgInfo("SR8 Table Import Completed","Info")
     endif
 
 return(lImportSR8)
@@ -776,7 +792,7 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
 
     local oTFIniTable as object
 
-    local xTmp
+    local xTmp as variant
 
     cType:=valType(xValue)
     if (cType=="N")
@@ -820,56 +836,70 @@ return(xValue)
 
 static function getR8Seq() as character
 
-    local aArea:=FWGetArea()
+    static c_stHMSR8SeqKey as character
 
-    local cR8FILIAL as character
     local cR8MAT as character
-    local dR8DATAINI as date
+    local cR8SEQ:="" as character
     local cR8TIPO as character
+    local cR8FILIAL as character
+    local cR8DATAINI as character
     local cR8TIPOAFA as character
 
-    local cAlias:=getNextAlias() as character
-    local cR8SEQ as character
-    local cR8DATAINI as character
-    local cTmpAlias:=cacheData():Get("datasul2totvs","importSR8Alias","") as character
-    local cTmpTable:=cacheData():Get("datasul2totvs","importSR8Table","") as character
+    local cHMSR8SeqKey:="" as character
 
-    cR8FILIAL:=(cTmpAlias)->R8_FILIAL
-    cR8MAT:=(cTmpAlias)->R8_MAT
-    dR8DATAINI:=(cTmpAlias)->R8_DATAINI
-    cR8TIPO:=(cTmpAlias)->R8_TIPO
-    cR8TIPOAFA:=(cTmpAlias)->R8_TIPOAFA
+    local cTmpAlias as character
 
-    cR8DATAINI:=DToS(dR8DATAINI)
+    local dR8DATAINI as date
 
-    cTmpTable:="%"+cTmpTable+"%"
+    begin sequence
 
-    beginSQL alias cAlias
-        %noParser%
-        SELECT MAX(SR8TMP.R8_SEQ) R8_SEQ
-          FROM %exp:cTmpTable% SR8TMP
-         WHERE SR8TMP.%notDel%
-           AND SR8TMP.R8_FILIAL=%exp:cR8FILIAL%
-           AND SR8TMP.R8_MAT=%exp:cR8MAT%
-           AND SR8TMP.R8_DATAINI=%exp:cR8DATAINI%
-           AND SR8TMP.R8_TIPO=%exp:cR8TIPO%
-           AND SR8TMP.R8_TIPOAFA=%exp:cR8TIPOAFA%
-    endSQL
+        if (type("cPVTSR8Alias")!="C")
+            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvs","importSR8Alias","__NOALIAS__"),"DATASUL2TOTVS.IMPORTSR8")
+        endif
 
-    while (cAlias)->(!eof())
-        cR8SEQ:=(cAlias)->R8_SEQ
-        (cAlias)->(dbSkip())
-    end while
+        cTmpAlias:=cPVTSR8Alias
+        if (select(cTmpAlias)==0)
+            break
+        endif
 
-    (cAlias)->(dbCloseArea())
+        cR8FILIAL:=(cTmpAlias)->R8_FILIAL
+        cR8MAT:=(cTmpAlias)->R8_MAT
+        dR8DATAINI:=(cTmpAlias)->R8_DATAINI
+        cR8TIPO:=(cTmpAlias)->R8_TIPO
+        cR8TIPOAFA:=(cTmpAlias)->R8_TIPOAFA
 
-    if (empty(cR8SEQ))
-        cR8SEQ:=Replicate("0",GetSx3Cache("R8_SEQ","X3_TAMANHO"))
-    endif
+        cR8DATAINI:=DToS(dR8DATAINI)
 
-    cR8SEQ:=__Soma1(cR8SEQ)
+        cHMSR8SeqKey:=&("cEmpAnt")
+        cHMSR8SeqKey+=cR8FILIAL
+        cHMSR8SeqKey+=cR8MAT
 
-    FWRestArea(aArea)
-    FWFreeArray(@aArea)
+        if (type("oPVTHMSR8Seq")!="O")
+            _SetNamedPRVT("oPVTHMSR8Seq",THashMap():New(),"DATASUL2TOTVS.IMPORTSR8")
+        else
+            if (c_stHMSR8SeqKey!=cHMSR8SeqKey)
+                c_stHMSR8SeqKey:=cHMSR8SeqKey
+                oPVTHMSR8Seq:Clean()
+            endif
+        endif
+
+        cHMSR8SeqKey+=cR8DATAINI
+        cHMSR8SeqKey+=cR8TIPO
+        cHMSR8SeqKey+=cR8TIPOAFA
+
+        if (!oPVTHMSR8Seq:Get(cHMSR8SeqKey,@cR8SEQ)).or.(Empty(cR8SEQ))
+            if (type("nPVTHMSR8Seq")!="N")
+                _SetNamedPRVT("nPVTHMSR8Seq",GetSx3Cache("R8_SEQ","X3_TAMANHO"),"DATASUL2TOTVS.IMPORTSR8")
+                cR8SEQ:=Replicate("0",nPVTHMSR8Seq)
+                _SetNamedPRVT("cPVR8SEQ",cR8SEQ,"DATASUL2TOTVS.IMPORTSR8")
+            endif
+            cR8SEQ:=cPVR8SEQ
+        endif
+
+        cR8SEQ:=__Soma1(cR8SEQ)
+
+        oPVTHMSR8Seq:Set(cHMSR8SeqKey,cR8SEQ)
+
+    end sequence        
 
 return(cR8SEQ)
