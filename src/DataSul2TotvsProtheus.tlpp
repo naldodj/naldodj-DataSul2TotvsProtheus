@@ -61,10 +61,10 @@ static method Activate() class Protheus
                 MENU
                     MENUITEM "Import SRF" ACTION Processa({||importSRF()},"Importing  SRF","Wait!")
                     MENUITEM "Import SR8" ACTION Processa({||importSR8()},"Importing  SR8","Wait!")
-                ENDMENU 
+                ENDMENU
                 MENU
                     MENUITEM "Exit" ACTION oDlg:End()
-                ENDMENU    
+                ENDMENU
             ENDMENU
 
             oMenu:align:=CONTROL_ALIGN_LEFT
@@ -86,13 +86,13 @@ static function readIniFile(cINIfile as character) as logical
     local cSPPPath as character
     local cSPPFile as character
     local cSPPExt as character
-    
+
     local lreadIniFile:=.F. as logical
 
     local oTFIni as object
 
     begin sequence
-        
+
         lreadIniFile:=(!empty(cINIfile).and.(File(cINIfile)))
         if (!lreadIniFile)
             ApMsgAlert("Configuration file invalid or not found","Attention")
@@ -120,28 +120,27 @@ static function readTableDefinition() as logical
     local aFieldDefTmp as array
     local aFieldsDef:=array(0) as array
     local aTablesImport as array
-    
+
     local cTable as character
     local cRootPath as character
     local cTablesDefinition as character
     local cFileTablesDefinition as character
-    
+
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
-
-    local nTableImport as numeric
 
     local lSkipTable:=.F. as logical
     local lreadTableDefinition:=.F. as logical
 
+    local oFT as object
     local oTFIni as object
-    local oFTFDb as object
+    local oHMTablesImport as object
 
     begin sequence
 
         oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
 
-        aTablesImport:=oTFIni:GetAllProperties("TablesImport")
+        aTablesImport:=aClone(oTFIni:GetAllProperties("TablesImport"))
         lreadTableDefinition:=(!empty(aTablesImport))
         if (!lreadTableDefinition)
             ApMsgAlert("Invalid import tables","Attention")
@@ -163,63 +162,67 @@ static function readTableDefinition() as logical
             break
         endif
 
-        oFTFDb:=fTdb():New()        
+        oFT:=uft():New()
 
-        nft_fHandle:=oFTFDb:ft_fUse(cFileTablesDefinition)
+        nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)
         lreadTableDefinition:=(nft_fHandle>=0)
         if (!lreadTableDefinition)
             ApMsgAlert("Could not open the file: "+cFileTablesDefinition,"Attention")
             break
         endif
 
-        oFTFDb:ft_fGoTop()
+        oHMTablesImport:=AToHM(aTablesImport,2)
 
-        while (!oFTFDb:ft_fEof())
-            cLine:=DecodeUTF8(oFTFDb:ft_fReadLN())
+        oFT:ft_fGoTop()
+
+        while (!oFT:ft_fEof())
+            cLine:=oFT:ft_fReadLN()
             begin sequence
                 if (empty(cLine))
                     break
                 endif
                 cTable:=""
-                nTableImport:=0
                 if ("Table:"==Left(cLine,6))
                     cTable:=strTran(cLine,"Table:","")
                     cTable:=allTrim(cTable)
-                    nTableImport:=aScan(aTablesImport,{|x|x[2]==cTable})
-                    lSkipTable:=(nTableImport==0)
+                    lSkipTable:=(!oHMTablesImport:Get(cTable))
                     if (lSkipTable)
                         break
                     else
-                        oFTFDb:ft_fSkip()
+                        oFT:ft_fSkip()
                     endif
                     aSize(aFieldsDef,0)
-                    while (!oFTFDb:ft_fEof())
-                        cLine:=DecodeUTF8(oFTFDb:ft_fReadLN())
+                    while (!oFT:ft_fEof())
+                        cLine:=oFT:ft_fReadLN()
                         if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
-                            oFTFDb:ft_fSkip()
+                            oFT:ft_fSkip()
                             loop
                         endif
                         if ("Table:"==Left(cLine,6))
                             cacheData():Set("datasul2totvs",cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
-                            nft_fRecNo:=oFTFDb:ft_fRecNo()
-                            oFTFDb:ft_fGoTo(nft_fRecNo-1)
+                            nft_fRecNo:=oFT:ft_fRecNo()
+                            oFT:ft_fGoTo(nft_fRecNo-1)
                             break
                         endif
                         while ("  "$cLine)
                             cLine:=strTran(cLine,"  "," ")
                         end while
+                        cLine:=DecodeUTF8(cLine)
                         aFieldDef:=strTokArr2(cLine," ")
+                        cLine:=""
                         if (len(aFieldDef)==3)
                             aFieldDefTmp:=array(4)
                             aFieldDefTmp[1]:=aFieldDef[1]
                             aFieldDefTmp[2]:=aFieldDef[2]
                             aFieldDefTmp[3]:=""
                             aFieldDefTmp[4]:=aFieldDef[3]
-                            aFieldDef:=aFieldDefTmp
+                            aFieldDef:=aClone(aFieldDefTmp)
+                            FWFreeArray(@aFieldDefTmp)
                         endif
-                        aAdd(aFieldsDef,aFieldDef)
-                        oFTFDb:ft_fSkip()
+                        aAdd(aFieldsDef,aClone(aFieldDef))
+                        FWFreeArray(@aFieldDef)
+                        oFT:ft_fSkip()
                     end while
                     cacheData():Set("datasul2totvs",cTable,aClone(aFieldsDef))
                     aSize(aFieldsDef,0)
@@ -227,19 +230,31 @@ static function readTableDefinition() as logical
                     break
                 endif
             end sequence
-            oFTFDb:ft_fSkip()
+            oFT:ft_fSkip()
         end while
 
-        oFTFDb:ft_fUse()
+        oFT:ft_fUse()
+        oFT:=FreeObj(oFT)
 
     end sequence
+    
+    FWFreeArray(@aFieldsDef)
+
+    if (valtype(oHMTablesImport)=="O")
+        HMClean(oHMTablesImport)
+        oHMTablesImport:=FreeObj(oHMTablesImport)
+    endif
+    
+    if (valtype(aTablesImport)=="A")
+        FWFreeArray(@aTablesImport)
+    endif
 
 return(lreadTableDefinition)
 
 static function importSRF() as logical
 
     local aLine as array
-    local aFieldsDef as array
+    local aFieldsDef:=array(0) as array
     local aSRFStruct:=SRF->(dbStruct()) as array
     local aSRFFieldsDef as array
 
@@ -267,16 +282,17 @@ static function importSRF() as logical
     local nFields as numeric
 
     local nSRFIndexKey:=retOrder("SRF",cSRFIndexKey) as numeric
-    
+
     local nRecCount as numeric
 
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
 
     local oTFIni as object
-    local oFTFDb as object
+    local oFT as object
     local oProgress as object
-    local oTimeRemaining as object 
+    local oHMSRFStruct as object
+    local oTimeRemaining as object
     local oFWTemporaryTable as object
 
     begin sequence
@@ -286,7 +302,7 @@ static function importSRF() as logical
         cSRFTable:=allTrim(oTFIni:GetPropertyValue("TablesImport","SRF",""))
         lImportSRF:=(!empty(cSRFTable))
         if (!lImportSRF)
-            ApMsgAlert("There is no setting for the vacation table","Attention")
+            ApMsgAlert("There is no setting for the SRF table","Attention")
             break
         endif
 
@@ -305,31 +321,40 @@ static function importSRF() as logical
             break
         endif
 
-        aFieldsDef:=cacheData():Get("datasul2totvs",cSRFTable,aFieldsDef)
+        aFieldsDef:=aClone(cacheData():Get("datasul2totvs",cSRFTable,aFieldsDef))
         lImportSRF:=(!empty(aFieldsDef))
         if (!lImportSRF)
             ApMsgAlert("Field definitions for the "+cSRFTable+" table not found","Attention")
             break
         endif
 
-        aSRFFieldsDef:=oTFIni:GetAllProperties(cSRFTable)
+        aSRFFieldsDef:=aClone(oTFIni:GetAllProperties(cSRFTable))
         lImportSRF:=(!empty(aFieldsDef))
         if (!lImportSRF)
             ApMsgAlert("Field definitions for the SRF table not found","Attention")
             break
         endif
 
+        oHMSRFStruct:=AToHM(aSRFStruct,DBS_NAME)
+
         nFields:=Len(aSRFFieldsDef)
         for nField:=1 to nFields
             cField:=Upper(aSRFFieldsDef[nField][1])
             aSRFFieldsDef[nField][1]:=cField
-            nSRFFieldPos:=aScan(aSRFStruct,{|x|(x[DBS_NAME]==cField)})
+            if (oHMSRFStruct:Get(cField))
+                nSRFFieldPos:=aScan(aSRFStruct,{|x|(x[DBS_NAME]==cField)})
+            else
+                nSRFFieldPos:=0
+            endif
             aAdd(aSRFFieldsDef[nField],nSRFFieldPos)
         next nField
 
-        oFTFDb:=fTdb():New() 
+        HMClean(oHMSRFStruct)
+        oHMSRFStruct:=FreeObj(oHMSRFStruct)
 
-        MsAguarde({||nft_fHandle:=oFTFDb:ft_fUse(cSRFFile)},"Loading Data File","Wait")
+        oFT:=uft():New()
+
+        MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSRFFile)},"Loading Data File","Wait")
         lImportSRF:=(nft_fHandle>=0)
         if (!lImportSRF)
             ApMsgAlert("Could not open the file: "+cSRFFile,"Attention")
@@ -340,22 +365,26 @@ static function importSRF() as logical
         oFWTemporaryTable:AddIndex("01",{"RF_FILIAL","RF_MAT","RF_DATABAS","RF_PD"})
         oFWTemporaryTable:Create()
 
-        nRecCount:=oFTFDb:ft_fLastRec()
+        FWFreeArray(@aSRFStruct)
+
+        nRecCount:=oFT:ft_fLastRec()
         cRecCount:=cTools():NToS(nRecCount)
         procRegua(nRecCount)
         oTimeRemaining:=timeRemaining():New(nRecCount)
 
-        oProgress:=txtProgress():New()       
+        oProgress:=txtProgress():New()
 
-        oFTFDb:ft_fGoTop()
-        while (!oFTFDb:ft_fEof())
-            nft_fRecNo:=oFTFDb:ft_fRecNo()
-            cLine:=oFTFDb:ft_fReadLN()
+        oFT:ft_fGoTop()
+        while (!oFT:ft_fEof())
+            nft_fRecNo:=oFT:ft_fRecNo()
+            cLine:=oFT:ft_fReadLN()
             if (empty(cLine))
-                oFTFDb:ft_fSkip()   
+                oFT:ft_fSkip()
                 loop
             endif
+            cLine:=DecodeUTF8(cLine)
             aLine:=strTokArr2(cLine,";",.T.)
+            cLine:=""
             if (cAlias)->(recLock(cAlias,.T.))
                 for nField:=1 to nFields
                     nSRFFieldPos:=aSRFFieldsDef[nField][Len(aSRFFieldsDef[nField])]
@@ -368,6 +397,7 @@ static function importSRF() as logical
                 next nField
                 (cAlias)->(msUnLock())
             endif
+            FWFreeArray(@aLine)
             oTimeRemaining:Calcule(.T.)
             cTimeRemaining:=" ["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
             cIncProc:="["+oProgress:Eval()+"] "
@@ -377,10 +407,10 @@ static function importSRF() as logical
             cIncProc+=cRecCount
             cIncProc+=cTimeRemaining
             IncProc(cIncProc)
-            oFTFDb:ft_fSkip()
+            oFT:ft_fSkip()
         end while
 
-        oFTFDb:ft_fUse()
+        oFT:ft_fUse()
 
         nRecCount:=(cAlias)->(recCount())
         cRecCount:=cTools():NToS(nRecCount)
@@ -423,12 +453,24 @@ static function importSRF() as logical
 
     end sequence
 
+    if (valType(aSRFStruct)=="A")
+        FWFreeArray(@aSRFStruct)
+    endif
+
+    if (valType(aFieldsDef)=="A")
+        FWFreeArray(@aFieldsDef)
+    endif
+
+    if (valType(aSRFFieldsDef)=="A")
+        FWFreeArray(@aSRFFieldsDef)
+    endif
+
 return(lImportSRF)
 
 static function importSR8() as logical
 
     local aLine as array
-    local aFieldsDef as array
+    local aFieldsDef:=array(0) as array
     local aSR8Struct:=SR8->(dbStruct()) as array
     local aSR8FieldsDef as array
 
@@ -457,16 +499,17 @@ static function importSR8() as logical
     local nFields as numeric
 
     local nSR8IndexKey:=retOrder("SR8",cSR8IndexKey) as numeric
-    
+
     local nRecCount as numeric
 
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
 
     local oTFIni as object
-    local oFTFDb as object
+    local oFT as object
     local oProgress as object
-    local oTimeRemaining as object 
+    local oHMSR8Struct as object
+    local oTimeRemaining as object
     local oFWTemporaryTable as object
 
     begin sequence
@@ -476,7 +519,7 @@ static function importSR8() as logical
         cSR8Table:=allTrim(oTFIni:GetPropertyValue("TablesImport","SR8",""))
         lImportSR8:=(!empty(cSR8Table))
         if (!lImportSR8)
-            ApMsgAlert("There is no setting for the vacation table","Attention")
+            ApMsgAlert("There is no setting for the SR8 table","Attention")
             break
         endif
 
@@ -495,31 +538,40 @@ static function importSR8() as logical
             break
         endif
 
-        aFieldsDef:=cacheData():Get("datasul2totvs",cSR8Table,aFieldsDef)
+        aFieldsDef:=aClone(cacheData():Get("datasul2totvs",cSR8Table,aFieldsDef))
         lImportSR8:=(!empty(aFieldsDef))
         if (!lImportSR8)
             ApMsgAlert("Field definitions for the "+cSR8Table+" table not found","Attention")
             break
         endif
 
-        aSR8FieldsDef:=oTFIni:GetAllProperties(cSR8Table)
+        aSR8FieldsDef:=aClone(oTFIni:GetAllProperties(cSR8Table))
         lImportSR8:=(!empty(aFieldsDef))
         if (!lImportSR8)
             ApMsgAlert("Field definitions for the SR8 table not found","Attention")
             break
         endif
 
+        oHMSR8Struct:=AToHM(aSR8Struct,DBS_NAME)
+
         nFields:=Len(aSR8FieldsDef)
         for nField:=1 to nFields
             cField:=Upper(aSR8FieldsDef[nField][1])
             aSR8FieldsDef[nField][1]:=cField
-            nSR8FieldPos:=aScan(aSR8Struct,{|x|(x[DBS_NAME]==cField)})
+            if (oHMSR8Struct:Get(cField))
+                nSR8FieldPos:=aScan(aSR8Struct,{|x|(x[DBS_NAME]==cField)})
+            else
+                nSR8FieldPos:=0
+            endif
             aAdd(aSR8FieldsDef[nField],nSR8FieldPos)
         next nField
 
-        oFTFDb:=fTdb():New()        
+        HMClean(oHMSR8Struct)
+        oHMSR8Struct:=FreeObj(oHMSR8Struct)
 
-        MsAguarde({||nft_fHandle:=oFTFDb:ft_fUse(cSR8File)},"Loading Data File","Wait")
+        oFT:=uft():New()
+
+        MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSR8File)},"Loading Data File","Wait")
         lImportSR8:=(nft_fHandle>=0)
         if (!lImportSR8)
             ApMsgAlert("Could not open the file: "+cSR8File,"Attention")
@@ -530,25 +582,29 @@ static function importSR8() as logical
         oFWTemporaryTable:AddIndex("01",{"R8_FILIAL","R8_MAT","R8_DATAINI","R8_TIPO","R8_TIPOAFA"})
         oFWTemporaryTable:Create()
 
+        FWFreeArray(@aSR8Struct)
+
         cacheData():Set("datasul2totvs","importSR8Alias",cAlias)
         cacheData():Set("datasul2totvs","importSR8Table",oFWTemporaryTable:getRealName())
 
-        nRecCount:=oFTFDb:ft_fLastRec()
+        nRecCount:=oFT:ft_fLastRec()
         cRecCount:=cTools():NToS(nRecCount)
         procRegua(nRecCount)
         oTimeRemaining:=timeRemaining():New(nRecCount)
 
         oProgress:=txtProgress():New()
 
-        oFTFDb:ft_fGoTop()
-        while (!oFTFDb:ft_fEof())
-            nft_fRecNo:=oFTFDb:ft_fRecNo()
-            cLine:=oFTFDb:ft_fReadLN()
+        oFT:ft_fGoTop()
+        while (!oFT:ft_fEof())
+            nft_fRecNo:=oFT:ft_fRecNo()
+            cLine:=oFT:ft_fReadLN()
             if (empty(cLine))
-                oFTFDb:ft_fSkip()   
+                oFT:ft_fSkip()
                 loop
             endif
+            cLine:=DecodeUTF8(cLine)
             aLine:=strTokArr2(cLine,";",.T.)
+            cLine:=""
             if (cAlias)->(recLock(cAlias,.T.))
                 for nField:=1 to nFields
                     nSR8FieldPos:=aSR8FieldsDef[nField][Len(aSR8FieldsDef[nField])]
@@ -561,6 +617,7 @@ static function importSR8() as logical
                 next nField
                 (cAlias)->(msUnLock())
             endif
+            FWFreeArray(@aLine)
             oTimeRemaining:Calcule(.T.)
             cTimeRemaining:="["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
             cIncProc:="["+oProgress:Eval()+"] "
@@ -570,10 +627,10 @@ static function importSR8() as logical
             cIncProc+=cRecCount
             cIncProc+=cTimeRemaining
             IncProc(cIncProc)
-            oFTFDb:ft_fSkip()
+            oFT:ft_fSkip()
         end while
 
-        oFTFDb:ft_fUse()
+        oFT:ft_fUse()
 
         nRecCount:=(cAlias)->(recCount())
         cRecCount:=cTools():NToS(nRecCount)
@@ -616,6 +673,18 @@ static function importSR8() as logical
 
     end sequence
 
+    if (valType(aSR8Struct)=="A")
+        FWFreeArray(@aSR8Struct)
+    endif
+
+    if (valType(aFieldsDef)=="A")
+        FWFreeArray(@aFieldsDef)
+    endif
+
+    if (valType(aSR8FieldsDef)=="A")
+        FWFreeArray(@aSR8FieldsDef)
+    endif
+
 return(lImportSR8)
 
 static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array) as variant
@@ -628,12 +697,16 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     local cType as character
     local cTransform as character
     local cSourceField as character
-    
+
     local nSourceField as numeric
     local nSourceFields as numeric
     local nSourceFieldAT as numeric
 
+    local oHMaSourceFieldsDef as object
+
     local xValue as variant
+
+    oHMaSourceFieldsDef:=AToHM(aSourceFieldsDef)
 
     cSourceField:=aTargetField[2]
     aSourceField:=strToKArr2(cSourceField,"+")
@@ -641,10 +714,10 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     aValueField:=Array(nSourceFields,2)
     for nSourceField:=1 to nSourceFields
         cSourceField:=aSourceField[nSourceField]
-        nSourceFieldAT:=aScan(aSourceFieldsDef,{|x|(x[1]==cSourceField)})
-        if (nSourceFieldAT==0)
+        if (!oHMaSourceFieldsDef:Get(cSourceField))
             loop
         endif
+        nSourceFieldAT:=aScan(aSourceFieldsDef,{|x|(x[1]==cSourceField)})
         cType:=aSourceFieldsDef[nSourceFieldAT][2]
         if (cType=="char")
             xValue:=""
@@ -652,6 +725,9 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
         aValueField[nSourceField][1]:=NormalizeData(aLine[nSourceFieldAT],cType)
         aValueField[nSourceField][2]:=cType
     next nSourceField
+
+    HMClean(oHMaSourceFieldsDef)
+    oHMaSourceFieldsDef:=FreeObj(oHMaSourceFieldsDef)
 
     for nSourceField:=1 to nSourceFields
         if (aValueField[nSourceField][2]=="char")
@@ -678,7 +754,7 @@ return(xValue)
 static function NormalizeData(xValue as variant,cType as character) as variant
 
     if (cType=="char")
-       xValue:=strTran(xValue,'"',"") 
+       xValue:=strTran(xValue,'"',"")
     elseif (cType=="inte")
         xValue:=Int(val(xValue))
     elseif ("deci"$cType)
@@ -745,7 +821,7 @@ return(xValue)
 static function getR8Seq() as character
 
     local aArea:=FWGetArea()
-    
+
     local cR8FILIAL as character
     local cR8MAT as character
     local dR8DATAINI as date
@@ -779,7 +855,7 @@ static function getR8Seq() as character
            AND SR8TMP.R8_TIPO=%exp:cR8TIPO%
            AND SR8TMP.R8_TIPOAFA=%exp:cR8TIPOAFA%
     endSQL
-    
+
     while (cAlias)->(!eof())
         cR8SEQ:=(cAlias)->R8_SEQ
         (cAlias)->(dbSkip())
@@ -794,5 +870,6 @@ static function getR8Seq() as character
     cR8SEQ:=__Soma1(cR8SEQ)
 
     FWRestArea(aArea)
+    FWFreeArray(@aArea)
 
 return(cR8SEQ)
