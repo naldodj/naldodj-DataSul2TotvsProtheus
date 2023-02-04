@@ -358,12 +358,12 @@ static function importSRF() as logical
             aLine:=strTokArr2(cLine,";",.T.)
             if (cAlias)->(recLock(cAlias,.T.))
                 for nField:=1 to nFields
-                    cField:=aSRFFieldsDef[nField][1]
                     nSRFFieldPos:=aSRFFieldsDef[nField][Len(aSRFFieldsDef[nField])]
                     if (nSRFFieldPos==0)
                         loop
                     endif
-                    xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSRFFieldsDef[nField],aSRFStruct,@aFieldsDef))
+                    cField:=aSRFFieldsDef[nField][1]
+                    xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSRFFieldsDef[nField],@aFieldsDef))
                     (cAlias)->(FieldPut(nSRFFieldPos,xValue))
                 next nField
                 (cAlias)->(msUnLock())
@@ -551,12 +551,12 @@ static function importSR8() as logical
             aLine:=strTokArr2(cLine,";",.T.)
             if (cAlias)->(recLock(cAlias,.T.))
                 for nField:=1 to nFields
-                    cField:=aSR8FieldsDef[nField][1]
                     nSR8FieldPos:=aSR8FieldsDef[nField][Len(aSR8FieldsDef[nField])]
                     if (nSR8FieldPos==0)
                         loop
                     endif
-                    xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSR8FieldsDef[nField],aSR8Struct,@aFieldsDef))
+                    cField:=aSR8FieldsDef[nField][1]
+                    xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSR8FieldsDef[nField],@aFieldsDef))
                     (cAlias)->(FieldPut(nSR8FieldPos,xValue))
                 next nField
                 (cAlias)->(msUnLock())
@@ -618,7 +618,7 @@ static function importSR8() as logical
 
 return(lImportSR8)
 
-static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aTargetStruct as array,aSourceFieldsDef as array) as variant
+static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array) as variant
 
     local aValueField as array
     local aSourceField as array
@@ -670,7 +670,7 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     endif
 
     if (valtype(bTransform)=="B")
-        xValue:=Eval(bTransform,xValue,oTFIni,aLine,cTargetField,aTargetField,aTargetStruct,aSourceFieldsDef)
+        xValue:=Eval(bTransform,xValue,oTFIni)
     endif
 
 return(xValue)
@@ -770,17 +770,8 @@ static function getR8Seq() as character
 
     beginSQL alias cAlias
         %noParser%
-        SELECT MAX(SR8.R8_SEQ) R8_SEQ
-          FROM %table:SR8% SR8
-         WHERE SR8.%notDel%
-           AND SR8.R8_FILIAL=%exp:cR8FILIAL%
-           AND SR8.R8_MAT=%exp:cR8MAT%
-           AND SR8.R8_DATAINI=%exp:cR8DATAINI%
-           AND SR8.R8_TIPO=%exp:cR8TIPO%
-           AND SR8.R8_TIPOAFA=%exp:cR8TIPOAFA%
-         UNION 
         SELECT MAX(SR8TMP.R8_SEQ) R8_SEQ
-          FROM %exp:cTmpTable% SR8TMP  
+          FROM %exp:cTmpTable% SR8TMP
          WHERE SR8TMP.%notDel%
            AND SR8TMP.R8_FILIAL=%exp:cR8FILIAL%
            AND SR8TMP.R8_MAT=%exp:cR8MAT%
@@ -788,7 +779,7 @@ static function getR8Seq() as character
            AND SR8TMP.R8_TIPO=%exp:cR8TIPO%
            AND SR8TMP.R8_TIPOAFA=%exp:cR8TIPOAFA%
     endSQL
-
+    
     while (cAlias)->(!eof())
         cR8SEQ:=(cAlias)->R8_SEQ
         (cAlias)->(dbSkip())
