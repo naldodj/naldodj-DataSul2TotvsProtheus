@@ -860,6 +860,8 @@ static function getR8Seq() as character
 
     static c_stHMSR8SeqKey as character
 
+    local cStack:="DATASUL2TOTVS.IMPORTSR8" as character
+
     local cR8MAT as character
     local cR8SEQ:="" as character
     local cR8TIPO as character
@@ -876,7 +878,7 @@ static function getR8Seq() as character
     begin sequence
 
         if (type("cPVTSR8Alias")!="C")
-            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvs","importSR8Alias","__NOALIAS__"),"DATASUL2TOTVS.IMPORTSR8")
+            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvs","importSR8Alias","__NOALIAS__"),cStack)
         endif
 
         cTmpAlias:=cPVTSR8Alias
@@ -897,7 +899,7 @@ static function getR8Seq() as character
         cHMSR8SeqKey+=cR8MAT
 
         if (type("oPVTHMSR8Seq")!="O")
-            _SetNamedPRVT("oPVTHMSR8Seq",THashMap():New(),"DATASUL2TOTVS.IMPORTSR8")
+            _SetNamedPRVT("oPVTHMSR8Seq",THashMap():New(),cStack)
         else
             if (c_stHMSR8SeqKey!=cHMSR8SeqKey)
                 c_stHMSR8SeqKey:=cHMSR8SeqKey
@@ -910,12 +912,12 @@ static function getR8Seq() as character
         cHMSR8SeqKey+=cR8TIPOAFA
 
         if (!oPVTHMSR8Seq:Get(cHMSR8SeqKey,@cR8SEQ)).or.(Empty(cR8SEQ))
-            if (type("nPVTHMSR8Seq")!="N")
-                _SetNamedPRVT("nPVTHMSR8Seq",GetSx3Cache("R8_SEQ","X3_TAMANHO"),"DATASUL2TOTVS.IMPORTSR8")
-                cR8SEQ:=Replicate("0",nPVTHMSR8Seq)
-                _SetNamedPRVT("cPVR8SEQ",cR8SEQ,"DATASUL2TOTVS.IMPORTSR8")
+            if (type("nPVTSR8Seq")!="N")
+                _SetNamedPRVT("nPVTSR8Seq",GetSx3Cache("R8_SEQ","X3_TAMANHO"),cStack)
+                cR8SEQ:=Replicate("0",nPVTSR8Seq)
+                _SetNamedPRVT("cPVTR8SEQ",cR8SEQ,cStack)
             endif
-            cR8SEQ:=cPVR8SEQ
+            cR8SEQ:=cPVTR8SEQ
         endif
 
         cR8SEQ:=__Soma1(cR8SEQ)
