@@ -6,6 +6,8 @@
 #include "jsonhash.ch"
 #include "jsonarray.ch"
 
+static st_oHMbTransform:=THashMap():New() as object
+
 //datasul2totvs.Protheus():Activate()
 namespace datasul2totvs
 
@@ -25,6 +27,10 @@ static method Activate() class Protheus
     local oDlg as object
     local oMenu as object
     local oFWDefSize as object
+
+    if (valType(st_oHMbTransform)=="O")
+        st_oHMbTransform:Clean()
+    endif
 
     begin sequence
 
@@ -75,6 +81,10 @@ static method Activate() class Protheus
     end sequence
 
     cacheData():delSection("datasul2totvs")
+
+    if (valType(st_oHMbTransform)=="O")
+        st_oHMbTransform:Clean()
+    endif
 
 return(lActivate)
 
@@ -411,10 +421,6 @@ static function importSRF() as logical
                     (cAlias)->(FieldPut(nSRFFieldPos,xValue))
                 next nField
             ldbCommit:=(++nCommitBuffer>=1024)
-            if (ldbCommit)
-                nCommitBuffer:=0
-                (cAlias)->(dbCommitAll())
-            endif
             FWFreeArray(@aLine)
             oTimeRemaining:Calcule(.T.)
             cTimeRemaining:=" ["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
@@ -425,6 +431,10 @@ static function importSRF() as logical
             cIncProc+=cRecCount
             cIncProc+=cTimeRemaining
             IncProc(cIncProc)
+            if (ldbCommit)
+                nCommitBuffer:=0
+                (cAlias)->(dbCommitAll())
+            endif
             oFT:ft_fSkip()
         end while
 
@@ -654,10 +664,6 @@ static function importSR8() as logical
                     (cAlias)->(FieldPut(nSR8FieldPos,xValue))
                 next nField
             ldbCommit:=(++nCommitBuffer>=1024)
-            if (ldbCommit)
-                nCommitBuffer:=0
-                (cAlias)->(dbCommitAll())
-            endif
             FWFreeArray(@aLine)
             oTimeRemaining:Calcule(.T.)
             cTimeRemaining:="["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
@@ -668,6 +674,10 @@ static function importSR8() as logical
             cIncProc+=cRecCount
             cIncProc+=cTimeRemaining
             IncProc(cIncProc)
+            if (ldbCommit)
+                nCommitBuffer:=0
+                (cAlias)->(dbCommitAll())
+            endif
             oFT:ft_fSkip()
         end while
 
@@ -795,12 +805,15 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
         endif
     next nSourceField
 
-    cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,"Transform",""))
-    if (cTransform=="FindInTable")
-        cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,cTransform,""))
-        bTransform:=&(cTransform)
-    elseif (!empty(cTransform))
-        bTransform:=&(cTransform)
+    if (!st_oHMbTransform:Get(cTargetField,@bTransform))
+        cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,"Transform",""))
+        if (cTransform=="FindInTable")
+            cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,cTransform,""))
+            bTransform:=&(cTransform)
+        elseif (!empty(cTransform))
+            bTransform:=&(cTransform)
+        endif
+        st_oHMbTransform:Set(cTargetField,bTransform)
     endif
 
     if (valtype(bTransform)=="B")
