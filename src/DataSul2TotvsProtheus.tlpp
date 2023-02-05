@@ -796,11 +796,14 @@ static function NormalizeData(xValue as variant,cType as character) as variant
     elseif (cType=="inte")
         xValue:=Int(val(xValue))
     elseif ("deci"$cType)
+        if (","$xValue)
+            xValue:=strTran(xValue,",",".")
+        endif
         xValue:=val(xValue)
     elseif (cType=="date")
         xValue:=CToD(xValue)
     elseif (cType=="logi")
-        xValue:=(Left(xValue,1)=="S")
+        xValue:=(Left(lower(xValue),1)$"sty1")
     endif
 
 return(xValue)
