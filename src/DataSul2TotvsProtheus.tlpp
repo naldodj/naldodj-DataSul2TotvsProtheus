@@ -131,6 +131,9 @@ static function readTableDefinition() as logical
     local aFieldsDef:=array(0) as array
     local aTablesImport as array
 
+    local cLine as character
+    local cLineUTF8 as character
+    
     local cTable as character
     local cRootPath as character
     local cTablesDefinition as character
@@ -220,7 +223,10 @@ static function readTableDefinition() as logical
                         while ("  "$cLine)
                             cLine:=strTran(cLine,"  "," ")
                         end while
-                        cLine:=DecodeUTF8(cLine)
+                        cLineUTF8:=DecodeUTF8(cLine)
+                        if (!empty(cLineUTF8))
+                            cLine:=cLineUTF8
+                        endif
                         aFieldDef:=strTokArr2(cLine," ")
                         cLine:=""
                         if (len(aFieldDef)==3)
@@ -267,14 +273,20 @@ return(lreadTableDefinition)
 
 static function importSRF() as logical
 
+    local aLog:=array(0) as array
+    local aLogDet:=array(0) as array
+    local aLogTitle:=array(0) as array
+
     local aLine as array
     local aFieldsDef:=array(0) as array
     local aSRFStruct:=SRF->(dbStruct()) as array
     local aSRFFieldsDef as array
 
+    local cField as character
+    local cLineUTF8 as character
+
     local cAlias:=getNextAlias() as character
     local cLine as character
-    local cField as character
     local cSRFFile as character
     local cSRFTable as character
     local cRootPath as character
@@ -404,8 +416,16 @@ static function importSRF() as logical
                 oFT:ft_fSkip()
                 loop
             endif
-            cLine:=DecodeUTF8(cLine)
-            aLine:=strTokArr2(cLine,";",.T.)
+            cLineUTF8:=DecodeUTF8(cLine)
+            if (!empty(cLineUTF8))
+                cLine:=cLineUTF8
+                aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                aAdd(aLog,cLine)
+                aAdd(aLog,"Existem Caracteres Invalidos")
+                aAdd(aLogDet,aClone(aLog))
+                aSize(aLog,0)
+            endif
+            aLine:=strTokArr2(cLine,";")
             cLine:=""
             (cAlias)->(dbAppend(.F.))
                 for nField:=1 to nFields
@@ -505,17 +525,30 @@ static function importSRF() as logical
         ApMsgInfo("SRF Table Import Completed","Info")
     endif
 
+    if (!empty(aLogDet))
+        fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
+        FWFreeArray(@aLog)
+        FWFreeArray(@aLogDet)
+        FWFreeArray(@aLogTitle)
+    endif
+
 return(lImportSRF)
 
 static function importSR8() as logical
+
+    local aLog:=array(0) as array
+    local aLogDet:=array(0) as array
+    local aLogTitle:=array(0) as array
 
     local aLine as array
     local aFieldsDef:=array(0) as array
     local aSR8Struct:=SR8->(dbStruct()) as array
     local aSR8FieldsDef as array
 
-    local cAlias:=getNextAlias() as character
     local cLine as character
+    local cLineUTF8 as character
+
+    local cAlias:=getNextAlias() as character
     local cField as character
     local cSR8File as character
     local cSR8Table as character
@@ -647,8 +680,16 @@ static function importSR8() as logical
                 oFT:ft_fSkip()
                 loop
             endif
-            cLine:=DecodeUTF8(cLine)
-            aLine:=strTokArr2(cLine,";",.T.)
+            cLineUTF8:=DecodeUTF8(cLine)
+            if (!empty(cLineUTF8))
+                cLine:=cLineUTF8
+                aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                aAdd(aLog,cLine)
+                aAdd(aLog,"Existem Caracteres Invalidos")
+                aAdd(aLogDet,aClone(aLog))
+                aSize(aLog,0)
+            endif
+            aLine:=strTokArr2(cLine,";")
             cLine:=""
             (cAlias)->(dbAppend(.F.))
                 for nField:=1 to nFields
@@ -751,6 +792,13 @@ static function importSR8() as logical
 
     if (lImportSR8)
         ApMsgInfo("SR8 Table Import Completed","Info")
+    endif
+
+    if (!empty(aLogDet))
+        fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
+        FWFreeArray(@aLog)
+        FWFreeArray(@aLogDet)
+        FWFreeArray(@aLogTitle)
     endif
 
 return(lImportSR8)
