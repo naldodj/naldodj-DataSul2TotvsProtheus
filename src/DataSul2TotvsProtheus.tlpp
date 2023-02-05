@@ -280,14 +280,16 @@ static function importSRF() as logical
 
     local lFound as logical
     local lAddNew as logical
+    local ldbCommit as logical
     local lImportSRF as logical
 
     local nField as numeric
     local nFields as numeric
 
-    local nSRFIndexKey:=retOrder("SRF",cSRFIndexKey) as numeric
-
     local nRecCount as numeric
+    local nCommitBuffer as numeric
+
+    local nSRFIndexKey:=retOrder("SRF",cSRFIndexKey) as numeric
 
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
@@ -408,7 +410,11 @@ static function importSRF() as logical
                     endif
                     (cAlias)->(FieldPut(nSRFFieldPos,xValue))
                 next nField
-            (cAlias)->(dbCommit())
+            ldbCommit:=(++nCommitBuffer>=1024)
+            if (ldbCommit)
+                nCommitBuffer:=0
+                (cAlias)->(dbCommitAll())
+            endif
             FWFreeArray(@aLine)
             oTimeRemaining:Calcule(.T.)
             cTimeRemaining:=" ["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
@@ -421,6 +427,10 @@ static function importSRF() as logical
             IncProc(cIncProc)
             oFT:ft_fSkip()
         end while
+
+        if (nCommitBuffer>0)
+            (cAlias)->(dbCommitAll())
+        endif
 
         oFT:ft_fUse()
 
@@ -513,14 +523,16 @@ static function importSR8() as logical
 
     local lFound as logical
     local lAddNew as logical
+    local ldbCommit as logical
     local lImportSR8 as logical
 
     local nField as numeric
     local nFields as numeric
 
-    local nSR8IndexKey:=retOrder("SR8",cSR8IndexKey) as numeric
-
     local nRecCount as numeric
+    local nCommitBuffer as numeric
+
+    local nSR8IndexKey:=retOrder("SR8",cSR8IndexKey) as numeric
 
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
@@ -641,7 +653,11 @@ static function importSR8() as logical
                     endif
                     (cAlias)->(FieldPut(nSR8FieldPos,xValue))
                 next nField
-            (cAlias)->(dbCommit())
+            ldbCommit:=(++nCommitBuffer>=1024)
+            if (ldbCommit)
+                nCommitBuffer:=0
+                (cAlias)->(dbCommitAll())
+            endif
             FWFreeArray(@aLine)
             oTimeRemaining:Calcule(.T.)
             cTimeRemaining:="["+DtoC(oTimeRemaining:GetdEndTime())+"]["+oTimeRemaining:GetcEndTime()+"]"
@@ -654,6 +670,10 @@ static function importSR8() as logical
             IncProc(cIncProc)
             oFT:ft_fSkip()
         end while
+
+        if (nCommitBuffer>0)
+            (cAlias)->(dbCommitAll())
+        endif
 
         oFT:ft_fUse()
 
