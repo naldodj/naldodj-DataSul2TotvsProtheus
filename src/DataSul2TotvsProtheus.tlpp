@@ -713,6 +713,7 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
             break
         endif   
 
+        oHMSourceFieldsDef:=THashMap():New()
         nFields:=Len(aFieldsDef)
         for nField:=1 to nFields
             oHMSourceFieldsDef:Set(aFieldsDef[nField][1],aFieldsDef[nField][2])
