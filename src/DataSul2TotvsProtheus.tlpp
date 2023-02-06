@@ -249,7 +249,7 @@ static function readTableDefinition() as logical
                             cLine:=strTran(cLine,"  "," ")
                         end while
                         cLineUTF8:=DecodeUTF8(cLine)
-                        if (empty(cLineUTF8))
+                        if (!empty(cLineUTF8))
                             cLine:=cLineUTF8
                         endif
                         aFieldDef:=strTokArr2(cLine," ")
@@ -329,6 +329,7 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
     local lAddNew as logical
     local ldbCommit as logical
     local lImportSRF as logical
+    local lRecCount100 as logical
 
     local nField as numeric
     local nFields as numeric
@@ -430,9 +431,13 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
             nRecCount:=oFT:ft_fLastRec()
             cRecCount:=cTools():NToS(nRecCount)
             nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
+            lRecCount100:=(nRecCount100!=nRecCount)
+            if (lRecCount100)
+                nRecCount100+=(nRecCount-(nRecCount100*100))
+            endif
             oMsNewProcess:SetRegua1(nRecCount100)
             oMsNewProcess:SetRegua2(0)
-            oTimeRemaining:=timeRemaining():New(nRecCount)
+            oTimeRemaining:=timeRemaining():New(nRecCount100)
 
             oProgress:=txtProgress():New()
 
@@ -449,12 +454,13 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
                 endif
                 cLineUTF8:=DecodeUTF8(cLine)
                 if (empty(cLineUTF8))
-                    cLine:=cLineUTF8
                     aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
                     aAdd(aLog,cLine)
                     aAdd(aLog,"Existem Caracteres Invalidos")
                     aAdd(aLogDet,aClone(aLog))
                     aSize(aLog,0)
+                else
+                    cLine:=cLineUTF8
                 endif
                 aLine:=strTokArr2(cLine,";")
                 cLine:=""
@@ -473,9 +479,9 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
                     next nField
                 ldbCommit:=(++nCommitBuffer>=1024)
                 FWFreeArray(@aLine)
-                oTimeRemaining:Calcule(.T.)
                 nRecProc++
-                if ((Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.T.)
                     cTimeRemaining:=" :: End of processing in ["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+=" :: ["+oTimeRemaining:GetcAverageTime()+"]"
@@ -515,9 +521,13 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
             nRecCount:=(cAlias)->(recCount())
             cRecCount:=cTools():NToS(nRecCount)
-            nRecCount100:=Int(nRecCount/100)
+            nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
+            lRecCount100:=(nRecCount100!=nRecCount)
+            if (lRecCount100)
+                nRecCount100+=(nRecCount-(nRecCount100*100))
+            endif
             oMsNewProcess:SetRegua2(nRecCount100)
-            oTimeRemaining:SetRemaining(nRecCount)
+            oTimeRemaining:SetRemaining(nRecCount100)
 
             SRF->(dbSetOrder(nSRFIndexKey))
 
@@ -542,9 +552,9 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
                     next nField
                     SRF->(msUnLock())
                 endif
-                oTimeRemaining:Calcule(.T.)
                 nRecProc++
-                if ((Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.T.)
                     cTimeRemaining:=" :: End of processing in ["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+=" :: ["+oTimeRemaining:GetcAverageTime()+"]"
@@ -735,10 +745,14 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
             nRecCount:=oFT:ft_fLastRec()
             cRecCount:=cTools():NToS(nRecCount)
-            nRecCount100:=Int(nRecCount/100)
+            nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
+            lRecCount100:=(nRecCount100!=nRecCount)
+            if (lRecCount100)
+                nRecCount100+=(nRecCount-(nRecCount100*100))
+            endif
             oMsNewProcess:SetRegua1(nRecCount100)
             oMsNewProcess:SetRegua2(0)
-            oTimeRemaining:=timeRemaining():New(nRecCount)
+            oTimeRemaining:=timeRemaining():New(nRecCount100)
 
             oProgress:=txtProgress():New()
 
@@ -755,12 +769,13 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
                 endif
                 cLineUTF8:=DecodeUTF8(cLine)
                 if (empty(cLineUTF8))
-                    cLine:=cLineUTF8
                     aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
                     aAdd(aLog,cLine)
                     aAdd(aLog,"Existem Caracteres Invalidos")
                     aAdd(aLogDet,aClone(aLog))
                     aSize(aLog,0)
+                else
+                    cLine:=cLineUTF8
                 endif
                 aLine:=strTokArr2(cLine,";")
                 cLine:=""
@@ -779,9 +794,9 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
                     next nField
                 ldbCommit:=(++nCommitBuffer>=1024)
                 FWFreeArray(@aLine)
-                oTimeRemaining:Calcule(.T.)
                 nRecProc++
-                if ((Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.T.)
                     cTimeRemaining:=" :: End of processing in ["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+=" :: ["+oTimeRemaining:GetcAverageTime()+"]"
@@ -821,9 +836,13 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
             nRecCount:=(cAlias)->(recCount())
             cRecCount:=cTools():NToS(nRecCount)
-            nRecCount100:=Int(nRecCount/100)
+            nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
+            lRecCount100:=(nRecCount100!=nRecCount)
+            if (lRecCount100)
+                nRecCount100+=(nRecCount-(nRecCount100*100))
+            endif
             oMsNewProcess:SetRegua2(nRecCount100)
-            oTimeRemaining:SetRemaining(nRecCount)
+            oTimeRemaining:SetRemaining(nRecCount100)
 
             SR8->(dbSetOrder(nSR8IndexKey))
 
@@ -848,9 +867,9 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
                     next nField
                     SR8->(msUnLock())
                 endif
-                oTimeRemaining:Calcule(.T.)
                 nRecProc++
-                if ((Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.T.)
                     cTimeRemaining:=" :: End of processing in ["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+=" :: ["+oTimeRemaining:GetcAverageTime()+"]"
