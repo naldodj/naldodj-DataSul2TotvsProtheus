@@ -17,7 +17,8 @@ end class
 
 static method Activate() class Protheus
 
-    local bMsNewProcess as codeblock
+    local bSRFMsNewProcess as codeblock
+    local bSR8MsNewProcess as codeblock
     
     local cGetFileMask as character
     local cGetFileTitle as character
@@ -30,20 +31,13 @@ static method Activate() class Protheus
     local oMenu as object
     local oFont as object
     local oFWDefSize as object
-    local oMSNewProcess as object
+    
+    local oSRFMSNewProcess as object
+    local oSR8MSNewProcess as object
 
     if (valType(st_oHMbTransform)=="O")
         st_oHMbTransform:Clean()
     endif
-
-    oFont:=TFont():New("Courier New",nil,16,nil,.T.)
-    bMsNewProcess:={|lEnd|ProcRedefine(cacheHMData():Get("ImportSRF"),@oFont,0,600,600,.T.,.T.),ImportSRF(cacheHMData():Get("ImportSRF"),@lEnd)}
-    oMSNewProcess:=MsNewProcess():New(bMsNewProcess,"Importing SRF :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.)
-    cacheHMData():Set("ImportSRF",oMSNewProcess)
-
-    bMsNewProcess:={|lEnd|ProcRedefine(cacheHMData():Get("ImportSR8"),@oFont,0,600,600,.T.,.T.),ImportSR8(cacheHMData():Get("ImportSR8"),@lEnd)}
-    oMSNewProcess:=MsNewProcess():New(bMsNewProcess,"Importing SR8 :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.)
-    cacheHMData():Set("ImportSR8",oMSNewProcess)
 
     begin sequence
 
@@ -73,13 +67,18 @@ static method Activate() class Protheus
         nBottom:=oFWDefSize:aWindSize[3]
         nRight:=oFWDefSize:aWindSize[4]
 
+        oFont:=TFont():New("Courier New",nil,16,nil,.T.)
+
+        bSRFMsNewProcess:={|lEnd|ProcRedefine(oSRFMSNewProcess,@oFont,0,600,600,.T.,.T.),ImportSRF(oSRFMSNewProcess,@lEnd)}
+        bSR8MsNewProcess:={|lEnd|ProcRedefine(oSR8MSNewProcess,@oFont,0,600,600,.T.,.T.),ImportSR8(oSR8MSNewProcess,@lEnd)}
+
         DEFINE MSDIALOG oDlg TITLE "TOTVS :: DataSul To Protheus" FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
             MENU oMenu IMAGE "" OF oDlg
                 MENUITEM "TOTVS :: DataSul To Protheus"
                 MENU
-                    MENUITEM "Import SRF" ACTION (oMSNewProcess:=cacheHMData():Get("ImportSRF"),oMSNewProcess:Activate())
-                    MENUITEM "Import SR8" ACTION (oMSNewProcess:=cacheHMData():Get("ImportSR8"),oMSNewProcess:Activate())
+                    MENUITEM "Import SRF" ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
+                    MENUITEM "Import SR8" ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
                 ENDMENU
                 MENU
                     MENUITEM "Exit" ACTION oDlg:End()
@@ -91,21 +90,16 @@ static method Activate() class Protheus
 
         ACTIVATE DIALOG oDlg CENTERED
 
+        oFont:=FreeObj(oFont)
+        oMenu:=FreeObj(oMenu)
+        oDlg:=FreeObj(oDlg)
+
+        oSRFMSNewProcess:=FreeObj(oSRFMSNewProcess)
+        oSR8MSNewProcess:=FreeObj(oSR8MSNewProcess)
+
     end sequence
 
-    oFont:=FreeObj(oFont)
-    oMenu:=FreeObj(oMenu)
-    oDlg:=FreeObj(oDlg)
-
-    oMSNewProcess:=FreeObj(oMSNewProcess)
-
     cacheData():delSection("datasul2totvs")
-
-    cacheHMData():Set("ImportSRF",FreeObj(cacheHMData():Get("ImportSRF")))
-    cacheHMData():Set("ImportSRF",FreeObj(cacheHMData():Get("ImportSR8")))
-
-    cacheHMData():Del("ImportSRF")
-    cacheHMData():Del("ImportSR8")
 
     if (valType(st_oHMbTransform)=="O")
         st_oHMbTransform:Clean()
@@ -303,6 +297,7 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
     local aLogTitle:=array(0) as array
 
     local aLine as array
+    local aField as array
     local aFieldsDef:=array(0) as array
     local aSRFStruct:=SRF->(dbStruct()) as array
     local aSRFFieldsDef as array
@@ -350,6 +345,7 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
     local oHMSRFStruct as object
     local oTimeRemaining as object
     local oFWTemporaryTable as object
+    local oHMSourceFieldsDef as object
 
     begin sequence
 
@@ -384,6 +380,13 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
             break
         endif
 
+        oHMSourceFieldsDef:=THashMap():New()
+        nFields:=Len(aFieldsDef)
+        for nField:=1 to nFields
+            oHMSourceFieldsDef:Set(aFieldsDef[nField][1],aFieldsDef[nField][2])
+            oHMSourceFieldsDef:Set(aFieldsDef[nField][1]+"_AT",nField)
+        next nField
+
         aSRFFieldsDef:=aClone(oTFIni:GetAllProperties(cSRFTable))
         lImportSRF:=(!empty(aFieldsDef))
         if (!lImportSRF)
@@ -391,14 +394,17 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
             break
         endif
 
+        nFields:=Len(aSRFStruct)
+        for nField:=1 to nFields
+            aAdd(aSRFStruct[nField],nField)
+        next nField
         oHMSRFStruct:=aToHM(aSRFStruct,DBS_NAME)
 
         nFields:=Len(aSRFFieldsDef)
         for nField:=1 to nFields
-            cField:=Upper(aSRFFieldsDef[nField][1])
-            aSRFFieldsDef[nField][1]:=cField
-            if (oHMSRFStruct:Get(cField))
-                nSRFFieldPos:=aScan(aSRFStruct,{|x|(x[DBS_NAME]==cField)})
+            cField:=aSRFFieldsDef[nField][1]
+            if (oHMSRFStruct:Get(cField,@aField))
+                nSRFFieldPos:=aField[1][DBS_ALEN+1]
             else
                 nSRFFieldPos:=0
             endif
@@ -417,16 +423,17 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
             break
         endif
 
+        oFWTemporaryTable:=FWTemporaryTable():New(@cAlias,@aSRFStruct)
+        oFWTemporaryTable:AddIndex("01",{"RF_FILIAL","RF_MAT","RF_DATABAS","RF_PD"})
+        oFWTemporaryTable:Create()
+
+        cacheData():Set("datasul2totvs","importSRFAlias",cAlias)
+        cacheData():Set("datasul2totvs","importSRFTable",oFWTemporaryTable:getRealName())
+
+        FWFreeArray(@aField)
+        FWFreeArray(@aSRFStruct)
+
         begin sequence
-
-            oFWTemporaryTable:=FWTemporaryTable():New(@cAlias,@aSRFStruct)
-            oFWTemporaryTable:AddIndex("01",{"RF_FILIAL","RF_MAT","RF_DATABAS","RF_PD"})
-            oFWTemporaryTable:Create()
-
-            FWFreeArray(@aSRFStruct)
-
-            cacheData():Set("datasul2totvs","importSRFAlias",cAlias)
-            cacheData():Set("datasul2totvs","importSRFTable",oFWTemporaryTable:getRealName())
 
             nRecCount:=oFT:ft_fLastRec()
             cRecCount:=cTools():NToS(nRecCount)
@@ -471,7 +478,7 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
                             loop
                         endif
                         cField:=aSRFFieldsDef[nField][1]
-                        xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSRFFieldsDef[nField],@aFieldsDef))
+                        xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSRFFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                         if (empty(xValue))
                             loop
                         endif
@@ -587,6 +594,11 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
     end sequence
 
+    if (valtype(oHMSourceFieldsDef)=="O")
+        oHMSourceFieldsDef:Clean()
+        oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
+    endif
+
     if (valType(aSRFStruct)=="A")
         FWFreeArray(@aSRFStruct)
     endif
@@ -615,6 +627,7 @@ return(lImportSRF)
 static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
     local aLog:=array(0) as array
+    local aField as array
     local aLogDet:=array(0) as array
     local aLogTitle:=array(0) as array
 
@@ -665,6 +678,7 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
     local oHMSR8Struct as object
     local oTimeRemaining as object
     local oFWTemporaryTable as object
+    local oHMSourceFieldsDef as object
 
     begin sequence
 
@@ -697,7 +711,13 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
         if (!lImportSR8)
             ApMsgAlert("Field definitions for the "+cSR8Table+" table not found","Attention")
             break
-        endif
+        endif   
+
+        nFields:=Len(aFieldsDef)
+        for nField:=1 to nFields
+            oHMSourceFieldsDef:Set(aFieldsDef[nField][1],aFieldsDef[nField][2])
+            oHMSourceFieldsDef:Set(aFieldsDef[nField][1]+"_AT",nField)
+        next nField
 
         aSR8FieldsDef:=aClone(oTFIni:GetAllProperties(cSR8Table))
         lImportSR8:=(!empty(aFieldsDef))
@@ -706,14 +726,17 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
             break
         endif
 
+        nFields:=Len(aSR8Struct)
+        for nField:=1 to nFields
+            aAdd(aSR8Struct[nField],nField)
+        next nField
         oHMSR8Struct:=aToHM(aSR8Struct,DBS_NAME)
 
         nFields:=Len(aSR8FieldsDef)
         for nField:=1 to nFields
-            cField:=Upper(aSR8FieldsDef[nField][1])
-            aSR8FieldsDef[nField][1]:=cField
-            if (oHMSR8Struct:Get(cField))
-                nSR8FieldPos:=aScan(aSR8Struct,{|x|(x[DBS_NAME]==cField)})
+            cField:=aSR8FieldsDef[nField][1]
+            if (oHMSR8Struct:Get(cField,@aField))
+                nSR8FieldPos:=aField[1][DBS_ALEN+1]
             else
                 nSR8FieldPos:=0
             endif
@@ -732,16 +755,17 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
             break
         endif
 
+        oFWTemporaryTable:=FWTemporaryTable():New(@cAlias,@aSR8Struct)
+        oFWTemporaryTable:AddIndex("01",{"R8_FILIAL","R8_MAT","R8_DATAINI","R8_TIPO","R8_TIPOAFA"})
+        oFWTemporaryTable:Create()
+
+        cacheData():Set("datasul2totvs","importSR8Alias",cAlias)
+        cacheData():Set("datasul2totvs","importSR8Table",oFWTemporaryTable:getRealName())
+
+        FWFreeArray(@aField)
+        FWFreeArray(@aSR8Struct)
+
         begin sequence
-        
-            oFWTemporaryTable:=FWTemporaryTable():New(@cAlias,@aSR8Struct)
-            oFWTemporaryTable:AddIndex("01",{"R8_FILIAL","R8_MAT","R8_DATAINI","R8_TIPO","R8_TIPOAFA"})
-            oFWTemporaryTable:Create()
-
-            FWFreeArray(@aSR8Struct)
-
-            cacheData():Set("datasul2totvs","importSR8Alias",cAlias)
-            cacheData():Set("datasul2totvs","importSR8Table",oFWTemporaryTable:getRealName())
 
             nRecCount:=oFT:ft_fLastRec()
             cRecCount:=cTools():NToS(nRecCount)
@@ -786,7 +810,7 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
                             loop
                         endif
                         cField:=aSR8FieldsDef[nField][1]
-                        xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSR8FieldsDef[nField],@aFieldsDef))
+                        xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSR8FieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                         if (empty(xValue))
                             loop
                         endif
@@ -901,6 +925,11 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
     end sequence
 
+    if (valtype(oHMSourceFieldsDef)=="O")
+        oHMSourceFieldsDef:Clean()
+        oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
+    endif
+
     if (type("oPVTHMSR8Seq")=="O")
         oPVTHMSR8Seq:Clean()
         oPVTHMSR8Seq:=FreeObj(oPVTHMSR8Seq)
@@ -931,7 +960,7 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
 return(lImportSR8)
 
-static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array) as variant
+static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array,oHMSourceFieldsDef as object) as variant
 
     local aValueField as array
     local aSourceField as array
@@ -946,11 +975,7 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     local nSourceFields as numeric
     local nSourceFieldAT as numeric
 
-    local oHMaSourceFieldsDef as object
-
     local xValue as variant
-
-    oHMaSourceFieldsDef:=aToHM(aSourceFieldsDef)
 
     cSourceField:=aTargetField[2]
     aSourceField:=strToKArr2(cSourceField,"+")
@@ -958,11 +983,12 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     aValueField:=Array(nSourceFields,2)
     for nSourceField:=1 to nSourceFields
         cSourceField:=aSourceField[nSourceField]
-        if (!oHMaSourceFieldsDef:Get(cSourceField))
+        if (!oHMSourceFieldsDef:Get(cSourceField,@cType))
             loop
         endif
-        nSourceFieldAT:=aScan(aSourceFieldsDef,{|x|(x[1]==cSourceField)})
-        cType:=aSourceFieldsDef[nSourceFieldAT][2]
+        if (!oHMSourceFieldsDef:Get(cSourceField+"_AT",@nSourceFieldAT))
+            loop
+        endif
         if (cType=="char")
             xValue:=""
         endif
@@ -971,9 +997,6 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     next nSourceField
 
     FwFreeArray(@aSourceField)
-
-    oHMaSourceFieldsDef:Clean()
-    oHMaSourceFieldsDef:=FreeObj(oHMaSourceFieldsDef)
 
     for nSourceField:=1 to nSourceFields
         if (aValueField[nSourceField][2]=="char")
