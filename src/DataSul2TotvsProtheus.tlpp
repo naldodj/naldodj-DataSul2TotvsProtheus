@@ -545,18 +545,20 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     local lAppend as logical
     local ldbCommit as logical
     local lImportData as logical
-    local lRecCount100 as logical
+    local lRecCountStep as logical
 
     local nField as numeric
     local nFields as numeric
 
     local nRecProc:=0 as numeric
     local nRecCount as numeric
-    local nRecCount100 as numeric
+    local nRecCountStep as numeric
     local nCommitBuffer as numeric
     local nTargetFieldPos as numeric
 
     local nIndexKey:=retOrder(cAlias,cIndexKey) as numeric
+
+    local nIncProcStep as numeric
 
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
@@ -572,7 +574,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     begin sequence
 
         oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
-
+        
         cSourceTable:=allTrim(oTFIni:GetPropertyValue("TablesImport",cTableImport,""))
         lImportData:=(!empty(cSourceTable))
         if (!lImportData)
@@ -658,18 +660,20 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
         cFieldFilial:=PrefixoCpo(cAlias)
         cFieldFilial+="_FILIAL"
 
+        nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","500"))))
+
         begin sequence
 
             nRecCount:=oFT:ft_fLastRec()
             cRecCount:=cTools():NToS(nRecCount)
-            nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
-            lRecCount100:=(nRecCount100!=nRecCount)
-            if (lRecCount100)
-                nRecCount100+=(nRecCount-(nRecCount100*100))
+            nRecCountStep:=if(nRecCount>=(nIncProcStep*2),Int(nRecCount/nIncProcStep),nRecCount)
+            lRecCountStep:=(nRecCountStep!=nRecCount)
+            if (lRecCountStep)
+                nRecCountStep+=(nRecCount-(nRecCountStep*nIncProcStep))
             endif
-            oMsNewProcess:SetRegua1(nRecCount100)
+            oMsNewProcess:SetRegua1(nRecCountStep)
             oMsNewProcess:SetRegua2(0)
-            oTimeRemaining:=timeRemaining():New(nRecCount100)
+            oTimeRemaining:=timeRemaining():New(nRecCountStep)
 
             oProgress:=txtProgress():New()
 
@@ -729,7 +733,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                 endif
                 FWFreeArray(@aLine)
                 nRecProc++
-                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                if ((!lRecCountStep).or.(Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
                     oTimeRemaining:Calcule(.T.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
@@ -740,7 +744,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     cIncProc+="/"
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
-                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,nRecProc/nRecCount100))+"%]"
+                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,nRecProc/nRecCountStep))+"%]"
                     oMsNewProcess:IncRegua1(cIncProc)
                 endif
                 lEnd:=oMsNewProcess:lEnd
@@ -770,13 +774,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
 
             nRecCount:=(cTmpAlias)->(recCount())
             cRecCount:=cTools():NToS(nRecCount)
-            nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
-            lRecCount100:=(nRecCount100!=nRecCount)
-            if (lRecCount100)
-                nRecCount100+=(nRecCount-(nRecCount100*100))
+            nRecCountStep:=if(nRecCount>=(nIncProcStep*2),Int(nRecCount/nIncProcStep),nRecCount)
+            lRecCountStep:=(nRecCountStep!=nRecCount)
+            if (lRecCountStep)
+                nRecCountStep+=(nRecCount-(nRecCountStep/nIncProcStep))
             endif
-            oMsNewProcess:SetRegua2(nRecCount100)
-            oTimeRemaining:SetRemaining(nRecCount100)
+            oMsNewProcess:SetRegua2(nRecCountStep)
+            oTimeRemaining:SetRemaining(nRecCountStep)
 
             (cAlias)->(dbSetOrder(nIndexKey))
 
@@ -809,7 +813,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     (cAlias)->(msUnLock())
                 endif
                 nRecProc++
-                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                if ((!lRecCountStep).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
                     oTimeRemaining:Calcule(.T.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
@@ -820,7 +824,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     cIncProc+="/"
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
-                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,nRecProc/nRecCount100))+"%]"
+                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,nRecProc/nRecCountStep))+"%]"
                     oMsNewProcess:IncRegua2(cIncProc)
                 endif                    
                 lEnd:=oMsNewProcess:lEnd
