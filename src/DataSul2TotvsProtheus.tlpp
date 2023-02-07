@@ -295,6 +295,222 @@ static function readTableDefinition() as logical
 
 return(lreadTableDefinition)
 
+static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array,oHMSourceFieldsDef as object) as variant
+
+    local aValueField as array
+    local aSourceField as array
+
+    local bTransform as codeblock
+
+    local cType as character
+    local cTransform as character
+    local cSourceField as character
+
+    local nSourceField as numeric
+    local nSourceFields as numeric
+    local nSourceFieldAT as numeric
+
+    local xValue as variant
+
+    cSourceField:=aTargetField[2]
+    aSourceField:=strToKArr2(cSourceField,"+")
+    nSourceFields:=len(aSourceField)
+    aValueField:=Array(nSourceFields,2)
+    for nSourceField:=1 to nSourceFields
+        cSourceField:=aSourceField[nSourceField]
+        if (!oHMSourceFieldsDef:Get(cSourceField,@cType))
+            loop
+        endif
+        if (!oHMSourceFieldsDef:Get(cSourceField+"_AT",@nSourceFieldAT))
+            loop
+        endif
+        if (cType=="char")
+            xValue:=""
+        endif
+        aValueField[nSourceField][1]:=NormalizeData(aLine[nSourceFieldAT],cType)
+        aValueField[nSourceField][2]:=cType
+    next nSourceField
+
+    FwFreeArray(@aSourceField)
+
+    for nSourceField:=1 to nSourceFields
+        if (aValueField[nSourceField][2]=="char")
+            xValue+=aValueField[nSourceField][1]
+        else
+            xValue:=aValueField[nSourceField][1]
+        endif
+    next nSourceField
+
+    FWFreeArray(@aValueField)
+
+    if (!st_oHMbTransform:Get(cTargetField,@bTransform))
+        cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,"Transform",""))
+        if (cTransform=="FindInTable")
+            cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,cTransform,""))
+            bTransform:=&(cTransform)
+        elseif (!empty(cTransform))
+            bTransform:=&(cTransform)
+        endif
+        st_oHMbTransform:Set(cTargetField,bTransform)
+    endif
+
+    if (valtype(bTransform)=="B")
+        xValue:=Eval(bTransform,xValue,oTFIni)
+    endif
+
+return(xValue)
+
+static function NormalizeData(xValue as variant,cType as character) as variant
+
+    if (cType=="char")
+       xValue:=strTran(xValue,'"',"")
+    elseif (cType=="inte")
+        xValue:=Int(val(xValue))
+    elseif ("deci"$cType)
+        if (","$xValue)
+            xValue:=strTran(xValue,",",".")
+        endif
+        xValue:=val(xValue)
+    elseif (cType=="date")
+        xValue:=CToD(xValue)
+    elseif (cType=="logi")
+        xValue:=(Left(lower(xValue),1)$"sty1")
+    endif
+
+return(xValue)
+
+static function FindInTable(oTFIni as object,cTable as character,xValue as variant,lTableInFile as logical)
+
+    local cType as character
+
+    local cINIfile as character
+    local cRootPath as character
+
+    local oTFIniTable as object
+
+    local xTmp as variant
+
+    cType:=valType(xValue)
+    if (cType=="N")
+        xValue:=ctools():NToS(xValue)
+    elseif (cType!="C")
+        xValue:=cValToChar(xValue)
+    endif
+
+    if (oTFIni:ExistSection(cTable))
+        if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
+            dfv():Default(@lTableInFile,.F.)
+            if (lTableInFile)
+                oTFIniTable:=cacheData():Get("datasul2totvs",cTable,nil)
+                if (oTFIniTable==nil)
+                    cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+                    cINIfile:=cRootPath
+                    cINIfile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
+                    oTFIniTable:=TFIni():New(cINIfile,"#")
+                    cacheData():Set("datasul2totvs",cTable,oTFIniTable)
+                endif
+                xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
+                if ((empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
+                    xTmp:=oTFIniTable:GetPropertyValue(cTable,"__DFV__","")
+                endif
+                xValue:=xTmp
+            else
+                oTFIniTable:=cacheData():Get("datasul2totvs",cTable,nil)
+                if (oTFIniTable==nil)
+                    cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+                    cINIfile:=cRootPath
+                    cINIfile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
+                    oTFIniTable:=TFIni():New(cINIfile,"#")
+                    cacheData():Set("datasul2totvs",cTable,oTFIniTable)
+                endif
+                xValue:=FindInTable(oTFIniTable,cTable,xValue)
+            endif
+        elseif ((oTFIni:GetATProperty(cTable,xValue)>0))
+            xValue:=oTFIni:GetPropertyValue(cTable,xValue,"")
+        elseif ((oTFIni:GetATProperty(cTable,"__DFV__")>0))
+            xValue:=oTFIni:GetPropertyValue(cTable,"__DFV__","")
+        endif
+    endif
+
+return(xValue)
+
+static function getR8Seq() as character
+
+    static c_stHMSR8SeqKey as character
+
+    local cStack:="DATASUL2TOTVS.IMPORTSR8" as character
+
+    local cR8MAT as character
+    local cR8SEQ:="" as character
+    local cR8TIPO as character
+    local cR8FILIAL as character
+    local cR8DATAINI as character
+    local cR8TIPOAFA as character
+
+    local cHMSR8SeqKey:="" as character
+
+    local cTmpAlias as character
+
+    local dR8DATAINI as date
+
+    begin sequence
+
+        if (type("cPVTSR8Alias")!="C")
+            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvs","importSR8Alias","__NOALIAS__"),cStack)
+        endif
+
+        cTmpAlias:=cPVTSR8Alias
+        if (select(cTmpAlias)==0)
+            break
+        endif
+
+        cR8FILIAL:=(cTmpAlias)->R8_FILIAL
+        cR8MAT:=(cTmpAlias)->R8_MAT
+        dR8DATAINI:=(cTmpAlias)->R8_DATAINI
+        cR8TIPO:=(cTmpAlias)->R8_TIPO
+        cR8TIPOAFA:=(cTmpAlias)->R8_TIPOAFA
+
+        cR8DATAINI:=DToS(dR8DATAINI)
+
+        cHMSR8SeqKey:=&("cEmpAnt")
+        cHMSR8SeqKey+=cR8FILIAL
+        cHMSR8SeqKey+=cR8MAT
+
+        if (type("oPVTHMSR8Seq")!="O")
+            _SetNamedPRVT("oPVTHMSR8Seq",THashMap():New(),cStack)
+        else
+            if (c_stHMSR8SeqKey!=cHMSR8SeqKey)
+                c_stHMSR8SeqKey:=cHMSR8SeqKey
+                oPVTHMSR8Seq:Clean()
+            endif
+        endif
+
+        cHMSR8SeqKey+=cR8DATAINI
+        cHMSR8SeqKey+=cR8TIPO
+        cHMSR8SeqKey+=cR8TIPOAFA
+
+        if (!oPVTHMSR8Seq:Get(cHMSR8SeqKey,@cR8SEQ)).or.(Empty(cR8SEQ))
+            if (type("nPVTSR8Seq")!="N")
+                _SetNamedPRVT("nPVTSR8Seq",GetSx3Cache("R8_SEQ","X3_TAMANHO"),cStack)
+                cR8SEQ:=Replicate("0",nPVTSR8Seq)
+                _SetNamedPRVT("cPVTR8SEQ",cR8SEQ,cStack)
+            endif
+            cR8SEQ:=cPVTR8SEQ
+        endif
+
+        cR8SEQ:=__Soma1(cR8SEQ)
+
+        oPVTHMSR8Seq:Set(cHMSR8SeqKey,cR8SEQ)
+
+    end sequence        
+
+return(cR8SEQ)
+
+static function ProcRedefine(oProcess as object,oFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,lODlgF as logical,lODlgW as logical) as logical
+    local lProcRedefine as logical
+    lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oFont,@nLeft,@nWidth,@nCTLFLeft,@lODlgF,@lODlgW)
+    return(lProcRedefine)
+
 static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array,aLogDet as array,aLogTitle as array,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array) as logical
 
     local aLine as array
@@ -667,10 +883,11 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
 
     if (!empty(aLogDet))
         fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
-        FWFreeArray(@aLog)
-        FWFreeArray(@aLogDet)
-        FWFreeArray(@aLogTitle)
     endif
+
+    FWFreeArray(@aLog)
+    FWFreeArray(@aLogDet)
+    FWFreeArray(@aLogTitle)
 
 return(lImportSRA)
 
@@ -690,10 +907,11 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
     if (!empty(aLogDet))
         fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
-        FWFreeArray(@aLog)
-        FWFreeArray(@aLogDet)
-        FWFreeArray(@aLogTitle)
     endif
+
+    FWFreeArray(@aLog)
+    FWFreeArray(@aLogDet)
+    FWFreeArray(@aLogTitle)
 
 return(lImportSRF)
 
@@ -705,7 +923,7 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
     local lImportSR8 as logical
 
-    lImportSR8:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SR8","R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO","SRF",{"R8_FILIAL","R8_MAT","R8_DATAINI","R8_TIPO","R8_TIPOAFA"})
+    lImportSR8:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SR8","R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO","SR8",{"R8_FILIAL","R8_MAT","R8_DATAINI","R8_TIPO","R8_TIPOAFA"})
 
     if (lImportSR8)
         ApMsgInfo("SR8 Table Import Completed","Info")
@@ -713,225 +931,10 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
     if (!empty(aLogDet))
         fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
-        FWFreeArray(@aLog)
-        FWFreeArray(@aLogDet)
-        FWFreeArray(@aLogTitle)
     endif
+
+    FWFreeArray(@aLog)
+    FWFreeArray(@aLogDet)
+    FWFreeArray(@aLogTitle)
 
 return(lImportSR8)
-
-static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array,oHMSourceFieldsDef as object) as variant
-
-    local aValueField as array
-    local aSourceField as array
-
-    local bTransform as codeblock
-
-    local cType as character
-    local cTransform as character
-    local cSourceField as character
-
-    local nSourceField as numeric
-    local nSourceFields as numeric
-    local nSourceFieldAT as numeric
-
-    local xValue as variant
-
-    cSourceField:=aTargetField[2]
-    aSourceField:=strToKArr2(cSourceField,"+")
-    nSourceFields:=len(aSourceField)
-    aValueField:=Array(nSourceFields,2)
-    for nSourceField:=1 to nSourceFields
-        cSourceField:=aSourceField[nSourceField]
-        if (!oHMSourceFieldsDef:Get(cSourceField,@cType))
-            loop
-        endif
-        if (!oHMSourceFieldsDef:Get(cSourceField+"_AT",@nSourceFieldAT))
-            loop
-        endif
-        if (cType=="char")
-            xValue:=""
-        endif
-        aValueField[nSourceField][1]:=NormalizeData(aLine[nSourceFieldAT],cType)
-        aValueField[nSourceField][2]:=cType
-    next nSourceField
-
-    FwFreeArray(@aSourceField)
-
-    for nSourceField:=1 to nSourceFields
-        if (aValueField[nSourceField][2]=="char")
-            xValue+=aValueField[nSourceField][1]
-        else
-            xValue:=aValueField[nSourceField][1]
-        endif
-    next nSourceField
-
-    FWFreeArray(@aValueField)
-
-    if (!st_oHMbTransform:Get(cTargetField,@bTransform))
-        cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,"Transform",""))
-        if (cTransform=="FindInTable")
-            cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,cTransform,""))
-            bTransform:=&(cTransform)
-        elseif (!empty(cTransform))
-            bTransform:=&(cTransform)
-        endif
-        st_oHMbTransform:Set(cTargetField,bTransform)
-    endif
-
-    if (valtype(bTransform)=="B")
-        xValue:=Eval(bTransform,xValue,oTFIni)
-    endif
-
-return(xValue)
-
-static function NormalizeData(xValue as variant,cType as character) as variant
-
-    if (cType=="char")
-       xValue:=strTran(xValue,'"',"")
-    elseif (cType=="inte")
-        xValue:=Int(val(xValue))
-    elseif ("deci"$cType)
-        if (","$xValue)
-            xValue:=strTran(xValue,",",".")
-        endif
-        xValue:=val(xValue)
-    elseif (cType=="date")
-        xValue:=CToD(xValue)
-    elseif (cType=="logi")
-        xValue:=(Left(lower(xValue),1)$"sty1")
-    endif
-
-return(xValue)
-
-static function FindInTable(oTFIni as object,cTable as character,xValue as variant,lTableInFile as logical)
-
-    local cType as character
-
-    local cINIfile as character
-    local cRootPath as character
-
-    local oTFIniTable as object
-
-    local xTmp as variant
-
-    cType:=valType(xValue)
-    if (cType=="N")
-        xValue:=ctools():NToS(xValue)
-    elseif (cType!="C")
-        xValue:=cValToChar(xValue)
-    endif
-
-    if (oTFIni:ExistSection(cTable))
-        if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
-            dfv():Default(@lTableInFile,.F.)
-            if (lTableInFile)
-                oTFIniTable:=cacheData():Get("datasul2totvs",cTable,nil)
-                if (oTFIniTable==nil)
-                    cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
-                    cINIfile:=cRootPath
-                    cINIfile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
-                    oTFIniTable:=TFIni():New(cINIfile,"#")
-                    cacheData():Set("datasul2totvs",cTable,oTFIniTable)
-                endif
-                xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
-                if ((empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
-                    xTmp:=oTFIniTable:GetPropertyValue(cTable,"__DFV__","")
-                endif
-                xValue:=xTmp
-            else
-                oTFIniTable:=cacheData():Get("datasul2totvs",cTable,nil)
-                if (oTFIniTable==nil)
-                    cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
-                    cINIfile:=cRootPath
-                    cINIfile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
-                    oTFIniTable:=TFIni():New(cINIfile,"#")
-                    cacheData():Set("datasul2totvs",cTable,oTFIniTable)
-                endif
-                xValue:=FindInTable(oTFIniTable,cTable,xValue)
-            endif
-        elseif ((oTFIni:GetATProperty(cTable,xValue)>0))
-            xValue:=oTFIni:GetPropertyValue(cTable,xValue,"")
-        elseif ((oTFIni:GetATProperty(cTable,"__DFV__")>0))
-            xValue:=oTFIni:GetPropertyValue(cTable,"__DFV__","")
-        endif
-    endif
-
-return(xValue)
-
-static function getR8Seq() as character
-
-    static c_stHMSR8SeqKey as character
-
-    local cStack:="DATASUL2TOTVS.IMPORTSR8" as character
-
-    local cR8MAT as character
-    local cR8SEQ:="" as character
-    local cR8TIPO as character
-    local cR8FILIAL as character
-    local cR8DATAINI as character
-    local cR8TIPOAFA as character
-
-    local cHMSR8SeqKey:="" as character
-
-    local cTmpAlias as character
-
-    local dR8DATAINI as date
-
-    begin sequence
-
-        if (type("cPVTSR8Alias")!="C")
-            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvs","importSR8Alias","__NOALIAS__"),cStack)
-        endif
-
-        cTmpAlias:=cPVTSR8Alias
-        if (select(cTmpAlias)==0)
-            break
-        endif
-
-        cR8FILIAL:=(cTmpAlias)->R8_FILIAL
-        cR8MAT:=(cTmpAlias)->R8_MAT
-        dR8DATAINI:=(cTmpAlias)->R8_DATAINI
-        cR8TIPO:=(cTmpAlias)->R8_TIPO
-        cR8TIPOAFA:=(cTmpAlias)->R8_TIPOAFA
-
-        cR8DATAINI:=DToS(dR8DATAINI)
-
-        cHMSR8SeqKey:=&("cEmpAnt")
-        cHMSR8SeqKey+=cR8FILIAL
-        cHMSR8SeqKey+=cR8MAT
-
-        if (type("oPVTHMSR8Seq")!="O")
-            _SetNamedPRVT("oPVTHMSR8Seq",THashMap():New(),cStack)
-        else
-            if (c_stHMSR8SeqKey!=cHMSR8SeqKey)
-                c_stHMSR8SeqKey:=cHMSR8SeqKey
-                oPVTHMSR8Seq:Clean()
-            endif
-        endif
-
-        cHMSR8SeqKey+=cR8DATAINI
-        cHMSR8SeqKey+=cR8TIPO
-        cHMSR8SeqKey+=cR8TIPOAFA
-
-        if (!oPVTHMSR8Seq:Get(cHMSR8SeqKey,@cR8SEQ)).or.(Empty(cR8SEQ))
-            if (type("nPVTSR8Seq")!="N")
-                _SetNamedPRVT("nPVTSR8Seq",GetSx3Cache("R8_SEQ","X3_TAMANHO"),cStack)
-                cR8SEQ:=Replicate("0",nPVTSR8Seq)
-                _SetNamedPRVT("cPVTR8SEQ",cR8SEQ,cStack)
-            endif
-            cR8SEQ:=cPVTR8SEQ
-        endif
-
-        cR8SEQ:=__Soma1(cR8SEQ)
-
-        oPVTHMSR8Seq:Set(cHMSR8SeqKey,cR8SEQ)
-
-    end sequence        
-
-return(cR8SEQ)
-
-static function ProcRedefine(oProcess as object,oFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,lODlgF as logical,lODlgW as logical) as logical
-    local lProcRedefine as logical
-    lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oFont,@nLeft,@nWidth,@nCTLFLeft,@lODlgF,@lODlgW)
-    return(lProcRedefine)
