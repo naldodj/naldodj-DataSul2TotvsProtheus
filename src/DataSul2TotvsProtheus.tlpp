@@ -17,6 +17,7 @@ end class
 
 static method Activate() class Protheus
 
+    local bSRAMsNewProcess as codeblock
     local bSRFMsNewProcess as codeblock
     local bSR8MsNewProcess as codeblock
     
@@ -32,6 +33,7 @@ static method Activate() class Protheus
     local oFont as object
     local oFWDefSize as object
     
+    local oSRAMSNewProcess as object
     local oSRFMSNewProcess as object
     local oSR8MSNewProcess as object
 
@@ -69,6 +71,7 @@ static method Activate() class Protheus
 
         oFont:=TFont():New("Courier New",nil,16,nil,.T.)
 
+        bSRAMsNewProcess:={|lEnd|ProcRedefine(oSRAMSNewProcess,@oFont,0,600,600,.T.,.T.),ImportSRF(oSRAMSNewProcess,@lEnd)}
         bSRFMsNewProcess:={|lEnd|ProcRedefine(oSRFMSNewProcess,@oFont,0,600,600,.T.,.T.),ImportSRF(oSRFMSNewProcess,@lEnd)}
         bSR8MsNewProcess:={|lEnd|ProcRedefine(oSR8MSNewProcess,@oFont,0,600,600,.T.,.T.),ImportSR8(oSR8MSNewProcess,@lEnd)}
 
@@ -77,6 +80,7 @@ static method Activate() class Protheus
             MENU oMenu IMAGE "" OF oDlg
                 MENUITEM "TOTVS :: DataSul To Protheus"
                 MENU
+                    MENUITEM "Import SRA" ACTION (oSRAMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRAMSNewProcess:Activate())
                     MENUITEM "Import SRF" ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
                     MENUITEM "Import SR8" ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
                 ENDMENU
@@ -94,6 +98,7 @@ static method Activate() class Protheus
         oMenu:=FreeObj(oMenu)
         oDlg:=FreeObj(oDlg)
 
+        oSRAMSNewProcess:=FreeObj(oSRAMSNewProcess)
         oSRFMSNewProcess:=FreeObj(oSRFMSNewProcess)
         oSR8MSNewProcess:=FreeObj(oSR8MSNewProcess)
 
@@ -290,6 +295,694 @@ static function readTableDefinition() as logical
 
 return(lreadTableDefinition)
 
+static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
+
+    local aLog:=array(0) as array
+    local aLogDet:=array(0) as array
+    local aLogTitle:=array(0) as array
+
+    local aLine as array
+    local aField as array
+    local aFieldsDef:=array(0) as array
+    local aSRAStruct:=SRA->(dbStruct()) as array
+    local aSRAFieldsDef as array
+
+    local cField as character
+    local cLineUTF8 as character
+
+    local cAlias:=getNextAlias() as character
+    local cLine as character
+    local cSRAFile as character
+    local cSRATable as character
+    local cRootPath as character
+    local cDataPath as character
+
+    local cRecCount as character
+
+    local cSRAIndexID as character
+    local cSRAIndexKey:="RA_FILIAL+RA_MAT" as character
+
+    local cIncProc as character
+    local cTimeRemaining as character
+
+    local lFound as logical
+    local lAddNew as logical
+    local ldbCommit as logical
+    local lImportSRA as logical
+    local lRecCount100 as logical
+
+    local nField as numeric
+    local nFields as numeric
+
+    local nRecProc:=0 as numeric
+    local nRecCount as numeric
+    local nRecCount100 as numeric
+    local nCommitBuffer as numeric
+
+    local nSRAIndexKey:=retOrder("SRA",cSRAIndexKey) as numeric
+
+    local nft_fRecNo as numeric
+    local nft_fHandle as numeric
+
+    local oFT as object
+    local oTFIni as object
+    local oProgress as object
+    local oHMSRAStruct as object
+    local oTimeRemaining as object
+    local oFWTemporaryTable as object
+    local oHMSourceFieldsDef as object
+
+    begin sequence
+
+        oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
+
+        cSRATable:=allTrim(oTFIni:GetPropertyValue("TablesImport","SRA",""))
+        lImportSRA:=(!empty(cSRATable))
+        if (!lImportSRA)
+            ApMsgAlert("There is no setting for the SRA table","Attention")
+            break
+        endif
+
+        cDataPath:=allTrim(oTFIni:GetPropertyValue("Tables","TablesData",""))
+        lImportSRA:=(!empty(cDataPath))
+        if (!lImportSRA)
+            ApMsgAlert("Invalida Data Path ("+cDataPath+")","Attention")
+            break
+        endif
+
+        cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+        cSRAFile:=(cRootPath+".."+cDataPath+cSRATable+".csv")
+        lImportSRA:=file(cSRAFile)
+        if (!lImportSRA)
+            ApMsgAlert("File ("+cSRAFile+") not found","Attention")
+            break
+        endif
+
+        aFieldsDef:=aClone(cacheData():Get("datasul2totvs",cSRATable,aFieldsDef))
+        lImportSRA:=(!empty(aFieldsDef))
+        if (!lImportSRA)
+            ApMsgAlert("Field definitions for the "+cSRATable+" table not found","Attention")
+            break
+        endif
+
+        oHMSourceFieldsDef:=THashMap():New()
+        nFields:=Len(aFieldsDef)
+        for nField:=1 to nFields
+            oHMSourceFieldsDef:Set(aFieldsDef[nField][1],aFieldsDef[nField][2])
+            oHMSourceFieldsDef:Set(aFieldsDef[nField][1]+"_AT",nField)
+        next nField
+
+        aSRAFieldsDef:=aClone(oTFIni:GetAllProperties(cSRATable))
+        lImportSRA:=(!empty(aFieldsDef))
+        if (!lImportSRA)
+            ApMsgAlert("Field definitions for the SRA table not found","Attention")
+            break
+        endif
+
+        nFields:=Len(aSRAStruct)
+        for nField:=1 to nFields
+            aAdd(aSRAStruct[nField],nField)
+        next nField
+        oHMSRAStruct:=aToHM(aSRAStruct,DBS_NAME)
+
+        nFields:=Len(aSRAFieldsDef)
+        for nField:=1 to nFields
+            cField:=aSRAFieldsDef[nField][1]
+            if (oHMSRAStruct:Get(cField,@aField))
+                nSRAFieldPos:=aField[1][DBS_ALEN+1]
+            else
+                nSRAFieldPos:=0
+            endif
+            aAdd(aSRAFieldsDef[nField],nSRAFieldPos)
+        next nField
+
+        oHMSRAStruct:Clean()
+        oHMSRAStruct:=FreeObj(oHMSRAStruct)
+
+        oFT:=uft():New()
+
+        MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSRAFile)},"Loading Data File","Wait")
+        lImportSRA:=(nft_fHandle>=0)
+        if (!lImportSRA)
+            ApMsgAlert("Could not open the file: "+cSRAFile,"Attention")
+            break
+        endif
+
+        oFWTemporaryTable:=FWTemporaryTable():New(@cAlias,@aSRAStruct)
+        oFWTemporaryTable:AddIndex("01",{"RA_FILIAL","RA_MAT"})
+        oFWTemporaryTable:Create()
+
+        cacheData():Set("datasul2totvs","importSRAAlias",cAlias)
+        cacheData():Set("datasul2totvs","importSRATable",oFWTemporaryTable:getRealName())
+
+        FWFreeArray(@aField)
+        FWFreeArray(@aSRAStruct)
+
+        begin sequence
+
+            nRecCount:=oFT:ft_fLastRec()
+            cRecCount:=cTools():NToS(nRecCount)
+            nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
+            lRecCount100:=(nRecCount100!=nRecCount)
+            if (lRecCount100)
+                nRecCount100+=(nRecCount-(nRecCount100*100))
+            endif
+            oMsNewProcess:SetRegua1(nRecCount100)
+            oMsNewProcess:SetRegua2(0)
+            oTimeRemaining:=timeRemaining():New(nRecCount100)
+
+            oProgress:=txtProgress():New()
+
+            TCSrvMap(cAlias,nil,.F.)
+
+            oFT:ft_fGoTop()
+            while (!oFT:ft_fEof())
+                nft_fRecNo:=oFT:ft_fRecNo()
+                cLine:=oFT:ft_fReadLN()
+                oFT:ft_fDelete()
+                if (empty(cLine))
+                    oFT:ft_fSkip()
+                    loop
+                endif
+                cLineUTF8:=DecodeUTF8(cLine)
+                if (empty(cLineUTF8))
+                    aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                    aAdd(aLog,cLine)
+                    aAdd(aLog,"Existem Caracteres Invalidos")
+                    aAdd(aLogDet,aClone(aLog))
+                    aSize(aLog,0)
+                else
+                    cLine:=cLineUTF8
+                endif
+                aLine:=strTokArr2(cLine,";")
+                cLine:=""
+                (cAlias)->(dbAppend(.F.))
+                    for nField:=1 to nFields
+                        nSRAFieldPos:=aSRAFieldsDef[nField][Len(aSRAFieldsDef[nField])]
+                        if (nSRAFieldPos==0)
+                            loop
+                        endif
+                        cField:=aSRAFieldsDef[nField][1]
+                        xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSRAFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+                        if (empty(xValue))
+                            if (cField=="RA_FILIAL")
+                                (cAlias)->(dbDelete())
+                                exit
+                            endif
+                            loop
+                        endif
+                        (cAlias)->(FieldPut(nSRAFieldPos,xValue))
+                    next nField
+                ldbCommit:=(++nCommitBuffer>=1024)
+                FWFreeArray(@aLine)
+                nRecProc++
+                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.T.)
+                    cTimeRemaining:=" :: End of processing in ["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                    cTimeRemaining+=" :: ["+oTimeRemaining:GetcAverageTime()+"]"
+                    cIncProc:="["+oProgress:Eval()+"] "
+                    cIncProc+="Processing Record: "
+                    cIncProc+=cTools():NToS(nft_fRecNo)
+                    cIncProc+="/"
+                    cIncProc+=cRecCount
+                    cIncProc+=cTimeRemaining
+                    cIncProc+=" :: ["+cTools():NToS(nRecProc/nRecCount100)+"%]"
+                    oMsNewProcess:IncRegua1(cIncProc)
+                endif
+                lEnd:=oMsNewProcess:lEnd
+                if (lEnd)
+                    aAdd(aLogTitle,"Process canceled by user")
+                    aAdd(aLog,"Process canceled by user ["+DtoC(Date())+"]["+Time()+"]")
+                    aAdd(aLogDet,aClone(aLog))
+                    aSize(aLog,0)
+                    exit
+                endif
+                if (ldbCommit)
+                    nCommitBuffer:=0
+                    (cAlias)->(dbCommitAll())
+                endif
+                oFT:ft_fSkip()
+            end while
+
+            if (nCommitBuffer>0)
+                (cAlias)->(dbCommitAll())
+            endif
+
+            oFT:ft_fUse()
+
+            if (lEnd)
+                break
+            endif
+
+            MsAguarde({||(cAlias)->(__dbPack())},"Deleting invalid records","Wait!")
+
+            nRecCount:=(cAlias)->(recCount())
+            cRecCount:=cTools():NToS(nRecCount)
+            nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
+            lRecCount100:=(nRecCount100!=nRecCount)
+            if (lRecCount100)
+                nRecCount100+=(nRecCount-(nRecCount100*100))
+            endif
+            oMsNewProcess:SetRegua2(nRecCount100)
+            oTimeRemaining:SetRemaining(nRecCount100)
+
+            SRA->(dbSetOrder(nSRAIndexKey))
+
+            nRecProc:=0
+
+            (cAlias)->(dbGoTop())
+            while (cAlias)->(!eof())
+                if (!empty((cAlias)->RA_FILIAL))
+                    cSRAIndexID:=(cAlias)->(&(cSRAIndexKey))
+                    lFound:=SRA->(dbSeek(cSRAIndexID,.F.))
+                    lAddNew:=(!lFound)
+                    if (SRA->(recLock("SRA",lAddNew)))
+                        for nField:=1 to nFields
+                            nSRAFieldPos:=aSRAFieldsDef[nField][Len(aSRAFieldsDef[nField])]
+                            if (nSRAFieldPos==0)
+                                loop
+                            endif
+                            xValue:=(cAlias)->(FieldGet(nSRAFieldPos))
+                            if (empty(xValue))
+                                loop
+                            endif
+                            SRA->(FieldPut(nSRAFieldPos,xValue))
+                        next nField
+                        if (empty(SRA->RA_CODUNIC))
+                            SRA->RA_CODUNIC:=fRACodUnic()
+                        endif
+                        SRA->(msUnLock())
+                    endif
+                endif
+                nRecProc++
+                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.T.)
+                    cTimeRemaining:=" :: End of processing in ["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                    cTimeRemaining+=" :: ["+oTimeRemaining:GetcAverageTime()+"]"
+                    cIncProc:="["+oProgress:Eval()+"] "
+                    cIncProc+="Updating Record: "
+                    cIncProc+=cTools():NToS((cAlias)->(recNo()))
+                    cIncProc+="/"
+                    cIncProc+=cRecCount
+                    cIncProc+=cTimeRemaining
+                    cIncProc+=" :: ["+cTools():NToS(nRecProc/nRecCount100)+"%]"
+                    oMsNewProcess:IncRegua2(cIncProc)
+                endif                    
+                lEnd:=oMsNewProcess:lEnd
+                if (lEnd)
+                    aAdd(aLogTitle,"Process canceled by user")
+                    aAdd(aLog,"Process canceled by user ["+DtoC(Date())+"]["+Time()+"]")
+                    aAdd(aLogDet,aClone(aLog))
+                    aSize(aLog,0)
+                    break
+                endif
+                (cAlias)->(dbSkip())
+            end while
+
+        end sequence
+
+        (cAlias)->(dbCloseArea())
+
+        oFWTemporaryTable:Delete()
+        oFWTemporaryTable:=FreeObj(oFWTemporaryTable)
+
+    end sequence
+
+    if (valtype(oHMSourceFieldsDef)=="O")
+        oHMSourceFieldsDef:Clean()
+        oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
+    endif
+
+    if (valType(aSRAStruct)=="A")
+        FWFreeArray(@aSRAStruct)
+    endif
+
+    if (valType(aFieldsDef)=="A")
+        FWFreeArray(@aFieldsDef)
+    endif
+
+    if (valType(aSRAFieldsDef)=="A")
+        FWFreeArray(@aSRAFieldsDef)
+    endif
+
+    if (lImportSRA)
+        lImportSRA:=importSRA_RHPF(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle)
+        if (lImportSRA)
+            ApMsgInfo("SRA Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the SRA_RHPF table","Info")
+        endif
+    endif
+
+    if (!empty(aLogDet))
+        fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
+        FWFreeArray(@aLog)
+        FWFreeArray(@aLogDet)
+        FWFreeArray(@aLogTitle)
+    endif
+
+return(lImportSRA)
+
+static function importSRA_RHPF(oMsNewProcess as object,lEnd as logical,aLog as array,aLogDet as array,aLogTitle as array) as logical
+
+    local aLine as array
+    local aField as array
+    local aFieldsDef:=array(0) as array
+    local aSRAStruct:=SRA->(dbStruct()) as array
+    local aSRAFieldsDef as array
+
+    local cField as character
+    local cLineUTF8 as character
+
+    local cAlias:=getNextAlias() as character
+    local cLine as character
+    local cSRAFile as character
+    local cSRATable as character
+    local cRootPath as character
+    local cDataPath as character
+
+    local cRecCount as character
+
+    local cSRAIndexID as character
+    local cSRAIndexKey:="RA_FILIAL+RA_MATMIG" as character
+
+    local cIncProc as character
+    local cTimeRemaining as character
+
+    local lFound as logical
+    local lAddNew as logical
+    local ldbCommit as logical
+    local lImportSRA as logical
+    local lRecCount100 as logical
+
+    local nField as numeric
+    local nFields as numeric
+
+    local nRecProc:=0 as numeric
+    local nRecCount as numeric
+    local nRecCount100 as numeric
+    local nCommitBuffer as numeric
+
+    local nSRAIndexKey:=retOrder("SRA",cSRAIndexKey) as numeric
+
+    local nft_fRecNo as numeric
+    local nft_fHandle as numeric
+
+    local oFT as object
+    local oTFIni as object
+    local oProgress as object
+    local oHMSRAStruct as object
+    local oTimeRemaining as object
+    local oFWTemporaryTable as object
+    local oHMSourceFieldsDef as object
+
+    begin sequence
+
+        oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
+
+        cSRATable:=allTrim(oTFIni:GetPropertyValue("TablesImport","SRA_RHPF",""))
+        lImportSRA:=(!empty(cSRATable))
+        if (!lImportSRA)
+            ApMsgAlert("There is no setting for the SRA_RHPF table","Attention")
+            break
+        endif
+
+        cDataPath:=allTrim(oTFIni:GetPropertyValue("Tables","TablesData",""))
+        lImportSRA:=(!empty(cDataPath))
+        if (!lImportSRA)
+            ApMsgAlert("Invalida Data Path ("+cDataPath+")","Attention")
+            break
+        endif
+
+        cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+        cSRAFile:=(cRootPath+".."+cDataPath+cSRATable+".csv")
+        lImportSRA:=file(cSRAFile)
+        if (!lImportSRA)
+            ApMsgAlert("File ("+cSRAFile+") not found","Attention")
+            break
+        endif
+
+        aFieldsDef:=aClone(cacheData():Get("datasul2totvs",cSRATable,aFieldsDef))
+        lImportSRA:=(!empty(aFieldsDef))
+        if (!lImportSRA)
+            ApMsgAlert("Field definitions for the "+cSRATable+" table not found","Attention")
+            break
+        endif
+
+        oHMSourceFieldsDef:=THashMap():New()
+        nFields:=Len(aFieldsDef)
+        for nField:=1 to nFields
+            oHMSourceFieldsDef:Set(aFieldsDef[nField][1],aFieldsDef[nField][2])
+            oHMSourceFieldsDef:Set(aFieldsDef[nField][1]+"_AT",nField)
+        next nField
+
+        aSRAFieldsDef:=aClone(oTFIni:GetAllProperties(cSRATable))
+        lImportSRA:=(!empty(aFieldsDef))
+        if (!lImportSRA)
+            ApMsgAlert("Field definitions for the SRA_RHPF table not found","Attention")
+            break
+        endif
+
+        nFields:=Len(aSRAStruct)
+        for nField:=1 to nFields
+            aAdd(aSRAStruct[nField],nField)
+        next nField
+        oHMSRAStruct:=aToHM(aSRAStruct,DBS_NAME)
+
+        nFields:=Len(aSRAFieldsDef)
+        for nField:=1 to nFields
+            cField:=aSRAFieldsDef[nField][1]
+            if (oHMSRAStruct:Get(cField,@aField))
+                nSRAFieldPos:=aField[1][DBS_ALEN+1]
+            else
+                nSRAFieldPos:=0
+            endif
+            aAdd(aSRAFieldsDef[nField],nSRAFieldPos)
+        next nField
+
+        oHMSRAStruct:Clean()
+        oHMSRAStruct:=FreeObj(oHMSRAStruct)
+
+        oFT:=uft():New()
+
+        MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSRAFile)},"Loading Data File","Wait")
+        lImportSRA:=(nft_fHandle>=0)
+        if (!lImportSRA)
+            ApMsgAlert("Could not open the file: "+cSRAFile,"Attention")
+            break
+        endif
+
+        oFWTemporaryTable:=FWTemporaryTable():New(@cAlias,@aSRAStruct)
+        oFWTemporaryTable:AddIndex("01",{"RA_FILIAL","RA_MATMIG"})
+        oFWTemporaryTable:Create()
+
+        cacheData():Set("datasul2totvs","importSRA_RHPFAlias",cAlias)
+        cacheData():Set("datasul2totvs","importSRA_RHPFTable",oFWTemporaryTable:getRealName())
+
+        FWFreeArray(@aField)
+        FWFreeArray(@aSRAStruct)
+
+        begin sequence
+
+            nRecCount:=oFT:ft_fLastRec()
+            cRecCount:=cTools():NToS(nRecCount)
+            nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
+            lRecCount100:=(nRecCount100!=nRecCount)
+            if (lRecCount100)
+                nRecCount100+=(nRecCount-(nRecCount100*100))
+            endif
+            oMsNewProcess:SetRegua1(nRecCount100)
+            oMsNewProcess:SetRegua2(0)
+            oTimeRemaining:=timeRemaining():New(nRecCount100)
+
+            oProgress:=txtProgress():New()
+
+            TCSrvMap(cAlias,nil,.F.)
+
+            oFT:ft_fGoTop()
+            while (!oFT:ft_fEof())
+                nft_fRecNo:=oFT:ft_fRecNo()
+                cLine:=oFT:ft_fReadLN()
+                oFT:ft_fDelete()
+                if (empty(cLine))
+                    oFT:ft_fSkip()
+                    loop
+                endif
+                cLineUTF8:=DecodeUTF8(cLine)
+                if (empty(cLineUTF8))
+                    aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                    aAdd(aLog,cLine)
+                    aAdd(aLog,"Existem Caracteres Invalidos")
+                    aAdd(aLogDet,aClone(aLog))
+                    aSize(aLog,0)
+                else
+                    cLine:=cLineUTF8
+                endif
+                aLine:=strTokArr2(cLine,";")
+                cLine:=""
+                (cAlias)->(dbAppend(.F.))
+                    for nField:=1 to nFields
+                        nSRAFieldPos:=aSRAFieldsDef[nField][Len(aSRAFieldsDef[nField])]
+                        if (nSRAFieldPos==0)
+                            loop
+                        endif
+                        cField:=aSRAFieldsDef[nField][1]
+                        xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSRAFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+                        if (empty(xValue))
+                            if (cField=="RA_FILIAL")
+                                (cAlias)->(dbDelete())
+                                exit
+                            endif
+                            loop
+                        endif
+                        (cAlias)->(FieldPut(nSRAFieldPos,xValue))
+                    next nField
+                ldbCommit:=(++nCommitBuffer>=1024)
+                FWFreeArray(@aLine)
+                nRecProc++
+                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.T.)
+                    cTimeRemaining:=" :: End of processing in ["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                    cTimeRemaining+=" :: ["+oTimeRemaining:GetcAverageTime()+"]"
+                    cIncProc:="["+oProgress:Eval()+"] "
+                    cIncProc+="Processing Record: "
+                    cIncProc+=cTools():NToS(nft_fRecNo)
+                    cIncProc+="/"
+                    cIncProc+=cRecCount
+                    cIncProc+=cTimeRemaining
+                    cIncProc+=" :: ["+cTools():NToS(nRecProc/nRecCount100)+"%]"
+                    oMsNewProcess:IncRegua1(cIncProc)
+                endif
+                lEnd:=oMsNewProcess:lEnd
+                if (lEnd)
+                    aAdd(aLogTitle,"Process canceled by user")
+                    aAdd(aLog,"Process canceled by user ["+DtoC(Date())+"]["+Time()+"]")
+                    aAdd(aLogDet,aClone(aLog))
+                    aSize(aLog,0)
+                    exit
+                endif
+                if (ldbCommit)
+                    nCommitBuffer:=0
+                    (cAlias)->(dbCommitAll())
+                endif
+                oFT:ft_fSkip()
+            end while
+
+            if (nCommitBuffer>0)
+                (cAlias)->(dbCommitAll())
+            endif
+
+            oFT:ft_fUse()
+
+            if (lEnd)
+                break
+            endif
+
+            MsAguarde({||(cAlias)->(__dbPack())},"Deleting invalid records","Wait!")
+
+            nRecCount:=(cAlias)->(recCount())
+            cRecCount:=cTools():NToS(nRecCount)
+            nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
+            lRecCount100:=(nRecCount100!=nRecCount)
+            if (lRecCount100)
+                nRecCount100+=(nRecCount-(nRecCount100*100))
+            endif
+            oMsNewProcess:SetRegua2(nRecCount100)
+            oTimeRemaining:SetRemaining(nRecCount100)
+
+            SRA->(dbSetOrder(nSRAIndexKey))
+
+            nRecProc:=0
+
+            (cAlias)->(dbGoTop())
+            while (cAlias)->(!eof())
+                if (!empty((cAlias)->RA_FILIAL))
+                    cSRAIndexID:=(cAlias)->(&(cSRAIndexKey))
+                    lFound:=SRA->(dbSeek(cSRAIndexID,.F.))
+                    lAddNew:=(!lFound)
+                    if (SRA->(recLock("SRA",lAddNew)))
+                        for nField:=1 to nFields
+                            nSRAFieldPos:=aSRAFieldsDef[nField][Len(aSRAFieldsDef[nField])]
+                            if (nSRAFieldPos==0)
+                                loop
+                            endif
+                            xValue:=(cAlias)->(FieldGet(nSRAFieldPos))
+                            if (empty(xValue))
+                                loop
+                            endif
+                            SRA->(FieldPut(nSRAFieldPos,xValue))
+                        next nField
+                        SRA->(msUnLock())
+                    endif
+                endif
+                nRecProc++
+                if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.T.)
+                    cTimeRemaining:=" :: End of processing in ["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                    cTimeRemaining+=" :: ["+oTimeRemaining:GetcAverageTime()+"]"
+                    cIncProc:="["+oProgress:Eval()+"] "
+                    cIncProc+="Updating Record: "
+                    cIncProc+=cTools():NToS((cAlias)->(recNo()))
+                    cIncProc+="/"
+                    cIncProc+=cRecCount
+                    cIncProc+=cTimeRemaining
+                    cIncProc+=" :: ["+cTools():NToS(nRecProc/nRecCount100)+"%]"
+                    oMsNewProcess:IncRegua2(cIncProc)
+                endif                    
+                lEnd:=oMsNewProcess:lEnd
+                if (lEnd)
+                    aAdd(aLogTitle,"Process canceled by user")
+                    aAdd(aLog,"Process canceled by user ["+DtoC(Date())+"]["+Time()+"]")
+                    aAdd(aLogDet,aClone(aLog))
+                    aSize(aLog,0)
+                    break
+                endif
+                (cAlias)->(dbSkip())
+            end while
+
+        end sequence
+
+        (cAlias)->(dbCloseArea())
+
+        oFWTemporaryTable:Delete()
+        oFWTemporaryTable:=FreeObj(oFWTemporaryTable)
+
+    end sequence
+
+    if (valtype(oHMSourceFieldsDef)=="O")
+        oHMSourceFieldsDef:Clean()
+        oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
+    endif
+
+    if (valType(aSRAStruct)=="A")
+        FWFreeArray(@aSRAStruct)
+    endif
+
+    if (valType(aFieldsDef)=="A")
+        FWFreeArray(@aFieldsDef)
+    endif
+
+    if (valType(aSRAFieldsDef)=="A")
+        FWFreeArray(@aSRAFieldsDef)
+    endif
+
+    if (lImportSRA)
+        ApMsgInfo("SRA Table Import Completed","Info")
+    endif
+
+    if (!empty(aLogDet))
+        fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
+        FWFreeArray(@aLog)
+        FWFreeArray(@aLogDet)
+        FWFreeArray(@aLogTitle)
+    endif
+
+return(lImportSRA)
+
 static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
     local aLog:=array(0) as array
@@ -480,6 +1173,10 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
                         cField:=aSRFFieldsDef[nField][1]
                         xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSRFFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                         if (empty(xValue))
+                            if (cField=="RF_FILIAL")
+                                (cAlias)->(dbDelete())
+                                exit
+                            endif
                             loop
                         endif
                         (cAlias)->(FieldPut(nSRFFieldPos,xValue))
@@ -526,6 +1223,8 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
                 break
             endif
 
+            MsAguarde({||(cAlias)->(__dbPack())},"Deleting invalid records","Wait!")
+
             nRecCount:=(cAlias)->(recCount())
             cRecCount:=cTools():NToS(nRecCount)
             nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
@@ -542,22 +1241,24 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
             (cAlias)->(dbGoTop())
             while (cAlias)->(!eof())
-                cSRFIndexID:=(cAlias)->(&(cSRFIndexKey))
-                lFound:=SRF->(dbSeek(cSRFIndexID,.F.))
-                lAddNew:=(!lFound)
-                if (SRF->(recLock("SRF",lAddNew)))
-                    for nField:=1 to nFields
-                        nSRFFieldPos:=aSRFFieldsDef[nField][Len(aSRFFieldsDef[nField])]
-                        if (nSRFFieldPos==0)
-                            loop
-                        endif
-                        xValue:=(cAlias)->(FieldGet(nSRFFieldPos))
-                        if (empty(xValue))
-                            loop
-                        endif
-                        SRF->(FieldPut(nSRFFieldPos,xValue))
-                    next nField
-                    SRF->(msUnLock())
+                if (!empty((cAlias)->RF_FILIAL))
+                    cSRFIndexID:=(cAlias)->(&(cSRFIndexKey))
+                    lFound:=SRF->(dbSeek(cSRFIndexID,.F.))
+                    lAddNew:=(!lFound)
+                    if (SRF->(recLock("SRF",lAddNew)))
+                        for nField:=1 to nFields
+                            nSRFFieldPos:=aSRFFieldsDef[nField][Len(aSRFFieldsDef[nField])]
+                            if (nSRFFieldPos==0)
+                                loop
+                            endif
+                            xValue:=(cAlias)->(FieldGet(nSRFFieldPos))
+                            if (empty(xValue))
+                                loop
+                            endif
+                            SRF->(FieldPut(nSRFFieldPos,xValue))
+                        next nField
+                        SRF->(msUnLock())
+                    endif
                 endif
                 nRecProc++
                 if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
@@ -813,6 +1514,10 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
                         cField:=aSR8FieldsDef[nField][1]
                         xValue:=(cAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aSR8FieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                         if (empty(xValue))
+                            if (cField=="R8_FILIAL")
+                                (cAlias)->(dbDelete())
+                                exit
+                            endif
                             loop
                         endif
                         (cAlias)->(FieldPut(nSR8FieldPos,xValue))
@@ -859,6 +1564,8 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
                 break
             endif
 
+            MsAguarde({||(cAlias)->(__dbPack())},"Deleting invalid records","Wait!")
+
             nRecCount:=(cAlias)->(recCount())
             cRecCount:=cTools():NToS(nRecCount)
             nRecCount100:=if(nRecCount>=1000,Int(nRecCount/100),nRecCount)
@@ -875,22 +1582,24 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
             (cAlias)->(dbGoTop())
             while (cAlias)->(!eof())
-                cSR8IndexID:=(cAlias)->(&(cSR8IndexKey))
-                lFound:=SR8->(dbSeek(cSR8IndexID,.F.))
-                lAddNew:=(!lFound)
-                if (SR8->(recLock("SR8",lAddNew)))
-                    for nField:=1 to nFields
-                        nSR8FieldPos:=aSR8FieldsDef[nField][Len(aSR8FieldsDef[nField])]
-                        if (nSR8FieldPos==0)
-                            loop
-                        endif
-                        xValue:=(cAlias)->(FieldGet(nSR8FieldPos))
-                        if (empty(xValue))
-                            loop
-                        endif
-                        SR8->(FieldPut(nSR8FieldPos,xValue))
-                    next nField
-                    SR8->(msUnLock())
+                if (!empty((cAlias)->R8_FILIAL))
+                    cSR8IndexID:=(cAlias)->(&(cSR8IndexKey))
+                    lFound:=SR8->(dbSeek(cSR8IndexID,.F.))
+                    lAddNew:=(!lFound)
+                    if (SR8->(recLock("SR8",lAddNew)))
+                        for nField:=1 to nFields
+                            nSR8FieldPos:=aSR8FieldsDef[nField][Len(aSR8FieldsDef[nField])]
+                            if (nSR8FieldPos==0)
+                                loop
+                            endif
+                            xValue:=(cAlias)->(FieldGet(nSR8FieldPos))
+                            if (empty(xValue))
+                                loop
+                            endif
+                            SR8->(FieldPut(nSR8FieldPos,xValue))
+                        next nField
+                        SR8->(msUnLock())
+                    endif
                 endif
                 nRecProc++
                 if ((!lRecCount100).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
