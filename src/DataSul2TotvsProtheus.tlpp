@@ -306,6 +306,8 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     local cTransform as character
     local cSourceField as character
 
+    local lSourceTransform as logical
+
     local nSourceField as numeric
     local nSourceFields as numeric
     local nSourceFieldAT as numeric
@@ -313,6 +315,7 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     local xValue as variant
 
     cSourceField:=aTargetField[2]
+    lSourceTransform:="@"==Left(cSourceField,1)
     aSourceField:=strToKArr2(cSourceField,"+")
     nSourceFields:=len(aSourceField)
     aValueField:=Array(nSourceFields,2)
@@ -324,11 +327,11 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
         if (!oHMSourceFieldsDef:Get(cSourceField+"_AT",@nSourceFieldAT))
             loop
         endif
+        aValueField[nSourceField][1]:=NormalizeData(aLine[nSourceFieldAT],@cType,@cSourceField,@lSourceTransform,@st_oHMbTransform)
+        aValueField[nSourceField][2]:=cType
         if (cType=="char")
             xValue:=""
         endif
-        aValueField[nSourceField][1]:=NormalizeData(aLine[nSourceFieldAT],cType)
-        aValueField[nSourceField][2]:=cType
     next nSourceField
 
     FwFreeArray(@aSourceField)
@@ -355,26 +358,46 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     endif
 
     if (valtype(bTransform)=="B")
-        xValue:=Eval(bTransform,xValue,oTFIni)
+        xValue:=Eval(bTransform,xValue,@oTFIni,@cType)
     endif
 
 return(xValue)
 
-static function NormalizeData(xValue as variant,cType as character) as variant
+static function NormalizeData(xValue as variant,cType as character,cSourceField,lSourceTransform,st_oHMbTransform) as variant
 
-    if (cType=="char")
-       xValue:=strTran(xValue,'"',"")
-    elseif (cType=="inte")
-        xValue:=Int(val(xValue))
-    elseif ("deci"$cType)
-        if (","$xValue)
-            xValue:=strTran(xValue,",",".")
+    local bTransform as codeblock
+
+    local cTransform as character
+
+    if (lSourceTransform)
+        if (!st_oHMbTransform:Get(cSourceField,@bTransform))
+            cTransform:=allTrim(oTFIni:GetPropertyValue(cSourceField,"Transform",""))
+            if (cTransform=="FindInTable")
+                cTransform:=allTrim(oTFIni:GetPropertyValue(cSourceField,cTransform,""))
+                bTransform:=&(cTransform)
+            elseif (!empty(cTransform))
+                bTransform:=&(cTransform)
+            endif
+            st_oHMbTransform:Set(cSourceField,bTransform)
         endif
-        xValue:=val(xValue)
-    elseif (cType=="date")
-        xValue:=CToD(xValue)
-    elseif (cType=="logi")
-        xValue:=(Left(lower(xValue),1)$"sty1")
+        if (valtype(bTransform)=="B")
+            xValue:=Eval(bTransform,xValue,oTFIni,@cType)
+        endif
+    else
+        if (cType=="char")
+        xValue:=strTran(xValue,'"',"")
+        elseif (cType=="inte")
+            xValue:=Int(val(xValue))
+        elseif ("deci"$cType)
+            if (","$xValue)
+                xValue:=strTran(xValue,",",".")
+            endif
+            xValue:=val(xValue)
+        elseif (cType=="date")
+            xValue:=CToD(xValue)
+        elseif (cType=="logi")
+            xValue:=(Left(lower(xValue),1)$"sty1")
+        endif
     endif
 
 return(xValue)
@@ -536,6 +559,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
 
     local cIndexID as character
     local cFieldFilial as character
+    local cxFilialcAlias as character
 
     local cIncProc as character
     local cTimeRemaining as character
@@ -544,6 +568,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     local lAddNew as logical
     local lAppend as logical
     local ldbCommit as logical
+    local lChkFilial as logical
     local lImportData as logical
     local lRecCountStep as logical
 
@@ -660,6 +685,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
         cFieldFilial:=PrefixoCpo(cAlias)
         cFieldFilial+="_FILIAL"
 
+        lChkFilial:=(allTrim(oTFIni:GetPropertyValue("TablesImport",cAlias,"1"))=="1")
+        if (!lChkFilial)
+            cxFilialcAlias:=xFilia(cAlias)
+        endif
+
         nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","500"))))
 
         begin sequence
@@ -683,55 +713,61 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
             while (!oFT:ft_fEof())
                 nft_fRecNo:=oFT:ft_fRecNo()
                 cLine:=oFT:ft_fReadLN()
-                oFT:ft_fDelete()
-                if (empty(cLine))
-                    oFT:ft_fSkip()
-                    loop
-                endif
-                cLineUTF8:=DecodeUTF8(cLine)
-                if (empty(cLineUTF8))
-                    aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
-                    aAdd(aLog,cLine)
-                    aAdd(aLog,"Existem Caracteres Invalidos")
-                    aAdd(aLogDet,aClone(aLog))
-                    aSize(aLog,0)
-                else
-                    cLine:=cLineUTF8
-                endif
-                aLine:=strTokArr2(cLine,";")
-                cLine:=""
-                lAppend:=.T.
-                for nField:=1 to nFields
-                    nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
-                    if (nTargetFieldPos==0)
-                        loop
+                begin sequence
+                    if (empty(cLine))
+                        break
                     endif
-                    cField:=aTargetFieldsDef[nField][1]
-                    if (cField==cFieldFilial)
-                        xValue:=(cTmpAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
-                        if (empty(xValue))
-                            lAppend:=.F.
-                            exit
-                        endif
+                    cLineUTF8:=DecodeUTF8(cLine)
+                    if (empty(cLineUTF8))
+                        aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                        aAdd(aLog,cLine)
+                        aAdd(aLog,"Existem Caracteres Invalidos")
+                        aAdd(aLogDet,aClone(aLog))
+                        aSize(aLog,0)
+                    else
+                        cLine:=cLineUTF8
                     endif
-                next nField
-                if (lAppend)
-                    (cTmpAlias)->(dbAppend(.F.))
+                    aLine:=strTokArr2(cLine,";")
+                    cLine:=""
+                    lAppend:=.T.
+                    if (lChkFilial)
                         for nField:=1 to nFields
                             nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
                             if (nTargetFieldPos==0)
                                 loop
                             endif
                             cField:=aTargetFieldsDef[nField][1]
-                            xValue:=(cTmpAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
-                            if (empty(xValue))
-                                loop
+                            if (cField==cFieldFilial)
+                                xValue:=(cTmpAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+                                if (empty(xValue))
+                                    lAppend:=.F.
+                                    exit
+                                endif
                             endif
-                            (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
                         next nField
-                    ldbCommit:=(++nCommitBuffer>=1024)
-                endif
-                FWFreeArray(@aLine)
+                    endif
+                    if (lAppend)
+                        (cTmpAlias)->(dbAppend(.F.))
+                            for nField:=1 to nFields
+                                nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
+                                if (nTargetFieldPos==0)
+                                    loop
+                                endif
+                                cField:=aTargetFieldsDef[nField][1]
+                                if ((!lChkFilial).and.(cField==cFieldFilial))
+                                    xValue:=cxFilialcAlias
+                                else
+                                    xValue:=(cTmpAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+                                endif
+                                if (empty(xValue))
+                                    loop
+                                endif
+                                (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
+                            next nField
+                        ldbCommit:=(++nCommitBuffer>=1024)
+                    endif
+                    FWFreeArray(@aLine)
+                end sequence
                 nRecProc++
                 if ((!lRecCountStep).or.(Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
                     oTimeRemaining:Calcule(.T.)
@@ -744,7 +780,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     cIncProc+="/"
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
-                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,nRecProc/nRecCountStep))+"%]"
+                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
                     oMsNewProcess:IncRegua1(cIncProc)
                 endif
                 lEnd:=oMsNewProcess:lEnd
@@ -759,6 +795,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     nCommitBuffer:=0
                     (cTmpAlias)->(dbCommitAll())
                 endif
+                oFT:ft_fDelete()
                 oFT:ft_fSkip()
             end while
 
@@ -797,6 +834,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                         if (nTargetFieldPos==0)
                             loop
                         endif
+                        cField:=aTargetFieldsDef[nField][1]
+                        if ((lFound).and.(cField$cIndexKey))
+                            loop
+                        endif
                         xValue:=(cTmpAlias)->(FieldGet(nTargetFieldPos))
                         if (empty(xValue))
                             loop
@@ -813,7 +854,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     (cAlias)->(msUnLock())
                 endif
                 nRecProc++
-                if ((!lRecCountStep).or.(Mod(nRecProc,100)==0).or.(nRecProc>=nRecCount))
+                if ((!lRecCountStep).or.(Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
                     oTimeRemaining:Calcule(.T.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
@@ -824,7 +865,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     cIncProc+="/"
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
-                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,nRecProc/nRecCountStep))+"%]"
+                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
                     oMsNewProcess:IncRegua2(cIncProc)
                 endif                    
                 lEnd:=oMsNewProcess:lEnd
@@ -877,7 +918,7 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
     lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRA","RA_FILIAL+RA_MAT","SRA",{"RA_FILIAL","RA_MAT"})
 
     if (lImportSRA)
-        lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRA","RA_FILIAL+RA_MATMIG","SRA_RHPF",{"RA_FILIAL","RA_MATMIG"})
+        lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRA","RA_MATMIG","SRA_RHPF",{"RA_MATMIG"})
         if (lImportSRA)
             ApMsgInfo("SRA Table Import Completed","Info")
         else
