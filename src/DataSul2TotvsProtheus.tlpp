@@ -315,7 +315,10 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
     local xValue as variant
 
     cSourceField:=aTargetField[2]
-    lSourceTransform:="@"==Left(cSourceField,1)
+    lSourceTransform:=("@"==Left(cSourceField,1))
+    if (lSourceTransform)
+        cSourceField:=subStr(cSourceField,2)
+    endif
     aSourceField:=strToKArr2(cSourceField,"+")
     nSourceFields:=len(aSourceField)
     aValueField:=Array(nSourceFields,2)
@@ -327,7 +330,7 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
         if (!oHMSourceFieldsDef:Get(cSourceField+"_AT",@nSourceFieldAT))
             loop
         endif
-        aValueField[nSourceField][1]:=NormalizeData(aLine[nSourceFieldAT],@cType,@cSourceField,@lSourceTransform,@st_oHMbTransform)
+        aValueField[nSourceField][1]:=NormalizeData(aLine[nSourceFieldAT],@cType,@cSourceField,@lSourceTransform,@st_oHMbTransform,@oTFIni)
         aValueField[nSourceField][2]:=cType
         if (cType=="char")
             xValue:=""
@@ -363,7 +366,7 @@ static function getTargetFieldValue(oTFIni as object,aLine as array,cTargetField
 
 return(xValue)
 
-static function NormalizeData(xValue as variant,cType as character,cSourceField,lSourceTransform,st_oHMbTransform) as variant
+static function NormalizeData(xValue as variant,cType as character,cSourceField as character,lSourceTransform as logical,st_oHMbTransform as object,oTFIni as object) as variant
 
     local bTransform as codeblock
 
@@ -559,7 +562,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
 
     local cIndexID as character
     local cFieldFilial as character
-    local cxFilialcAlias as character
+    local cAliasxFilial as character
 
     local cIncProc as character
     local cTimeRemaining as character
@@ -685,9 +688,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
         cFieldFilial:=PrefixoCpo(cAlias)
         cFieldFilial+="_FILIAL"
 
-        lChkFilial:=(allTrim(oTFIni:GetPropertyValue("TablesImport",cAlias,"1"))=="1")
+        lChkFilial:=(allTrim(oTFIni:GetPropertyValue(cAlias,"ChkFilial","1"))=="1")
         if (!lChkFilial)
-            cxFilialcAlias:=xFilia(cAlias)
+            cAliasxFilial:=xFilial(cAlias)
         endif
 
         nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","500"))))
@@ -755,7 +758,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                 endif
                                 cField:=aTargetFieldsDef[nField][1]
                                 if ((!lChkFilial).and.(cField==cFieldFilial))
-                                    xValue:=cxFilialcAlias
+                                    xValue:=cAliasxFilial
                                 else
                                     xValue:=(cTmpAlias)->(getTargetFieldValue(@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                                 endif
