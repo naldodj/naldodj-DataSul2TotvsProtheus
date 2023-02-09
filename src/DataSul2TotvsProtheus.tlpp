@@ -574,6 +574,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     local lChkFilial as logical
     local lImportData as logical
     local lRecCountStep as logical
+    local lAppendIfNotExist as logical
 
     local nField as numeric
     local nFields as numeric
@@ -584,7 +585,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     local nCommitBuffer as numeric
     local nTargetFieldPos as numeric
 
-    local nIndexKey:=retOrder(cAlias,cIndexKey) as numeric
+    local nIndexKey:=retOrder(cAlias,cIndexKey,.T.) as numeric
 
     local nIncProcStep as numeric
 
@@ -601,6 +602,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
 
     begin sequence
 
+        if (nIndexKey==0)
+            ApMsgAlert("Unlocalized "+cAlias+" table search index ("+cIndexKey+")")
+            break
+        endif
+        
         oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
         
         cSourceTable:=allTrim(oTFIni:GetPropertyValue("TablesImport",cTableImport,""))
@@ -826,36 +832,43 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
 
             nRecProc:=0
 
+            lAppendIfNotExist:=(allTrim(oTFIni:GetPropertyValue(cAlias,"AppendIfNotExist","1"))=="1")
+
             (cTmpAlias)->(dbGoTop())
             while (cTmpAlias)->(!eof())
                 cIndexID:=(cTmpAlias)->(&(cIndexKey))
                 lFound:=(cAlias)->(dbSeek(cIndexID,.F.))
-                lAddNew:=(!lFound)
-                if ((cAlias)->(recLock(cAlias,lAddNew)))
-                    for nField:=1 to nFields
-                        nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
-                        if (nTargetFieldPos==0)
-                            loop
-                        endif
-                        cField:=aTargetFieldsDef[nField][1]
-                        if ((lFound).and.(cField$cIndexKey))
-                            loop
-                        endif
-                        xValue:=(cTmpAlias)->(FieldGet(nTargetFieldPos))
-                        if (empty(xValue))
-                            loop
-                        endif
-                        (cAlias)->(FieldPut(nTargetFieldPos,xValue))
-                    next nField
-                    if (cAlias=="SRA")
-                        if (empty((cAlias)->RA_CODUNIC))
-                            if (st_lfRACodUnic)
-                                (cAlias)->RA_CODUNIC:=fRACodUnic()
+                begin sequence
+                    if ((!lFound).and.(!lAppendIfNotExist))
+                        break
+                    endif
+                    lAddNew:=(!lFound)
+                    if ((cAlias)->(recLock(cAlias,lAddNew)))
+                        for nField:=1 to nFields
+                            nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
+                            if (nTargetFieldPos==0)
+                                loop
+                            endif
+                            cField:=aTargetFieldsDef[nField][1]
+                            if ((lFound).and.(cField$cIndexKey))
+                                loop
+                            endif
+                            xValue:=(cTmpAlias)->(FieldGet(nTargetFieldPos))
+                            if (empty(xValue))
+                                loop
+                            endif
+                            (cAlias)->(FieldPut(nTargetFieldPos,xValue))
+                        next nField
+                        if (cAlias=="SRA")
+                            if (empty((cAlias)->RA_CODUNIC))
+                                if (st_lfRACodUnic)
+                                    (cAlias)->RA_CODUNIC:=fRACodUnic()
+                                endif
                             endif
                         endif
+                        (cAlias)->(msUnLock())
                     endif
-                    (cAlias)->(msUnLock())
-                endif
+                end sequence    
                 nRecProc++
                 if ((!lRecCountStep).or.(Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
                     oTimeRemaining:Calcule(.T.)
@@ -877,10 +890,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     aAdd(aLog,"Process canceled by user ["+DtoC(Date())+"]["+Time()+"]")
                     aAdd(aLogDet,aClone(aLog))
                     aSize(aLog,0)
-                    break
+                    exit
                 endif
                 (cTmpAlias)->(dbSkip())
             end while
+
+            if (lEnd)
+                break
+            endif
 
         end sequence
 
@@ -920,7 +937,7 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
 
     lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRA","RA_FILIAL+RA_MAT","SRA",{"RA_FILIAL","RA_MAT"})
 
-    if (lImportSRA)
+    if ((lImportSRA).and.!(lEnd))
         lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRA","RA_MATMIG","SRA_RHPF",{"RA_MATMIG"})
         if (lImportSRA)
             ApMsgInfo("SRA Table Import Completed","Info")
