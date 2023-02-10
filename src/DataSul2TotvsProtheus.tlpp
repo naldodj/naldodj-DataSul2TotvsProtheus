@@ -344,8 +344,6 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
             endif
         next nSourceField
 
-        FwFreeArray(@aSourceField)
-
         for nSourceField:=1 to nSourceFields
             if (aValueField[nSourceField][2]=="char")
                 xValue+=aValueField[nSourceField][1]
@@ -353,8 +351,6 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
                 xValue:=aValueField[nSourceField][1]
             endif
         next nSourceField
-
-        FWFreeArray(@aValueField)
 
         if (!st_oHMbTransform:Get(cTargetField,@bTransform))
             cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,"Transform",""))
@@ -372,6 +368,14 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
         endif
 
     end sequence
+
+    if (!empty(aValueField))
+        FWFreeArray(@aValueField)
+    endif
+    
+    if (!empty(aValueField))
+        FwFreeArray(@aSourceField)
+    endif
 
 return(xValue)
 
@@ -579,6 +583,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     local lFound as logical
     local lAddNew as logical
     local lAppend as logical
+    local ldbPack:=.F. as logical
     local ldbCommit as logical
     local lHasError:=.F. as logical
     local lChkFilial as logical
@@ -601,6 +606,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
 
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
+
+    local nMLLine as numeric
+    local nMLCount as numeric
 
     local oFT as object
     local oTFIni as object
@@ -739,8 +747,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     cLineUTF8:=DecodeUTF8(cLine)
                     if (empty(cLineUTF8))
                         aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
-                        aAdd(aLog,cLine)
                         aAdd(aLog,"Existem Caracteres Invalidos")
+                        nMLCount:=MLCount(cLine,220)
+                        for nMLLine:=1 to nMLCount
+                            aAdd(aLog,memoLine(cLine,220,nMLLine))
+                        next nMLLine
                         aAdd(aLogDet,aClone(aLog))
                         aSize(aLog,0)
                     else
@@ -762,8 +773,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                 if (empty(xValue))
                                     if (lHasError)
                                         aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
-                                        aAdd(aLog,cLine)
                                         aAdd(aLog,"Estrutura da Linha diferente da estrutura de Dados")
+                                        nMLCount:=MLCount(cLine,220)
+                                        for nMLLine:=1 to nMLCount
+                                            aAdd(aLog,memoLine(cLine,220,nMLLine))
+                                        next nMLLine
                                         aAdd(aLogDet,aClone(aLog))
                                         aSize(aLog,0)
                                     endif
@@ -790,10 +804,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                 if (empty(xValue))
                                     if (lHasError)
                                         aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
-                                        aAdd(aLog,cLine)
                                         aAdd(aLog,"Estrutura da Linha diferente da estrutura de Dados")
+                                        nMLCount:=MLCount(cLine,220)
+                                        for nMLLine:=1 to nMLCount
+                                            aAdd(aLog,memoLine(cLine,220,nMLLine))
+                                        next nMLLine
                                         aAdd(aLogDet,aClone(aLog))
                                         aSize(aLog,0)
+                                        ldbPack:=.T.
                                         (cTmpAlias)->(dbDelete())
                                         exit
                                     endif
@@ -844,6 +862,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
 
             if (lEnd)
                 break
+            endif
+
+            if (ldbPack)
+                MsAguarde({||(cTmpAlias)->(__dbPack())})
             endif
 
             nRecCount:=(cTmpAlias)->(recCount())
@@ -911,7 +933,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     cIncProc+=cTimeRemaining
                     cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
                     oMsNewProcess:IncRegua2(cIncProc)
-                endif                    
+                endif
                 lEnd:=oMsNewProcess:lEnd
                 if (lEnd)
                     aAdd(aLogTitle,"Process canceled by user")
@@ -969,7 +991,7 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
         oMsNewProcess:SetRegua1(0)
         oMsNewProcess:IncRegua1("Wait!")
         oMsNewProcess:SetRegua2(0)
-        oMsNewProcess:IncRegua1("")
+        oMsNewProcess:IncRegua2("...")
         lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRA","RA_MATMIG","SRA_RHPF",{"RA_MATMIG"})
         if (lImportSRA)
             ApMsgInfo("SRA Table Import Completed","Info")
