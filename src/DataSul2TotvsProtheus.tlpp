@@ -21,10 +21,12 @@ static method Activate() class Protheus
     local bSRFMsNewProcess as codeblock
     local bSR8MsNewProcess as codeblock
     
+    local cGetFileRoot:="\" as character
     local cGetFileMask as character
     local cGetFileTitle as character
-
+    
     local lActivate as logical
+    local lSendDataToServer as logical
 
     local nGetFileOptions as numeric
 
@@ -43,10 +45,14 @@ static method Activate() class Protheus
 
     begin sequence
 
+        if (ApMsgYesNo("Sending Data To Server?"))
+            MsAguarde({||lSendDataToServer:=sendDataToServer(@cGetFileRoot)},"Sending Data To Server","Wait!")
+        endif
+
         cGetFileMask:="Arquivo de Configuração | DataSul2Protheus.ini"
         cGetFileTitle:="Arquivo de Configuração DataSul2Protheus.ini"
         nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
-        cINIfile:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+        cINIfile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
 
         MsAguarde({||lActivate:=readIniFile(@cINIfile)},"Loading Settings","Wait")
         if (!lActivate)
@@ -976,6 +982,135 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     endif
 
 return(lImportData)
+
+static function sendDataToServer(cGetFileRoot as character) as logical
+
+    local aZipFiles:=array(0) as array
+    
+    local aFiles as array
+    local aDirectories as array
+
+    local cFile as character
+    local cZipFile as character
+    local cDirectory as character
+    local cGetFileMask:="" as character
+    local cGetFileTitle as character
+    local cZipFileServer as character
+    local cLowerDirectory as character
+    local cDirectoryClient as character
+    local cDirectoryServer as character
+
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
+
+    local lSendDataToServer as logical
+
+    local nFile as numeric
+    local nFiles as numeric
+    local nDirectory as numeric
+    local nDirectories as numeric
+    local nGetFileOptions as numeric
+
+    cGetFileTitle:="Diretorio de Configuração DataSul2Protheus.ini"
+    nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE+GETF_RETDIRECTORY)
+    cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+
+    begin sequence
+
+        lSendDataToServer:=lIsDir(cDirectoryClient)
+        if (!lSendDataToServer)
+            ApMsgAlert("Invalid directory ["+cDirectoryClient+"]")
+            break
+        endif
+
+        cDirectoryServer:="\datasul2Protheus\"
+        DirTools():MakeFileDir(cDirectoryServer)
+        lSendDataToServer:=lIsDir(cDirectoryServer)
+        if (!lSendDataToServer)
+            ApMsgAlert("Invalid directory ["+cDirectoryServer+"]")
+            break
+        endif
+
+        aDirectories:=Directory(cDirectoryClient+"*.*","D")
+        nDirectories:=Len(aDirectories)
+        
+        lSendDataToServer:=(nDirectories!=0)
+        if (!lSendDataToServer)
+            ApMsgAlert("No valid directory information found")
+            break
+        endif
+
+        for nDirectory:=1 to nDirectories
+            if (aDirectories[nDirectory][5]!="D")
+                loop
+            endif
+            cDirectory:=cDirectoryClient+aDirectories[nDirectory][1]
+            if (right(cDirectory,1)==".")
+                loop
+            endif
+            cLowerDirectory:=lower(cDirectory)
+            if (("7z"$cLowerDirectory).or.("src"$cLowerDirectory).or.(".gitignore"$cLowerDirectory).or.(".vscode"$cLowerDirectory))
+                loop
+            endif
+            if (Right(cDirectory,1)!="\")
+                cDirectory+="\"
+            endif
+            aFiles:=Directory(cDirectory+"*.*")
+            nFiles:=Len(aFiles)
+            for nFile:=1 To nFiles
+                cFile:=cDirectory+aFiles[nFile][1]
+                aAdd(aZipFiles,cFile)
+                MsProcTxt(aFiles[nFile][1])
+            next nFile
+        next nDirectory
+
+        cZipFile:=(getTempPath()+criatrab(nil,.F.)+".zip")
+        MsProcTxt("ZipFile. Wait...")
+        lSendDataToServer:=(FZip(cZipFile,aZipFiles,cDirectoryClient,/*,[cSenha]*/)==0)
+        if (!lSendDataToServer)
+            ApMsgAlert("Problem zipping ["+cZipFile+"] file")
+            break
+        endif
+
+        SplitPath(cZipFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+
+        cZipFileServer:=cDirectoryServer
+        cZipFileServer+=cSPPFile
+        cZipFileServer+=cSPPExt
+
+        MsProcTxt("Wait...")
+        lSendDataToServer:=__CopyFile(cZipFile,cZipFileServer)
+        if (!lSendDataToServer)
+            ApMsgAlert("Problem copying ["+cZipFile+"] file to server")
+            break
+        endif
+
+        MsProcTxt("UnZipFile. Wait...")
+        lSendDataToServer:=(FUnzip(cZipFileServer,cDirectoryServer,/*[cSenha]*/)==0)
+        if (!lSendDataToServer)
+            ApMsgAlert("Problem unzipping the test ["+cZipFile+"] on the server")
+            break
+        endif
+
+        cGetFileRoot:="SERVIDOR"+cDirectoryServer
+
+        ApMsgInfo("Files uploaded to the server successfully. Directory ["+cGetFileRoot+"]")
+
+        cGetFileRoot+="ini\"
+
+    end sequence
+
+    if (!empty(cZipFile)).and.(file(cZipFile))
+        fErase(cZipFile)
+    endif
+
+    if ((!empty(cZipFileServer)).and.(file(cZipFileServer)))
+        fErase(cZipFileServer)
+    endif
+
+return(lSendDataToServer)
 
 static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
 
