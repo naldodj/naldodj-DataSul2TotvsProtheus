@@ -45,14 +45,28 @@ static method Activate() class Protheus
 
     begin sequence
 
-        if (ApMsgYesNo("Sending Data To Server?"))
+        if (ApMsgNoYes("Sending Data To Server?"))
             MsAguarde({||lSendDataToServer:=sendDataToServer(@cGetFileRoot)},"Sending Data To Server","Wait!")
+        elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
+            cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
         endif
 
         cGetFileMask:="Arquivo de Configuração | DataSul2Protheus.ini"
         cGetFileTitle:="Arquivo de Configuração DataSul2Protheus.ini"
         nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
         cINIfile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+
+        lActivate:=file(cINIfile)
+        if (!lActivate)
+            ApMsgAlert("Configuration file invalid ["+cINIfile+"] or not found","Attention")
+            break
+        endif
+
+        lActivate:=("datasul2protheus.ini"$lower(cINIfile))
+        if (!lActivate)
+            ApMsgAlert("Configuration file invalid ["+cINIfile+"] or not found","Attention")
+            break
+        endif
 
         MsAguarde({||lActivate:=readIniFile(@cINIfile)},"Loading Settings","Wait")
         if (!lActivate)
@@ -110,7 +124,7 @@ static method Activate() class Protheus
 
     end sequence
 
-    cacheData():delSection("datasul2totvs")
+    cacheData():delSection("datasul2totvsprotheus")
 
     if (valType(st_oHMbTransform)=="O")
         st_oHMbTransform:Clean()
@@ -144,11 +158,11 @@ static function readIniFile(cINIfile as character) as logical
         cRootPath:=cSPPDrive
         cRootPath+=cSPPPath
 
-        cacheData():Set("datasul2totvs","cRootPath",cRootPath)
+        cacheData():Set("datasul2totvsprotheus","cRootPath",cRootPath)
 
         oTFIni:=TFIni():New(cINIfile,"#")
 
-        cacheData():Set("datasul2totvs","readIniFile",oTFIni)
+        cacheData():Set("datasul2totvsprotheus","readIniFile",oTFIni)
 
     end sequence
 
@@ -181,7 +195,7 @@ static function readTableDefinition() as logical
 
     begin sequence
 
-        oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
+        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
 
         aTablesImport:=aClone(oTFIni:GetAllProperties("TablesImport"))
         lreadTableDefinition:=(!empty(aTablesImport))
@@ -197,7 +211,7 @@ static function readTableDefinition() as logical
             break
         endif
 
-        cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+        cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
         cFileTablesDefinition:=(cRootPath+".."+cTablesDefinition)
         lreadTableDefinition:=file(cFileTablesDefinition)
         if (!lreadTableDefinition)
@@ -244,15 +258,13 @@ static function readTableDefinition() as logical
                             loop
                         endif
                         if ("Table:"==Left(cLine,6))
-                            cacheData():Set("datasul2totvs",cTable,aClone(aFieldsDef))
+                            cacheData():Set("datasul2totvsprotheus",cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
                             nft_fRecNo:=oFT:ft_fRecNo()
                             oFT:ft_fGoTo(nft_fRecNo-1)
                             break
                         endif
-                        while ("  "$cLine)
-                            cLine:=strTran(cLine,"  "," ")
-                        end while
+                        cLine:=cTools():StrReplace(cLine,{"  "," "})
                         cLineUTF8:=DecodeUTF8(cLine)
                         if (!empty(cLineUTF8))
                             cLine:=cLineUTF8
@@ -273,7 +285,7 @@ static function readTableDefinition() as logical
                         oFT:ft_fDelete()
                         oFT:ft_fSkip()
                     end while
-                    cacheData():Set("datasul2totvs",cTable,aClone(aFieldsDef))
+                    cacheData():Set("datasul2totvsprotheus",cTable,aClone(aFieldsDef))
                     aSize(aFieldsDef,0)
                 elseif (lSkipTable)
                     break
@@ -343,7 +355,10 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
             if (lHasError)
                 break
             endif
-            aValueField[nSourceField][1]:=NormalizeData(aLine[nSourceFieldAT],@cType,@cSourceField,@lSourceTransform,@st_oHMbTransform,@oTFIni)
+            aValueField[nSourceField][1]:=NormalizeData(@lHasError,aLine[nSourceFieldAT],@cType,@cSourceField,@lSourceTransform,@st_oHMbTransform,@oTFIni)
+            if (lHasError)
+                break
+            endif
             aValueField[nSourceField][2]:=cType
             if (cType=="char")
                 xValue:=""
@@ -370,7 +385,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
         endif
 
         if (valtype(bTransform)=="B")
-            xValue:=Eval(bTransform,xValue,@oTFIni,@cType)
+            lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,@oTFIni,@cType)},nil,.F.,nil,nil))
         endif
 
     end sequence
@@ -385,7 +400,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
 
 return(xValue)
 
-static function NormalizeData(xValue as variant,cType as character,cSourceField as character,lSourceTransform as logical,st_oHMbTransform as object,oTFIni as object) as variant
+static function NormalizeData(lHasError as logical,xValue as variant,cType as character,cSourceField as character,lSourceTransform as logical,st_oHMbTransform as object,oTFIni as object) as variant
 
     local bTransform as codeblock
 
@@ -403,7 +418,10 @@ static function NormalizeData(xValue as variant,cType as character,cSourceField 
             st_oHMbTransform:Set(cSourceField,bTransform)
         endif
         if (valtype(bTransform)=="B")
-            xValue:=NormalizeData(Eval(bTransform,xValue,oTFIni,@cType),@cType,nil,.F.,nil,nil)
+            lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,oTFIni,@cType)},nil,.F.,nil,nil))
+            if (!lHasError)
+                xValue:=NormalizeData(@lHasError,xValue,@cType,nil,.F.,nil,nil)
+            endif
         endif
     else
         if (cType=="char")
@@ -446,13 +464,13 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
         if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
             dfv():Default(@lTableInFile,.F.)
             if (lTableInFile)
-                oTFIniTable:=cacheData():Get("datasul2totvs",cTable,nil)
+                oTFIniTable:=cacheData():Get("datasul2totvsprotheus",cTable,nil)
                 if (oTFIniTable==nil)
-                    cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+                    cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
                     cINIfile:=cRootPath
                     cINIfile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
                     oTFIniTable:=TFIni():New(cINIfile,"#")
-                    cacheData():Set("datasul2totvs",cTable,oTFIniTable)
+                    cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
                 endif
                 xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
                 if ((empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
@@ -460,13 +478,13 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
                 endif
                 xValue:=xTmp
             else
-                oTFIniTable:=cacheData():Get("datasul2totvs",cTable,nil)
+                oTFIniTable:=cacheData():Get("datasul2totvsprotheus",cTable,nil)
                 if (oTFIniTable==nil)
-                    cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+                    cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
                     cINIfile:=cRootPath
                     cINIfile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
                     oTFIniTable:=TFIni():New(cINIfile,"#")
-                    cacheData():Set("datasul2totvs",cTable,oTFIniTable)
+                    cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
                 endif
                 xValue:=FindInTable(oTFIniTable,cTable,xValue)
             endif
@@ -501,7 +519,7 @@ static function getR8Seq() as character
     begin sequence
 
         if (type("cPVTSR8Alias")!="C")
-            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvs","importSR8Alias","__NOALIAS__"),cStack)
+            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvsprotheus","importSR8Alias","__NOALIAS__"),cStack)
         endif
 
         cTmpAlias:=cPVTSR8Alias
@@ -631,7 +649,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
             break
         endif
 
-        oTFIni:=cacheData():Get("datasul2totvs","readIniFile")
+        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
         
         cSourceTable:=allTrim(oTFIni:GetPropertyValue("TablesImport",cTableImport,""))
         lImportData:=(!empty(cSourceTable))
@@ -647,7 +665,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
             break
         endif
 
-        cRootPath:=cacheData():Get("datasul2totvs","cRootPath")
+        cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
         cSourceFile:=(cRootPath+".."+cDataPath+cSourceTable+".csv")
         lImportData:=file(cSourceFile)
         if (!lImportData)
@@ -655,7 +673,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
             break
         endif
 
-        aFieldsDef:=aClone(cacheData():Get("datasul2totvs",cSourceTable,aFieldsDef))
+        aFieldsDef:=aClone(cacheData():Get("datasul2totvsprotheus",cSourceTable,aFieldsDef))
         lImportData:=(!empty(aFieldsDef))
         if (!lImportData)
             ApMsgAlert("Field definitions for the "+cSourceTable+" table not found","Attention")
@@ -709,8 +727,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
         oFWTemporaryTable:AddIndex("01",aAddIndex)
         oFWTemporaryTable:Create()
 
-        cacheData():Set("datasul2totvs","import"+cTableImport+"Alias",cTmpAlias)
-        cacheData():Set("datasul2totvs","import"+cTableImport+"Table",oFWTemporaryTable:getRealName())
+        cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Alias",cTmpAlias)
+        cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Table",oFWTemporaryTable:getRealName())
 
         FWFreeArray(@aField)
         FWFreeArray(@aTargetStruct)
@@ -1019,9 +1037,11 @@ static function sendDataToServer(cGetFileRoot as character) as logical
 
     begin sequence
 
-        lSendDataToServer:=lIsDir(cDirectoryClient)
+        lSendDataToServer:=((lIsDir(cDirectoryClient)).and.("datasul2protheus"$StrTran(lower(cDirectoryClient),"totvs","")))
         if (!lSendDataToServer)
-            ApMsgAlert("Invalid directory ["+cDirectoryClient+"]")
+            if (ApMsgYesNo("Invalid directory ["+cDirectoryClient+"]. Want to try again?"))
+                lSendDataToServer:=sendDataToServer(@cGetFileRoot)
+            endif
             break
         endif
 
