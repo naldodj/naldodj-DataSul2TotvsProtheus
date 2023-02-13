@@ -18,6 +18,7 @@ end class
 static method Activate() class Protheus
 
     local bSRAMsNewProcess as codeblock
+    local bSRBMsNewProcess as codeblock
     local bSRFMsNewProcess as codeblock
     local bSR8MsNewProcess as codeblock
     
@@ -36,6 +37,7 @@ static method Activate() class Protheus
     local oFWDefSize as object
     
     local oSRAMSNewProcess as object
+    local oSRBMSNewProcess as object
     local oSRFMSNewProcess as object
     local oSR8MSNewProcess as object
 
@@ -92,6 +94,7 @@ static method Activate() class Protheus
         oFont:=TFont():New("Courier New",nil,16,nil,.T.)
 
         bSRAMsNewProcess:={|lEnd|ProcRedefine(oSRAMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRA(oSRAMSNewProcess,@lEnd)}
+        bSRBMsNewProcess:={|lEnd|ProcRedefine(oSRBMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRF(oSRBMSNewProcess,@lEnd)}
         bSRFMsNewProcess:={|lEnd|ProcRedefine(oSRFMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRF(oSRFMSNewProcess,@lEnd)}
         bSR8MsNewProcess:={|lEnd|ProcRedefine(oSR8MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8(oSR8MSNewProcess,@lEnd)}
 
@@ -101,6 +104,7 @@ static method Activate() class Protheus
                 MENUITEM "TOTVS :: DataSul To Protheus"
                 MENU
                     MENUITEM "Import SRA" ACTION (oSRAMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRAMSNewProcess:Activate())
+                    MENUITEM "Import SRB" ACTION (oSRBMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
                     MENUITEM "Import SRF" ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
                     MENUITEM "Import SR8" ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
                 ENDMENU
@@ -119,6 +123,7 @@ static method Activate() class Protheus
         oDlg:=FreeObj(oDlg)
 
         oSRAMSNewProcess:=FreeObj(oSRAMSNewProcess)
+        oSRBMSNewProcess:=FreeObj(oSRBMSNewProcess)
         oSRFMSNewProcess:=FreeObj(oSRFMSNewProcess)
         oSR8MSNewProcess:=FreeObj(oSR8MSNewProcess)
 
@@ -1192,6 +1197,39 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
     FWFreeArray(@aLogTitle)
 
 return(lImportSRA)
+
+static function importSRB(oMsNewProcess as object,lEnd as logical) as logical
+
+    local aLog:=array(0) as array
+    local aLogDet:=array(0) as array
+    local aLogTitle:=array(0) as array
+
+    local lImportSRB as logical
+
+    lImportSRB:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRB","RB_FILIAL+RB_MAT+RB_COD","SRB",{"RB_FILIAL","RB_MAT","RB_COD"})
+
+    if ((lImportSRB).and.!(lEnd))
+        oMsNewProcess:SetRegua1(0)
+        oMsNewProcess:IncRegua1("Wait!")
+        oMsNewProcess:SetRegua2(0)
+        oMsNewProcess:IncRegua2("...")
+        lImportSRB:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRB","RA_MATMIG","SRB_RHPF",{"RA_MATMIG"})
+        if (lImportSRB)
+            ApMsgInfo("SRB Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the SRB_RHPF table","Info")
+        endif
+    endif
+
+    if (!empty(aLogDet))
+        fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
+    endif
+
+    FWFreeArray(@aLog)
+    FWFreeArray(@aLogDet)
+    FWFreeArray(@aLogTitle)
+
+return(lImportSRB)
 
 static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
