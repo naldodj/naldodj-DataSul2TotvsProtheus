@@ -1,6 +1,7 @@
 #define __NToS
 
 #include "totvs.ch"
+#include "shell.ch"
 #include "dbstruct.ch"
 
 #include "jsonhash.ch"
@@ -107,6 +108,9 @@ static method Activate() class Protheus
                     MENUITEM "Import SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oSRBMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRBMSNewProcess:Activate())
                     MENUITEM "Import SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
                     MENUITEM "Import SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
+                ENDMENU
+                MENU
+                    MENUITEM "Settings" ACTION CFGIni()
                 ENDMENU
                 MENU
                     MENUITEM "Exit" ACTION oDlg:End()
@@ -579,6 +583,489 @@ static function ProcRedefine(oProcess as object,oFont as object,nLeft as numeric
     lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oFont,@nLeft,@nWidth,@nCTLFLeft,@lODlgF,@lODlgW)
     return(lProcRedefine)
 
+static procedure CFGIni()
+
+    local cINIFile as character    
+    local cMemoEdit as character
+    local cGetFileRoot as character
+    local cGetFileMask as character     
+    local cGetFileTitle as character    
+
+    local lHasINIFile as logical
+
+    local nGetFileOptions as numeric
+
+    begin sequence
+
+        cGetFileRoot:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+        cGetFileMask:="Arquivo de Configuração | *.ini"
+        cGetFileTitle:="Arquivo de Configuração *.ini"
+        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
+        cINIfile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+
+        lHasINIFile:=File(cINIfile)
+        if (!lHasINIFile)
+            break
+        endif
+
+        cMemoEdit:=ReadMemo(cINIfile)
+
+        if (EdtCFGFile(@cINIfile,@cMemoEdit).and.("datasul2protheus.ini"$lower(cINIfile)))
+            MsAguarde({||readIniFile(@cINIfile)},"Loading Settings","Wait")
+            MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
+        endif
+
+    end sequence
+
+    return
+
+static function EdtCFGFile(cINIfile as character,cMemoEdit as character) as logical
+
+    local aButtons as array
+    local aAdvSize as array
+    local aObjSize as array
+    local aObjCoords as array
+    local aInfoAdvSize as array
+
+    local bSet15 as codeblock
+    local bSet24 as codeblock
+    local bNotepad as codeblock
+    local bRestore as codeblock
+
+    local cTitle as character
+    local cSVMemoEdit as character
+
+    local lOk as logical
+
+    local nDlgWidth as numeric
+
+    local oDlg as object
+    local oFont as object
+    local oPanel as object
+    local oMemoEdit as object
+
+    dfv():Default(@cMemoEdit,"")
+
+    cSVMemoEdit:=cMemoEdit
+
+    begin sequence
+
+        aAdvSize:=MsAdvSize()
+        aInfoAdvSize:={aAdvSize[1],aAdvSize[2],aAdvSize[3],aAdvSize[4],0,0}
+        aObjCoords:=array(0)
+        aAdd(aObjCoords,{0,0,.T.,.T.})
+        aObjSize:=MsObjSize(aInfoAdvSize,aObjCoords)
+
+        cTitle:="ARQUIVO CONFIGURACAO "
+        cTitle+=" :: "
+        cTitle+=cINIfile
+
+        DEFINE FONT oFont NAME "Courier New" SIZE 0,-11 BOLD
+        DEFINE MSDIALOG oDlg TITLE cTitle FROM aAdvSize[7],0 TO aAdvSize[6],aAdvSize[5] OF GetWndDefault() STYLE DS_MODALFRAME STATUS PIXEL
+
+            nDlgWidth:=__DlgWidth(oDlg)
+
+            oPanel:=tPanel():New(0,0,"",oDlg,nil,nil,nil,nil,nil,nDlgWidth,nDlgWidth)
+
+            @(aObjSize[1][1]+5),(aObjSize[1][2]+5) GET oMemoEdit VAR cMemoEdit MEMO SIZE ((aObjSize[1][4]/100)*99),((aObjSize[1][3]/100)*88) FONT oFont CENTERED DESIGN OF oPanel PIXEL WHEN (.T.)
+
+            oMemoEdit:lReadOnly:=.F.
+            oMemoEdit:EnableVScroll(.T.)
+            oMemoEdit:EnableHScroll(.T.)
+
+            oDlg:lEscClose:=.F.
+
+            bSet15:={||lOk:=ChgFile(@cINIfile,@cMemoEdit,@cSVMemoEdit),if(lOk,oDlg:End(),lOK)}
+            bSet24:={||lOK:=.F.,oDlg:End()}
+
+            aButtons:=array(0)
+            bNotepad:={||MsProcess():MsAguarde({||NotePad(cINIfile)},"Abrindo no Notepad","Aguarde...")}
+            aAdd(aButtons,{"NOTEPAD",bNotepad,OemToAnsi("Abir no Notepad"),OemtoAnsi("Abir no Notepad")})
+            bRestore:={||MsProcess():MsAguarde({||Restore(cINIfile,@cMemoEdit,@oMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
+            aAdd(aButtons,{"RESTORE",bRestore,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
+
+        ACTIVATE MSDIALOG oDlg CENTERED ON INIT EnchoiceBar(oDlg,bSet15,bSet24,nil,@aButtons)
+
+    end sequence
+
+    return(lOk)
+
+static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit as character) as logical
+
+    local cMsg as character
+    local cTitle as character
+
+    local cSPDriver as character
+    local cSPPath as character
+    local cSPFileName as character
+    local cSPFileExt as character
+
+    local cFWWSBKP as character
+
+    local lFilial as logical
+    local lEmpresa as logical
+    local lChgFile as logical
+
+    local nAttemps as numeric
+
+    lFilial:=(type("cFilAnt")=="C")
+    lEmpresa:=(type("cEmpAnt")=="C")
+
+    begin sequence
+
+        lChgFile:=(cMemoEdit==cSVMemoEdit)
+        if (lChgFile)
+            break
+        endif
+
+        cSPDriver:=""
+        cSPPath:=""
+        cSPFileName:=""
+        cSPFileExt:=""
+
+        SplitPath(cINIfile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
+
+        cMsg:="Deseja Gravar as Alteracoes?"
+
+        cTitle:="ARQUIVO CONFIGURACAO  :: "
+        cTitle+=cSPFileName
+
+        lChgFile:=ApMsgYesNo(cMsg,cTitle)
+        if (!lChgFile)
+            break
+        endif
+
+        cFWWSBKP:=cSPDriver
+        cFWWSBKP+=cSPPath
+        cFWWSBKP+=cSPFileName
+        cFWWSBKP+=cSPFileExt
+        cFWWSBKP+="-"
+        cFWWSBKP+=DToS(Date())
+        cFWWSBKP+="-"
+        cFWWSBKP+=strTran(Time(),":","-")
+        cFWWSBKP+="-"
+        cFWWSBKP+=strZero(ranDomize(1,999),3)
+
+        nAttemps:=0
+
+        cMsg:="O arquivo "
+        cMsg+=cINIfile
+        cMsg+=" encontra-se em uso deseja tentar novamente?"
+
+        while (!LockByName(cSPFileName,lEmpresa,lFilial,.T.))
+            if (nAttemps++>10)
+                nAttemps:=0
+                if (!MsgYesNo(cMsg,cTitle))
+                    lChgFile:=.F.
+                    cMsg:="O arquivo "
+                    cMsg+=cINIfile
+                    cMsg+=" encontra-se em uso e nao podera ser salvo."
+                    ApMsgAlert(cMsg,cTitle)
+                    break
+                endif
+            endif
+            sleep(300)
+        end while
+
+        nAttemps:=0
+
+        while (file(cINIfile))
+            if (fRename(cINIfile,cFWWSBKP))
+                exit
+            endif
+            if (nAttemps++>10)
+                nAttemps:=0
+                if (!MsgYesNo(cMsg,cTitle))
+                    UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
+                    lChgFile:=.F.
+                    cMsg:="Problema na gravacao do arquivo : "
+                    cMsg+=cINIfile
+                    ApMsgAlert(cMsg,cTitle)
+                    break
+                endif
+            endif
+            sleep(300)
+        end while
+
+        nAttemps:=0
+
+        cMsg:="Problema na gravacao do arquivo : "
+        cMsg+=cINIfile
+        cMsg+=" Deseja tentar novamente?"
+
+        while (!(lChgFile:=MemoWrite(cINIfile,cMemoEdit)))
+            if (nAttemps++>10)
+                nAttemps:=0
+                if (!MsgYesNo(cMsg,cTitle))
+                    exit
+                endif
+            endif
+            sleep(300)
+        end while
+
+        UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
+
+        if (!lChgFile)
+            cMsg:="Problema na gravacao do arquivo : "
+            cMsg+=cINIfile
+            ApMsgAlert(cMsg,cTitle)
+            break
+        endif
+
+        cMsg:="Arquivo "
+        cMsg+=cINIfile
+        cMsg+=" salvo com sucesso."
+        ApMsgInfo(cMsg,cTitle)
+
+    end sequence
+
+    return(lChgFile)
+
+static procedure NotePad(cINIfile as character)
+
+    local cSPDriver as character
+    local cSPPath as character
+    local cSPFileName as character
+    local cSPFileExt as character
+
+    local cTempPath as character
+    local cTempFile as character
+
+    cSPDriver:=""
+    cSPPath:=""
+    cSPFileName:=""
+    cSPFileExt:=""
+
+    SplitPath(cINIfile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
+
+    cTempPath:=getTempPath()
+    if (!(right(cTempPath,1)=="\"))
+        cTempPath+="\"
+    endif
+
+    cTempFile:=cTempPath
+    cTempFile+=cSPFileName
+    cTempFile+=cSPFileExt
+
+    if (__CopyFile(cINIfile,cTempFile))
+        ShellExecute("open",cTempFile,"","",SW_SHOW)
+    endif
+
+    return
+
+static function Restore(cINIfile as character,cMemoEdit as character,oMemoEdit as object,cSVMemoEdit as character) as logical
+
+    local cMask as character
+    local cTitle as character
+    local cFileRead as character
+    local cDirectory as character
+
+    local cSPDriver as character
+    local cSPPath as character
+    local cSPFileName as character
+    local cSPFileExt as character
+
+    local lRestore as logical
+
+    local nOptions as numeric
+
+    begin sequence
+
+        cSPDriver:=""
+        cSPPath:=""
+        cSPFileName:=""
+        cSPFileExt:=""
+
+        SplitPath(cINIfile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
+
+        cMask:="Arquivos de Configuracao|"+cSPFileName+"*"
+        cTitle:="Restaurar arquivo de Configuracao"
+        cDirectory:=cSPDriver
+        cDirectory+=cSPPath
+        cDirectory:=StrTran(cSPPath,"/","\")
+        nOptions:=GETF_NOCHANGEDIR
+
+        cFileRead:=cGetFile(cMask,cTitle,1,cDirectory,.F.,nOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+
+        if (empty(cFileRead))
+            break
+        endif
+
+        cFileRead:=(cDirectory+cFileRead)
+        cFileRead:=StrTran(cFileRead,"\\","\")
+
+        if (!file(cFileRead))
+            break
+        endif
+
+        cSvMemoEdit:=cMemoEdit
+        cMemoEdit:=ReadMemo(cFileRead)
+
+        lRestore:=ChgFile(@cINIfile,@cMemoEdit,@cSVMemoEdit)
+
+        if (!lRestore)
+            cMemoEdit:=cSvMemoEdit
+            break
+        endif
+
+        cSvMemoEdit:=cMemoEdit
+
+        oMemoEdit:Refresh()
+
+    end sequence
+
+    return(lRestore)
+
+static function ReadMemo(cFile) as character
+    local cMemoRead as character
+    cMemoRead:=cTools():ReadMemo(cFile)
+    return(cMemoRead)
+
+static function sendDataToServer(cGetFileRoot as character) as logical
+
+    local aZipFiles:=array(0) as array
+    
+    local aFiles as array
+    local aDirectories as array
+
+    local cFile as character
+    local cZipFile as character
+    local cDirectory as character
+    local cGetFileMask:="" as character
+    local cGetFileTitle as character
+    local cZipFileServer as character
+    local cLowerDirectory as character
+    local cDirectoryClient as character
+    local cDirectoryServer as character
+
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
+
+    local lSendDataToServer as logical
+
+    local nFile as numeric
+    local nFiles as numeric
+    local nDirectory as numeric
+    local nDirectories as numeric
+    local nGetFileOptions as numeric
+
+    cGetFileTitle:="Diretorio de Configuração DataSul2Protheus.ini"
+    nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE+GETF_RETDIRECTORY)
+    cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+
+    begin sequence
+
+        lSendDataToServer:=((lIsDir(cDirectoryClient)).and.("datasul2protheus"$StrTran(lower(cDirectoryClient),"totvs","")))
+        if (!lSendDataToServer)
+            if (ApMsgYesNo("Invalid directory ["+cDirectoryClient+"]. Want to try again?"))
+                lSendDataToServer:=sendDataToServer(@cGetFileRoot)
+            elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
+                cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
+            endif
+            break
+        endif
+
+        cDirectoryServer:="\datasul2Protheus\"
+        DirTools():MakeFileDir(cDirectoryServer)
+        lSendDataToServer:=lIsDir(cDirectoryServer)
+        if (!lSendDataToServer)
+            ApMsgAlert("Invalid directory ["+cDirectoryServer+"]")
+            break
+        endif
+
+        aDirectories:=Directory(cDirectoryClient+"*.*","D")
+        nDirectories:=Len(aDirectories)
+        
+        lSendDataToServer:=(nDirectories!=0)
+        if (!lSendDataToServer)
+            ApMsgAlert("No valid directory information found")
+            break
+        endif
+
+        for nDirectory:=1 to nDirectories
+            if (aDirectories[nDirectory][5]!="D")
+                loop
+            endif
+            cDirectory:=cDirectoryClient+aDirectories[nDirectory][1]
+            if (right(cDirectory,1)==".")
+                loop
+            endif
+            cLowerDirectory:=lower(cDirectory)
+            if (("7z"$cLowerDirectory).or.("src"$cLowerDirectory).or.(".gitignore"$cLowerDirectory).or.(".vscode"$cLowerDirectory))
+                loop
+            endif
+            if (Right(cDirectory,1)!="\")
+                cDirectory+="\"
+            endif
+            aFiles:=Directory(cDirectory+"*.*")
+            nFiles:=Len(aFiles)
+            for nFile:=1 To nFiles
+                cFile:=cDirectory+aFiles[nFile][1]
+                aAdd(aZipFiles,cFile)
+                MsProcTxt(aFiles[nFile][1])
+            next nFile
+        next nDirectory
+
+        cZipFile:=(getTempPath()+criatrab(nil,.F.)+".zip")
+        MsProcTxt("ZipFile. Wait...")
+        lSendDataToServer:=(FZip(cZipFile,aZipFiles,cDirectoryClient,/*,[cSenha]*/)==0)
+        if (!lSendDataToServer)
+            ApMsgAlert("Problem zipping ["+cZipFile+"] file")
+            break
+        endif
+
+        SplitPath(cZipFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+
+        cZipFileServer:=cDirectoryServer
+        cZipFileServer+=cSPPFile
+        cZipFileServer+=cSPPExt
+
+        MsProcTxt("Wait...")
+        lSendDataToServer:=__CopyFile(cZipFile,cZipFileServer)
+        if (!lSendDataToServer)
+            ApMsgAlert("Problem copying ["+cZipFile+"] file to server")
+            break
+        endif
+
+        MsProcTxt("UnZipFile. Wait...")
+        lSendDataToServer:=(FUnzip(cZipFileServer,cDirectoryServer,/*[cSenha]*/)==0)
+        if (!lSendDataToServer)
+            ApMsgAlert("Problem unzipping the test ["+cZipFile+"] on the server")
+            break
+        endif
+
+        cGetFileRoot:="SERVIDOR"+cDirectoryServer
+
+        ApMsgInfo("Files uploaded to the server successfully. Directory ["+cGetFileRoot+"]")
+
+        cGetFileRoot+="ini\"
+
+    end sequence
+
+    if (!empty(aFiles))
+        FWFreeArray(@aFiles)
+    endif
+
+    if (!empty(aZipFiles))
+        FWFreeArray(@aZipFiles)
+    endif
+
+    if (!empty(aDirectories))
+        FWFreeArray(@aDirectories)
+    endif
+
+    if (!empty(cZipFile)).and.(file(cZipFile))
+        fErase(cZipFile)
+    endif
+
+    if ((!empty(cZipFileServer)).and.(file(cZipFileServer)))
+        fErase(cZipFileServer)
+    endif
+
+return(lSendDataToServer)
+
 static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array,aLogDet as array,aLogTitle as array,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array) as logical
 
     local aLine as array
@@ -1042,151 +1529,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     endif
 
 return(lImportData)
-
-static function sendDataToServer(cGetFileRoot as character) as logical
-
-    local aZipFiles:=array(0) as array
-    
-    local aFiles as array
-    local aDirectories as array
-
-    local cFile as character
-    local cZipFile as character
-    local cDirectory as character
-    local cGetFileMask:="" as character
-    local cGetFileTitle as character
-    local cZipFileServer as character
-    local cLowerDirectory as character
-    local cDirectoryClient as character
-    local cDirectoryServer as character
-
-    local cSPPDrive as character
-    local cSPPPath as character
-    local cSPPFile as character
-    local cSPPExt as character
-
-    local lSendDataToServer as logical
-
-    local nFile as numeric
-    local nFiles as numeric
-    local nDirectory as numeric
-    local nDirectories as numeric
-    local nGetFileOptions as numeric
-
-    cGetFileTitle:="Diretorio de Configuração DataSul2Protheus.ini"
-    nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE+GETF_RETDIRECTORY)
-    cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
-
-    begin sequence
-
-        lSendDataToServer:=((lIsDir(cDirectoryClient)).and.("datasul2protheus"$StrTran(lower(cDirectoryClient),"totvs","")))
-        if (!lSendDataToServer)
-            if (ApMsgYesNo("Invalid directory ["+cDirectoryClient+"]. Want to try again?"))
-                lSendDataToServer:=sendDataToServer(@cGetFileRoot)
-            elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
-                cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
-            endif
-            break
-        endif
-
-        cDirectoryServer:="\datasul2Protheus\"
-        DirTools():MakeFileDir(cDirectoryServer)
-        lSendDataToServer:=lIsDir(cDirectoryServer)
-        if (!lSendDataToServer)
-            ApMsgAlert("Invalid directory ["+cDirectoryServer+"]")
-            break
-        endif
-
-        aDirectories:=Directory(cDirectoryClient+"*.*","D")
-        nDirectories:=Len(aDirectories)
-        
-        lSendDataToServer:=(nDirectories!=0)
-        if (!lSendDataToServer)
-            ApMsgAlert("No valid directory information found")
-            break
-        endif
-
-        for nDirectory:=1 to nDirectories
-            if (aDirectories[nDirectory][5]!="D")
-                loop
-            endif
-            cDirectory:=cDirectoryClient+aDirectories[nDirectory][1]
-            if (right(cDirectory,1)==".")
-                loop
-            endif
-            cLowerDirectory:=lower(cDirectory)
-            if (("7z"$cLowerDirectory).or.("src"$cLowerDirectory).or.(".gitignore"$cLowerDirectory).or.(".vscode"$cLowerDirectory))
-                loop
-            endif
-            if (Right(cDirectory,1)!="\")
-                cDirectory+="\"
-            endif
-            aFiles:=Directory(cDirectory+"*.*")
-            nFiles:=Len(aFiles)
-            for nFile:=1 To nFiles
-                cFile:=cDirectory+aFiles[nFile][1]
-                aAdd(aZipFiles,cFile)
-                MsProcTxt(aFiles[nFile][1])
-            next nFile
-        next nDirectory
-
-        cZipFile:=(getTempPath()+criatrab(nil,.F.)+".zip")
-        MsProcTxt("ZipFile. Wait...")
-        lSendDataToServer:=(FZip(cZipFile,aZipFiles,cDirectoryClient,/*,[cSenha]*/)==0)
-        if (!lSendDataToServer)
-            ApMsgAlert("Problem zipping ["+cZipFile+"] file")
-            break
-        endif
-
-        SplitPath(cZipFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
-
-        cZipFileServer:=cDirectoryServer
-        cZipFileServer+=cSPPFile
-        cZipFileServer+=cSPPExt
-
-        MsProcTxt("Wait...")
-        lSendDataToServer:=__CopyFile(cZipFile,cZipFileServer)
-        if (!lSendDataToServer)
-            ApMsgAlert("Problem copying ["+cZipFile+"] file to server")
-            break
-        endif
-
-        MsProcTxt("UnZipFile. Wait...")
-        lSendDataToServer:=(FUnzip(cZipFileServer,cDirectoryServer,/*[cSenha]*/)==0)
-        if (!lSendDataToServer)
-            ApMsgAlert("Problem unzipping the test ["+cZipFile+"] on the server")
-            break
-        endif
-
-        cGetFileRoot:="SERVIDOR"+cDirectoryServer
-
-        ApMsgInfo("Files uploaded to the server successfully. Directory ["+cGetFileRoot+"]")
-
-        cGetFileRoot+="ini\"
-
-    end sequence
-
-    if (!empty(aFiles))
-        FWFreeArray(@aFiles)
-    endif
-
-    if (!empty(aZipFiles))
-        FWFreeArray(@aZipFiles)
-    endif
-
-    if (!empty(aDirectories))
-        FWFreeArray(@aDirectories)
-    endif
-
-    if (!empty(cZipFile)).and.(file(cZipFile))
-        fErase(cZipFile)
-    endif
-
-    if ((!empty(cZipFileServer)).and.(file(cZipFileServer)))
-        fErase(cZipFileServer)
-    endif
-
-return(lSendDataToServer)
 
 static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
 
