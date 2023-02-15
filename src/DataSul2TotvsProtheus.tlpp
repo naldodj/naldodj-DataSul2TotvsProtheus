@@ -2,6 +2,7 @@
 
 #include "totvs.ch"
 #include "shell.ch"
+
 #include "dbstruct.ch"
 
 #include "jsonhash.ch"
@@ -21,6 +22,7 @@ static method Activate() class Protheus
     local bSRAMsNewProcess as codeblock
     local bSRBMsNewProcess as codeblock
     local bSRFMsNewProcess as codeblock
+    local bSR3MsNewProcess as codeblock
     local bSR8MsNewProcess as codeblock
     
     local cGetFileRoot:="\" as character
@@ -40,6 +42,7 @@ static method Activate() class Protheus
     local oSRAMSNewProcess as object
     local oSRBMSNewProcess as object
     local oSRFMSNewProcess as object
+    local oSR3MSNewProcess as object
     local oSR8MSNewProcess as object
 
     if (valType(st_oHMbTransform)=="O")
@@ -97,6 +100,7 @@ static method Activate() class Protheus
         bSRAMsNewProcess:={|lEnd|ProcRedefine(oSRAMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRA(oSRAMSNewProcess,@lEnd)}
         bSRBMsNewProcess:={|lEnd|ProcRedefine(oSRBMSNewProcess,@oFont,0,650,650,.T.,.T.),importSRB(oSRBMSNewProcess,@lEnd)}
         bSRFMsNewProcess:={|lEnd|ProcRedefine(oSRFMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRF(oSRFMSNewProcess,@lEnd)}
+        bSR3MsNewProcess:={|lEnd|ProcRedefine(oSR3MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR3(oSR3MSNewProcess,@lEnd)}
         bSR8MsNewProcess:={|lEnd|ProcRedefine(oSR8MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8(oSR8MSNewProcess,@lEnd)}
 
         DEFINE MSDIALOG oDlg TITLE "TOTVS :: DataSul To Protheus" FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
@@ -104,10 +108,11 @@ static method Activate() class Protheus
             MENU oMenu IMAGE "" OF oDlg
                 MENUITEM "TOTVS :: DataSul To Protheus"
                 MENU
-                    MENUITEM "Import SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oSRAMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRAMSNewProcess:Activate())
-                    MENUITEM "Import SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oSRBMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRBMSNewProcess:Activate())
-                    MENUITEM "Import SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
-                    MENUITEM "Import SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
+                    MENUITEM "Import SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oSRAMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRAMSNewProcess:Activate())
+                    MENUITEM "Import SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oSRBMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRBMSNewProcess:Activate())
+                    MENUITEM "Import SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
+                    MENUITEM "Import SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.)) ACTION (oSR3MSNewProcess:=MsNewProcess():New(bSR3MsNewProcess,"Importing SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR3MSNewProcess:Activate())
+                    MENUITEM "Import SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
                 ENDMENU
                 MENU
                     MENUITEM "Settings" ACTION CFGIni()
@@ -134,6 +139,10 @@ static method Activate() class Protheus
     end sequence
 
     cacheData():delSection("datasul2totvsprotheus")
+    
+    if (findFunction("RstPosAlias"))
+        RstPosAlias()
+    endif
 
     if (valType(st_oHMbTransform)=="O")
         st_oHMbTransform:Clean()
@@ -322,14 +331,13 @@ static function readTableDefinition() as logical
 
 return(lreadTableDefinition)
 
-static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array,oHMSourceFieldsDef as object) as variant
+static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array,oHMSourceFieldsDef as object,cType as character) as variant
 
     local aValueField as array
     local aSourceField as array
 
     local bTransform as codeblock
 
-    local cType as character
     local cTransform as character
     local cSourceField as character
 
@@ -433,19 +441,21 @@ static function NormalizeData(lHasError as logical,xValue as variant,cType as ch
             endif
         endif
     else
-        if (cType=="char")
-            xValue:=strTran(xValue,'"',"")
-        elseif (cType=="inte")
-            xValue:=Int(val(xValue))
-        elseif ("deci"$cType)
-            if (","$xValue)
-                xValue:=strTran(xValue,",",".")
+        if (valType(xValue)=="C")
+            if (cType=="char")
+                xValue:=strTran(xValue,'"',"")
+            elseif (cType=="inte")
+                xValue:=Int(val(xValue))
+            elseif ("deci"$cType)
+                if (","$xValue)
+                    xValue:=strTran(xValue,",",".")
+                endif
+                xValue:=val(xValue)
+            elseif (cType=="date")
+                xValue:=CToD(xValue)
+            elseif (cType=="logi")
+                xValue:=(Left(lower(xValue),1)$"sty1")
             endif
-            xValue:=val(xValue)
-        elseif (cType=="date")
-            xValue:=CToD(xValue)
-        elseif (cType=="logi")
-            xValue:=(Left(lower(xValue),1)$"sty1")
         endif
     endif
 
@@ -583,6 +593,17 @@ static function ProcRedefine(oProcess as object,oFont as object,nLeft as numeric
     lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oFont,@nLeft,@nWidth,@nCTLFLeft,@lODlgF,@lODlgW)
     return(lProcRedefine)
 
+static function SetFilAnt(cFil)
+    local cSvFilAnt:=&("cFilAnt") as character
+    if (valType("cFilAnt")=="C")
+        cSvFilAnt:=&("cFilAnt")
+        if (cFil!=cSvFilAnt)
+            &("cFilAnt"):=cFil
+        endif
+        FWSM0Util():setSM0PositionBycFilAnt()
+    endif
+return(cSvFilAnt)
+
 static procedure CFGIni()
 
     local cINIFile as character    
@@ -610,9 +631,15 @@ static procedure CFGIni()
 
         cMemoEdit:=ReadMemo(cINIfile)
 
-        if (EdtCFGFile(@cINIfile,@cMemoEdit).and.("datasul2protheus.ini"$lower(cINIfile)))
-            MsAguarde({||readIniFile(@cINIfile)},"Loading Settings","Wait")
-            MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
+        if (EdtCFGFile(@cINIfile,@cMemoEdit))
+            if ("datasul2protheus.ini"$lower(cINIfile))
+                MsAguarde({||readIniFile(@cINIfile)},"Loading Settings","Wait")
+            else                
+                if (valType(st_oHMbTransform)=="O")
+                    st_oHMbTransform:Clean()
+                endif
+                MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
+            endif
         endif
 
     end sequence
@@ -1076,17 +1103,24 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     local aTargetStruct:=(cAlias)->(dbStruct()) as array
     local aTargetFieldsDef as array
 
+    local aUpdateTableFields as array
+    local aUpdateTableSource as array
+
     local cError as character
     local cField as character
     local cLineUTF8 as character
 
     local cTmpAlias:=getNextAlias() as character
-    
+
+    local cType as character
+
     local cLine as character
     local cRootPath as character
     local cDataPath as character
     local cSourceFile as character
     local cSourceTable as character
+
+    local cSVFilAnt:=&("cFilAnt") as character
 
     local cRecCount as character
 
@@ -1097,6 +1131,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     local cIncProc as character
     local cTimeRemaining as character
 
+    local cSeekTable as character
+    local cSeekIndexKey as character
+    local cSeekTableIndex as character
+    local cAllSeekIndexKey as character
+    local cUpdateTableFields as character
+    local cUpdateTableSource as character
+
     local lFound as logical
     local lAddNew as logical
     local lAppend as logical
@@ -1104,9 +1145,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     local ldbCommit as logical
     local lHasError:=.F. as logical
     local lChkFilial as logical
+    local lSeekTable as logical
     local lImportData as logical
     local lRecCountStep as logical
     local lAppendIfNotExist as logical
+    local lUpdateTableFields:=.F. as logical
 
     local nField as numeric
     local nFields as numeric
@@ -1118,6 +1161,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
     local nTargetFieldPos as numeric
 
     local nIndexKey:=retOrder(cAlias,cIndexKey,.T.) as numeric
+    local nSeekTableIndex as numeric
+    local nUpdateTableSource as numeric
 
     local nIncProcStep as numeric
 
@@ -1235,6 +1280,26 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
             cAliasxFilial:=xFilial(cAlias)
         endif
 
+        lSeekTable:=(!empty(cSeekTable:=allTrim(oTFIni:GetPropertyValue(cAlias,"seekTable",""))))
+        if (lSeekTable)
+            lSeekTable:=chkFile(cSeekTable)
+            if (lSeekTable)
+                cSeekIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"seekIndexKey",""))
+                cSeekTableIndex:=allTrim(oTFIni:GetPropertyValue(cAlias,"seekTableIndex",""))
+                nSeekTableIndex:=retOrder(cSeekTable,cSeekTableIndex,.T.)
+                lSeekTable:=(nSeekTableIndex>0)
+                if (lSeekTable)
+                    (cSeekTable)->(dbSetOrder(nSeekTableIndex))
+                    cUpdateTableFields:=allTrim(oTFIni:GetPropertyValue(cAlias,"updateTableFields",""))
+                    aUpdateTableFields:=strToKArr2(cUpdateTableFields,",")
+                    cUpdateTableSource:=allTrim(oTFIni:GetPropertyValue(cAlias,"updateTableSource",""))
+                    aUpdateTableSource:=strToKArr2(cUpdateTableSource,",")
+                    nUpdateTableSource:=len(aUpdateTableFields)
+                    lUpdateTableFields:=(nUpdateTableSource==len(aUpdateTableSource))
+                endif
+            endif
+        endif
+
         nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","100"))))
         nIncProcStep:=Min(Max(nIncProcStep,1),100)
 
@@ -1317,6 +1382,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                     lAppend:=.F.
                                     exit
                                 endif
+                                SetFilAnt(xValue)
                             endif
                         next nField
                     endif
@@ -1325,6 +1391,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     endif
                     if (lAppend)
                         (cTmpAlias)->(dbAppend(.F.))
+                            if (lSeekTable)
+                                cAllSeekIndexKey:=cSeekIndexKey
+                            endif
                             for nField:=1 to nFields
                                 nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
                                 if (nTargetFieldPos==0)
@@ -1369,7 +1438,61 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                     loop
                                 endif
                                 (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                if ((lSeekTable).and.(!empty(cAllSeekIndexKey)))
+                                    if (cField$cAllSeekIndexKey)
+                                        cAllSeekIndexKey:=cTools():StrReplace(cAllSeekIndexKey,{cField,""})
+                                    endif
+                                    if (empty(cTools():StrReplace(cAllSeekIndexKey,{"+",""})))
+                                        cAllSeekIndexKey:=""
+                                        (cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
+                                    endif
+                                endif
                             next nField
+                            if ((lSeekTable).and.(lUpdateTableFields))
+                                if (cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
+                                    if (cSeekTable)->(recLock(cSeekTable,.F.))
+                                        for nField:=1 to nUpdateTableSource
+                                            cField:=aUpdateTableSource[nField]
+                                            nTargetFieldPos:=aScan(aTargetFieldsDef,{|e|(e[1]==cField)})
+                                            if (nTargetFieldPos>0)
+                                                lHasError:=.F.
+                                                xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
+                                                if (lHasError)
+                                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                                                    if (!empty(cError))
+                                                        aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                                                        nMLCount:=MLCount(cError,nMLCountSize)
+                                                        for nMLLine:=1 to nMLCount
+                                                            aAdd(aLog,memoLine(cError,nMLCountSize,nMLLine))
+                                                        next nMLLine
+                                                        aAdd(aLogDet,aClone(aLog))
+                                                        aSize(aLog,0)
+                                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        break
+                                                    endif
+                                                endif
+                                                cField:=aUpdateTableFields[nField]
+                                                xValue:=NormalizeData(@lHasError,xValue,cType,cField,.T.,@st_oHMbTransform,@oTFIni)
+                                                if (lHasError)
+                                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                                                    if (!empty(cError))
+                                                        aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                                                        nMLCount:=MLCount(cError,nMLCountSize)
+                                                        for nMLLine:=1 to nMLCount
+                                                            aAdd(aLog,memoLine(cError,nMLCountSize,nMLLine))
+                                                        next nMLLine
+                                                        aAdd(aLogDet,aClone(aLog))
+                                                        aSize(aLog,0)
+                                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        break
+                                                    endif
+                                                endif
+                                            endif
+                                            (cSeekTable)->(FieldPut(FieldPos(cField),xValue))
+                                        next nField
+                                    endif
+                                endif
+                            endif
                         ldbCommit:=(++nCommitBuffer>=1024)
                     endif
                     FWFreeArray(@aLine)
@@ -1509,6 +1632,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
 
     end sequence
 
+    SetFilAnt(cSVFilAnt)
+
     CacheData():delSection("EvalBlock")
 
     if (valtype(oHMSourceFieldsDef)=="O")
@@ -1614,6 +1739,39 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
     FWFreeArray(@aLogTitle)
 
 return(lImportSRF)
+
+static function importSR3(oMsNewProcess as object,lEnd as logical) as logical
+
+    local aLog:=array(0) as array
+    local aLogDet:=array(0) as array
+    local aLogTitle:=array(0) as array
+
+    local lImportSR3 as logical
+
+    lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SR3","R3_FILIAL+R3_MAT+DTOS(R3_DATA)+R3_SEQ+R3_TIPO+R3_PD","SR3",{"R3_FILIAL","R3_MAT","R3_DATA","R3_SEQ","R3_TIPO","R3_PD"})
+
+    if ((lImportSR3).and.!(lEnd))
+        oMsNewProcess:SetRegua1(0)
+        oMsNewProcess:IncRegua1("Wait!")
+        oMsNewProcess:SetRegua2(0)
+        oMsNewProcess:IncRegua2("...")
+        lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SR7","R7_FILIAL+R7_MAT+DTOS(R7_DATA)+R7_SEQ+R7_TIPO","SR7",{"R7_FILIAL","R7_MAT","R7_DATA","R7_SEQ","R7_TIPO"})
+        if (lImportSR3)
+            ApMsgInfo("SR3/SR7 Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the SR7 table","Info")
+        endif
+    endif
+
+    if (!empty(aLogDet))
+        fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
+    endif
+
+    FWFreeArray(@aLog)
+    FWFreeArray(@aLogDet)
+    FWFreeArray(@aLogTitle)
+
+return(lImportSR3)
 
 static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
