@@ -51,7 +51,8 @@ static method Activate() class Protheus
 
     begin sequence
 
-        if (ApMsgNoYes("Sending Data To Server?"))
+        lSendDataToServer:=ApMsgNoYes("Sending Data To Server?")
+        if (lSendDataToServer)
             MsAguarde({||lSendDataToServer:=sendDataToServer(@cGetFileRoot)},"Sending Data To Server","Wait!")
         elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
             cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
@@ -992,6 +993,8 @@ static function sendDataToServer(cGetFileRoot as character) as logical
                 cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
             endif
             break
+        elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
+            cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
         endif
 
         cDirectoryServer:="\datasul2Protheus\"
@@ -1300,7 +1303,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
             endif
         endif
 
-        nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","100"))))
+        nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","20"))))
         nIncProcStep:=Min(Max(nIncProcStep,1),100)
 
         begin sequence
@@ -1330,7 +1333,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     cLineUTF8:=DecodeUTF8(cLine)
                     if (empty(cLineUTF8))
                         aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
-                        aAdd(aLog,"Existem Caracteres Invalidos")
+                        aAdd(aLog,"Existem Caracteres UTF8 Invalidos")
                         nMLCount:=MLCount(cLine,nMLCountSize)
                         for nMLLine:=1 to nMLCount
                             aAdd(aLog,memoLine(cLine,nMLCountSize,nMLLine))
@@ -1448,9 +1451,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                     endif
                                 endif
                             next nField
-                            if ((lSeekTable).and.(lUpdateTableFields))
+                            if (lSeekTable)
                                 if (cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
-                                    if (cSeekTable)->(recLock(cSeekTable,.F.))
+                                    if ((lUpdateTableFields).and.(cSeekTable)->(recLock(cSeekTable,.F.)))
                                         for nField:=1 to nUpdateTableSource
                                             cField:=aUpdateTableSource[nField]
                                             nTargetFieldPos:=aScan(aTargetFieldsDef,{|e|(e[1]==cField)})
