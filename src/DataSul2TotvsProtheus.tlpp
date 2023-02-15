@@ -1487,12 +1487,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                                         aAdd(aLogDet,aClone(aLog))
                                                         aSize(aLog,0)
                                                         lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        (cSeekTable)->(MsUnLock())
                                                         break
                                                     endif
                                                 endif
                                             endif
                                             (cSeekTable)->(FieldPut(FieldPos(cField),xValue))
                                         next nField
+                                        (cSeekTable)->(MsUnLock())
                                     endif
                                 endif
                             endif
