@@ -1372,10 +1372,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                         next nMLLine
                                         aAdd(aLogDet,aClone(aLog))
                                         aSize(aLog,0)
-                                        lEnd:=oMsNewProcess:lEnd:=.T.
-                                        lAppend:=.F.
-                                        break
                                     endif
+                                    lEnd:=oMsNewProcess:lEnd:=.T.
+                                    lAppend:=.F.
+                                    break
                                 endif
                                 if (empty(xValue))
                                     if (lHasError)
@@ -1424,10 +1424,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                             next nMLLine
                                             aAdd(aLogDet,aClone(aLog))
                                             aSize(aLog,0)
-                                            lEnd:=oMsNewProcess:lEnd:=.T.
-                                            lAppend:=.F.
-                                            break
                                         endif
+                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                        lAppend:=.F.
+                                        break
                                     endif
                                 endif
                                 if (empty(xValue))
@@ -1476,9 +1476,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                                         next nMLLine
                                                         aAdd(aLogDet,aClone(aLog))
                                                         aSize(aLog,0)
-                                                        lEnd:=oMsNewProcess:lEnd:=.T.
-                                                        break
                                                     endif
+                                                    lEnd:=oMsNewProcess:lEnd:=.T.
+                                                    break
                                                 endif
                                                 cField:=aUpdateTableFields[nField]
                                                 xValue:=NormalizeData(@lHasError,xValue,cType,cField,.T.,@st_oHMbTransform,@oTFIni)
@@ -1492,10 +1492,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                                         next nMLLine
                                                         aAdd(aLogDet,aClone(aLog))
                                                         aSize(aLog,0)
-                                                        lEnd:=oMsNewProcess:lEnd:=.T.
-                                                        (cSeekTable)->(MsUnLock())
-                                                        break
                                                     endif
+                                                    lEnd:=oMsNewProcess:lEnd:=.T.
+                                                    (cSeekTable)->(MsUnLock())
+                                                    break
                                                 endif
                                             endif
                                             (cSeekTable)->(FieldPut(FieldPos(cField),xValue))
