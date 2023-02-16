@@ -138,7 +138,9 @@ static method Activate() class Protheus
 
         oSRAMSNewProcess:=FreeObj(oSRAMSNewProcess)
         oSRBMSNewProcess:=FreeObj(oSRBMSNewProcess)
+        oSRDMSNewProcess:=FreeObj(oSRDMSNewProcess)
         oSRFMSNewProcess:=FreeObj(oSRFMSNewProcess)
+        oSR3MSNewProcess:=FreeObj(oSR3MSNewProcess)
         oSR8MSNewProcess:=FreeObj(oSR8MSNewProcess)
 
     end sequence
