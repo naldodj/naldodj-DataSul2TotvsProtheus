@@ -25,11 +25,11 @@ static method Activate() class Protheus
     local bSRFMsNewProcess as codeblock
     local bSR3MsNewProcess as codeblock
     local bSR8MsNewProcess as codeblock
-    
+
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
     local cGetFileTitle as character
-    
+
     local lActivate as logical
     local lSendDataToServer as logical
 
@@ -39,7 +39,7 @@ static method Activate() class Protheus
     local oMenu as object
     local oFont as object
     local oFWDefSize as object
-    
+
     local oSRAMSNewProcess as object
     local oSRBMSNewProcess as object
     local oSRDMSNewProcess as object
@@ -120,7 +120,7 @@ static method Activate() class Protheus
                     MENUITEM "Import SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
                 ENDMENU
                 MENU
-                    MENUITEM "Settings" ACTION CFGIni()
+                    MENUITEM "Settings" ACTION CFGFile()
                 ENDMENU
                 MENU
                     MENUITEM "Exit" ACTION oDlg:End()
@@ -146,7 +146,7 @@ static method Activate() class Protheus
     end sequence
 
     cacheData():delSection("datasul2totvsprotheus")
-    
+
     if (findFunction("RstPosAlias"))
         RstPosAlias()
     endif
@@ -202,7 +202,7 @@ static function readTableDefinition() as logical
 
     local cLine as character
     local cLineUTF8 as character
-    
+
     local cTable as character
     local cRootPath as character
     local cTablesDefinition as character
@@ -291,9 +291,10 @@ static function readTableDefinition() as logical
                         endif
                         cLine:=cTools():StrReplace(cLine,{"  "," "})
                         cLineUTF8:=DecodeUTF8(cLine)
-                        if (!empty(cLineUTF8))
-                            cLine:=cLineUTF8
+                        if (empty(cLineUTF8))
+                            cLine:=OemToAnsi(cLine)
                         endif
+                        cLineUTF8:=""
                         aFieldDef:=strTokArr2(cLine," ")
                         cLine:=""
                         if (len(aFieldDef)==3)
@@ -324,14 +325,14 @@ static function readTableDefinition() as logical
         oFT:=FreeObj(oFT)
 
     end sequence
-    
+
     FWFreeArray(@aFieldsDef)
 
     if (valtype(oHMTablesImport)=="O")
         oHMTablesImport:Clean()
         oHMTablesImport:=FreeObj(oHMTablesImport)
     endif
-    
+
     if (valtype(aTablesImport)=="A")
         FWFreeArray(@aTablesImport)
     endif
@@ -417,7 +418,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
     if (!empty(aValueField))
         FWFreeArray(@aValueField)
     endif
-    
+
     if (!empty(aValueField))
         FwFreeArray(@aSourceField)
     endif
@@ -591,7 +592,7 @@ static function getR8Seq() as character
 
         oPVTHMSR8Seq:Set(cHMSR8SeqKey,cR8SEQ)
 
-    end sequence        
+    end sequence
 
 return(cR8SEQ)
 
@@ -611,13 +612,13 @@ static function SetFilAnt(cFil)
     endif
 return(cSvFilAnt)
 
-static procedure CFGIni()
+static procedure CFGFile()
 
-    local cINIFile as character    
+    local cINIFile as character
     local cMemoEdit as character
     local cGetFileRoot as character
-    local cGetFileMask as character     
-    local cGetFileTitle as character    
+    local cGetFileMask as character
+    local cGetFileTitle as character
 
     local lHasINIFile as logical
 
@@ -636,12 +637,12 @@ static procedure CFGIni()
             break
         endif
 
-        cMemoEdit:=ReadMemo(cINIfile)
+        cMemoEdit:=ReadMemoCFGFile(cINIfile)
 
         if (EdtCFGFile(@cINIfile,@cMemoEdit))
             if ("datasul2protheus.ini"$lower(cINIfile))
                 MsAguarde({||readIniFile(@cINIfile)},"Loading Settings","Wait")
-            else                
+            else
                 if (valType(st_oHMbTransform)=="O")
                     st_oHMbTransform:Clean()
                 endif
@@ -663,8 +664,8 @@ static function EdtCFGFile(cINIfile as character,cMemoEdit as character) as logi
 
     local bSet15 as codeblock
     local bSet24 as codeblock
-    local bNotepad as codeblock
-    local bRestore as codeblock
+    local bNotepadCFGFile as codeblock
+    local bRestoreCFGFile as codeblock
 
     local cTitle as character
     local cSVMemoEdit as character
@@ -709,14 +710,14 @@ static function EdtCFGFile(cINIfile as character,cMemoEdit as character) as logi
 
             oDlg:lEscClose:=.F.
 
-            bSet15:={||lOk:=ChgFile(@cINIfile,@cMemoEdit,@cSVMemoEdit),if(lOk,oDlg:End(),lOK)}
+            bSet15:={||lOk:=ChgCFGFile(@cINIfile,@cMemoEdit,@cSVMemoEdit),if(lOk,oDlg:End(),lOK)}
             bSet24:={||lOK:=.F.,oDlg:End()}
 
             aButtons:=array(0)
-            bNotepad:={||MsProcess():MsAguarde({||NotePad(cINIfile)},"Abrindo no Notepad","Aguarde...")}
-            aAdd(aButtons,{"NOTEPAD",bNotepad,OemToAnsi("Abir no Notepad"),OemtoAnsi("Abir no Notepad")})
-            bRestore:={||MsProcess():MsAguarde({||Restore(cINIfile,@cMemoEdit,@oMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
-            aAdd(aButtons,{"RESTORE",bRestore,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
+            bNotepadCFGFile:={||MsProcess():MsAguarde({||NotepadCFGFile(cINIfile)},"Abrindo no NotepadCFGFile","Aguarde...")}
+            aAdd(aButtons,{"NotepadCFGFile",bNotepadCFGFile,OemToAnsi("Abir no NotepadCFGFile"),OemtoAnsi("Abir no NotepadCFGFile")})
+            bRestoreCFGFile:={||MsProcess():MsAguarde({||RestoreCFGFile(cINIfile,@cMemoEdit,@oMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
+            aAdd(aButtons,{"RestoreCFGFile",bRestoreCFGFile,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
 
         ACTIVATE MSDIALOG oDlg CENTERED ON INIT EnchoiceBar(oDlg,bSet15,bSet24,nil,@aButtons)
 
@@ -724,7 +725,7 @@ static function EdtCFGFile(cINIfile as character,cMemoEdit as character) as logi
 
     return(lOk)
 
-static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit as character) as logical
+static function ChgCFGFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit as character) as logical
 
     local cMsg as character
     local cTitle as character
@@ -738,7 +739,7 @@ static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit
 
     local lFilial as logical
     local lEmpresa as logical
-    local lChgFile as logical
+    local lChgCFGFile as logical
 
     local nAttemps as numeric
 
@@ -747,8 +748,8 @@ static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit
 
     begin sequence
 
-        lChgFile:=(cMemoEdit==cSVMemoEdit)
-        if (lChgFile)
+        lChgCFGFile:=(cMemoEdit==cSVMemoEdit)
+        if (lChgCFGFile)
             break
         endif
 
@@ -764,8 +765,8 @@ static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit
         cTitle:="ARQUIVO CONFIGURACAO  :: "
         cTitle+=cSPFileName
 
-        lChgFile:=ApMsgYesNo(cMsg,cTitle)
-        if (!lChgFile)
+        lChgCFGFile:=ApMsgYesNo(cMsg,cTitle)
+        if (!lChgCFGFile)
             break
         endif
 
@@ -790,7 +791,7 @@ static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit
             if (nAttemps++>10)
                 nAttemps:=0
                 if (!MsgYesNo(cMsg,cTitle))
-                    lChgFile:=.F.
+                    lChgCFGFile:=.F.
                     cMsg:="O arquivo "
                     cMsg+=cINIfile
                     cMsg+=" encontra-se em uso e nao podera ser salvo."
@@ -811,7 +812,7 @@ static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit
                 nAttemps:=0
                 if (!MsgYesNo(cMsg,cTitle))
                     UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
-                    lChgFile:=.F.
+                    lChgCFGFile:=.F.
                     cMsg:="Problema na gravacao do arquivo : "
                     cMsg+=cINIfile
                     ApMsgAlert(cMsg,cTitle)
@@ -827,7 +828,7 @@ static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit
         cMsg+=cINIfile
         cMsg+=" Deseja tentar novamente?"
 
-        while (!(lChgFile:=MemoWrite(cINIfile,cMemoEdit)))
+        while (!(lChgCFGFile:=MemoWrite(cINIfile,cMemoEdit)))
             if (nAttemps++>10)
                 nAttemps:=0
                 if (!MsgYesNo(cMsg,cTitle))
@@ -839,7 +840,7 @@ static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit
 
         UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
 
-        if (!lChgFile)
+        if (!lChgCFGFile)
             cMsg:="Problema na gravacao do arquivo : "
             cMsg+=cINIfile
             ApMsgAlert(cMsg,cTitle)
@@ -853,9 +854,9 @@ static function ChgFile(cINIfile as character,cMemoEdit as character,cSVMemoEdit
 
     end sequence
 
-    return(lChgFile)
+    return(lChgCFGFile)
 
-static procedure NotePad(cINIfile as character)
+static procedure NotepadCFGFile(cINIfile as character)
 
     local cSPDriver as character
     local cSPPath as character
@@ -887,7 +888,7 @@ static procedure NotePad(cINIfile as character)
 
     return
 
-static function Restore(cINIfile as character,cMemoEdit as character,oMemoEdit as object,cSVMemoEdit as character) as logical
+static function RestoreCFGFile(cINIfile as character,cMemoEdit as character,oMemoEdit as object,cSVMemoEdit as character) as logical
 
     local cMask as character
     local cTitle as character
@@ -899,7 +900,7 @@ static function Restore(cINIfile as character,cMemoEdit as character,oMemoEdit a
     local cSPFileName as character
     local cSPFileExt as character
 
-    local lRestore as logical
+    local lRestoreCFGFile as logical
 
     local nOptions as numeric
 
@@ -933,11 +934,11 @@ static function Restore(cINIfile as character,cMemoEdit as character,oMemoEdit a
         endif
 
         cSvMemoEdit:=cMemoEdit
-        cMemoEdit:=ReadMemo(cFileRead)
+        cMemoEdit:=ReadMemoCFGFile(cFileRead)
 
-        lRestore:=ChgFile(@cINIfile,@cMemoEdit,@cSVMemoEdit)
+        lRestoreCFGFile:=ChgCFGFile(@cINIfile,@cMemoEdit,@cSVMemoEdit)
 
-        if (!lRestore)
+        if (!lRestoreCFGFile)
             cMemoEdit:=cSvMemoEdit
             break
         endif
@@ -948,9 +949,9 @@ static function Restore(cINIfile as character,cMemoEdit as character,oMemoEdit a
 
     end sequence
 
-    return(lRestore)
+    return(lRestoreCFGFile)
 
-static function ReadMemo(cFile) as character
+static function ReadMemoCFGFile(cFile) as character
     local cMemoRead as character
     cMemoRead:=cTools():ReadMemo(cFile)
     return(cMemoRead)
@@ -958,7 +959,7 @@ static function ReadMemo(cFile) as character
 static function sendDataToServer(cGetFileRoot as character) as logical
 
     local aZipFiles:=array(0) as array
-    
+
     local aFiles as array
     local aDirectories as array
 
@@ -1013,7 +1014,7 @@ static function sendDataToServer(cGetFileRoot as character) as logical
 
         aDirectories:=Directory(cDirectoryClient+"*.*","D")
         nDirectories:=Len(aDirectories)
-        
+
         lSendDataToServer:=(nDirectories!=0)
         if (!lSendDataToServer)
             ApMsgAlert("No valid directory information found")
@@ -1102,13 +1103,15 @@ static function sendDataToServer(cGetFileRoot as character) as logical
 
 return(lSendDataToServer)
 
-static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array,aLogDet as array,aLogTitle as array,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array) as logical
+static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as array,aLogTitle as array,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array) as logical
+
+    local aLog:=array(0) as array
 
     local aLine as array
     local aField as array
-    
+
     local aFieldsDef:=array(0) as array
-    
+
     local aTargetStruct:=(cAlias)->(dbStruct()) as array
     local aTargetFieldsDef as array
 
@@ -1198,7 +1201,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
         endif
 
         oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
-        
+
         cSourceTable:=allTrim(oTFIni:GetPropertyValue("TablesImport",cTableImport,""))
         lImportData:=(!empty(cSourceTable))
         if (!lImportData)
@@ -1336,21 +1339,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                     if (empty(cLine))
                         break
                     endif
-                    cLineUTF8:=DecodeUTF8(cLine)
-                    if (empty(cLineUTF8))
-                        aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
-                        aAdd(aLog,"Existem Caracteres UTF8 Invalidos")
-                        nMLCount:=MLCount(cLine,nMLCountSize)
-                        for nMLLine:=1 to nMLCount
-                            aAdd(aLog,memoLine(cLine,nMLCountSize,nMLLine))
-                        next nMLLine
-                        aAdd(aLogDet,aClone(aLog))
-                        aSize(aLog,0)
-                    else
-                        cLine:=cLineUTF8
-                    endif
                     aLine:=strTokArr2(cLine,";")
-                    cLine:=""
                     lAppend:=.T.
                     if (lChkFilial)
                         for nField:=1 to nFields
@@ -1372,10 +1361,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                         next nMLLine
                                         aAdd(aLogDet,aClone(aLog))
                                         aSize(aLog,0)
+                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                        lAppend:=.F.
+                                        break
                                     endif
-                                    lEnd:=oMsNewProcess:lEnd:=.T.
-                                    lAppend:=.F.
-                                    break
                                 endif
                                 if (empty(xValue))
                                     if (lHasError)
@@ -1399,6 +1388,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                         break
                     endif
                     if (lAppend)
+                        cLineUTF8:=DecodeUTF8(cLine)
+                        if (empty(cLineUTF8))
+                            cLine:=OemToAnsi(cLine)
+                            FWFreeArray(@aLine)
+                            aLine:=strTokArr2(cLine,";")
+                        endif
+                        cLine:=""
+                        cLineUTF8:=""
                         (cTmpAlias)->(dbAppend(.F.))
                             if (lSeekTable)
                                 cAllSeekIndexKey:=cSeekIndexKey
@@ -1424,10 +1421,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                             next nMLLine
                                             aAdd(aLogDet,aClone(aLog))
                                             aSize(aLog,0)
+                                            lEnd:=oMsNewProcess:lEnd:=.T.
+                                            lAppend:=.F.
+                                            break
                                         endif
-                                        lEnd:=oMsNewProcess:lEnd:=.T.
-                                        lAppend:=.F.
-                                        break
                                     endif
                                 endif
                                 if (empty(xValue))
@@ -1476,9 +1473,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                                         next nMLLine
                                                         aAdd(aLogDet,aClone(aLog))
                                                         aSize(aLog,0)
+                                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        break
                                                     endif
-                                                    lEnd:=oMsNewProcess:lEnd:=.T.
-                                                    break
                                                 endif
                                                 cField:=aUpdateTableFields[nField]
                                                 xValue:=NormalizeData(@lHasError,xValue,cType,cField,.T.,@st_oHMbTransform,@oTFIni)
@@ -1492,10 +1489,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                                                         next nMLLine
                                                         aAdd(aLogDet,aClone(aLog))
                                                         aSize(aLog,0)
+                                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        (cSeekTable)->(MsUnLock())
+                                                        break
                                                     endif
-                                                    lEnd:=oMsNewProcess:lEnd:=.T.
-                                                    (cSeekTable)->(MsUnLock())
-                                                    break
                                                 endif
                                             endif
                                             (cSeekTable)->(FieldPut(FieldPos(cField),xValue))
@@ -1603,7 +1600,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
                         endif
                         (cAlias)->(msUnLock())
                     endif
-                end sequence    
+                end sequence
                 nRecProc++
                 if ((!lRecCountStep).or.(Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
                     oTimeRemaining:Calcule(.T.)
@@ -1643,6 +1640,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLog as array
 
     end sequence
 
+    FWFreeArray(@aLog)
+
     SetFilAnt(cSVFilAnt)
 
     CacheData():delSection("EvalBlock")
@@ -1668,20 +1667,28 @@ return(lImportData)
 
 static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
 
-    local aLog:=array(0) as array
     local aLogDet:=array(0) as array
     local aLogTitle:=array(0) as array
 
+    local cAlias:="SRA" as character
+    local cIndexKey:="RA_FILIAL+RA_MAT" as character
+    local cTableImport:="SRA" as character
+    local aAddIndex:={"RA_FILIAL","RA_MAT"} as array
+
     local lImportSRA as logical
 
-    lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRA","RA_FILIAL+RA_MAT","SRA",{"RA_FILIAL","RA_MAT"})
+    lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLogDet,@aLogTitle,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
-    if ((lImportSRA).and.!(lEnd))
+    if ((lImportSRA).and.(!lEnd))
         oMsNewProcess:SetRegua1(0)
         oMsNewProcess:IncRegua1("Wait!")
         oMsNewProcess:SetRegua2(0)
         oMsNewProcess:IncRegua2("...")
-        lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRA","RA_MATMIG","SRA_RHPF",{"RA_MATMIG"})
+        cIndexKey:="RA_MATMIG"
+        cTableImport:="SRA_RHPF"
+        FWFreeArray(@aAddIndex)
+        aAddIndex:={"RA_MATMIG"}
+        lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@aLogDet,@aLogTitle,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
         if (lImportSRA)
             ApMsgInfo("SRA Table Import Completed","Info")
         else
@@ -1693,21 +1700,25 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
         fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
     endif
 
-    FWFreeArray(@aLog)
     FWFreeArray(@aLogDet)
     FWFreeArray(@aLogTitle)
+    FWFreeArray(@aAddIndex)
 
 return(lImportSRA)
 
 static function importSRB(oMsNewProcess as object,lEnd as logical) as logical
 
-    local aLog:=array(0) as array
     local aLogDet:=array(0) as array
     local aLogTitle:=array(0) as array
 
+    local cAlias:="SRB" as character
+    local cIndexKey:="RB_FILIAL+RB_MAT+RB_COD" as character
+    local cTableImport:="SRB" as character
+    local aAddIndex:={"RB_FILIAL","RB_MAT","RB_COD"} as array
+
     local lImportSRB as logical
 
-    lImportSRB:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRB","RB_FILIAL+RB_MAT+RB_COD","SRB",{"RB_FILIAL","RB_MAT","RB_COD"})
+    lImportSRB:=ImportData(@oMsNewProcess,@lEnd,@aLogDet,@aLogTitle,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lImportSRB)
         ApMsgInfo("SRB Table Import Completed","Info")
@@ -1719,21 +1730,25 @@ static function importSRB(oMsNewProcess as object,lEnd as logical) as logical
         fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
     endif
 
-    FWFreeArray(@aLog)
     FWFreeArray(@aLogDet)
     FWFreeArray(@aLogTitle)
+    FWFreeArray(@aAddIndex)
 
 return(lImportSRB)
 
 static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
 
-    local aLog:=array(0) as array
     local aLogDet:=array(0) as array
     local aLogTitle:=array(0) as array
 
+    local cAlias:="SRD" as character
+    local cIndexKey:="RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN" as character
+    local cTableImport:="SRD" as character
+    local aAddIndex:={"RD_FILIAL","RD_MAT","RD_CC","RD_ITEM","RD_CLVL","RD_DATARQ","RD_PD","RD_SEQ","RD_PERIODO","RD_SEMANA","RD_ROTEIR","RD_DTREF","RD_CONVOC","RD_NRBEN"} as array
+
     local lImportSRD as logical
 
-    lImportSRD:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRD","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN",{"RD_FILIAL","RD_MAT","RD_CC","RD_ITEM","RD_CLVL","RD_DATARQ","RD_PD","RD_SEQ","RD_PERIODO","RD_SEMANA","RD_ROTEIR","RD_DTREF","RD_CONVOC","RD_NRBEN"})
+    lImportSRD:=ImportData(@oMsNewProcess,@lEnd,@aLogDet,@aLogTitle,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lImportSRD)
         ApMsgInfo("SRD Table Import Completed","Info")
@@ -1745,21 +1760,25 @@ static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
         fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
     endif
 
-    FWFreeArray(@aLog)
     FWFreeArray(@aLogDet)
     FWFreeArray(@aLogTitle)
+    FWFreeArray(@aAddIndex)
 
 return(lImportSRD)
 
 static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
-    local aLog:=array(0) as array
     local aLogDet:=array(0) as array
     local aLogTitle:=array(0) as array
 
+    local cAlias:="SRF" as character
+    local cIndexKey:="RF_FILIAL+RF_MAT+DTOS(RF_DATABAS)+RF_PD" as character
+    local cTableImport:="SRF" as character
+    local aAddIndex:={"RF_FILIAL","RF_MAT","RF_DATABAS","RF_PD"} as array
+
     local lImportSRF as logical
 
-    lImportSRF:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRF","RF_FILIAL+RF_MAT+DTOS(RF_DATABAS)+RF_PD","SRF",{"RF_FILIAL","RF_MAT","RF_DATABAS","RF_PD"})
+    lImportSRF:=ImportData(@oMsNewProcess,@lEnd,@aLogDet,@aLogTitle,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lImportSRF)
         ApMsgInfo("SRF Table Import Completed","Info")
@@ -1771,28 +1790,37 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
         fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
     endif
 
-    FWFreeArray(@aLog)
     FWFreeArray(@aLogDet)
     FWFreeArray(@aLogTitle)
+    FWFreeArray(@aAddIndex)
 
 return(lImportSRF)
 
 static function importSR3(oMsNewProcess as object,lEnd as logical) as logical
 
-    local aLog:=array(0) as array
     local aLogDet:=array(0) as array
     local aLogTitle:=array(0) as array
 
+    local cAlias:="SR3" as character
+    local cIndexKey:="R3_FILIAL+R3_MAT+DTOS(R3_DATA)+R3_SEQ+R3_TIPO+R3_PD" as character
+    local cTableImport:="SR3" as character
+    local aAddIndex:={"R3_FILIAL","R3_MAT","R3_DATA","R3_SEQ","R3_TIPO","R3_PD"} as array
+
     local lImportSR3 as logical
 
-    lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SR3","R3_FILIAL+R3_MAT+DTOS(R3_DATA)+R3_SEQ+R3_TIPO+R3_PD","SR3",{"R3_FILIAL","R3_MAT","R3_DATA","R3_SEQ","R3_TIPO","R3_PD"})
+    lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@aLogDet,@aLogTitle,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
-    if ((lImportSR3).and.!(lEnd))
+    if ((lImportSR3).and.(!lEnd))
         oMsNewProcess:SetRegua1(0)
         oMsNewProcess:IncRegua1("Wait!")
         oMsNewProcess:SetRegua2(0)
         oMsNewProcess:IncRegua2("...")
-        lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SR7","R7_FILIAL+R7_MAT+DTOS(R7_DATA)+R7_SEQ+R7_TIPO","SR7",{"R7_FILIAL","R7_MAT","R7_DATA","R7_SEQ","R7_TIPO"})
+        cAlias:="SR7"
+        cIndexKey:="R7_FILIAL+R7_MAT+DTOS(R7_DATA)+R7_SEQ+R7_TIPO"
+        cTableImport:="SR7"
+        FWFreeArray(@aAddIndex)
+        aAddIndex:={"R7_FILIAL","R7_MAT","R7_DATA","R7_SEQ","R7_TIPO"}
+        lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@aLogDet,@aLogTitle,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
         if (lImportSR3)
             ApMsgInfo("SR3/SR7 Table Import Completed","Info")
         else
@@ -1804,21 +1832,25 @@ static function importSR3(oMsNewProcess as object,lEnd as logical) as logical
         fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
     endif
 
-    FWFreeArray(@aLog)
     FWFreeArray(@aLogDet)
     FWFreeArray(@aLogTitle)
+    FWFreeArray(@aAddIndex)
 
 return(lImportSR3)
 
 static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
-    local aLog:=array(0) as array
     local aLogDet:=array(0) as array
     local aLogTitle:=array(0) as array
 
+    local cAlias:="SR8" as character
+    local cIndexKey:="R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO" as character
+    local cTableImport:="SR8" as character
+    local aAddIndex:={"R8_FILIAL","R8_MAT","R8_DATAINI","R8_TIPO","R8_TIPOAFA"} as array
+
     local lImportSR8 as logical
 
-    lImportSR8:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SR8","R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO","SR8",{"R8_FILIAL","R8_MAT","R8_DATAINI","R8_TIPO","R8_TIPOAFA"})
+    lImportSR8:=ImportData(@oMsNewProcess,@lEnd,@aLogDet,@aLogTitle,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lImportSR8)
         ApMsgInfo("SR8 Table Import Completed","Info")
@@ -1830,8 +1862,8 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
         fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
     endif
 
-    FWFreeArray(@aLog)
     FWFreeArray(@aLogDet)
     FWFreeArray(@aLogTitle)
+    FWFreeArray(@aAddIndex)
 
 return(lImportSR8)
