@@ -21,6 +21,7 @@ static method Activate() class Protheus
 
     local bSRAMsNewProcess as codeblock
     local bSRBMsNewProcess as codeblock
+    local bSRDMsNewProcess as codeblock
     local bSRFMsNewProcess as codeblock
     local bSR3MsNewProcess as codeblock
     local bSR8MsNewProcess as codeblock
@@ -41,6 +42,7 @@ static method Activate() class Protheus
     
     local oSRAMSNewProcess as object
     local oSRBMSNewProcess as object
+    local oSRDMSNewProcess as object
     local oSRFMSNewProcess as object
     local oSR3MSNewProcess as object
     local oSR8MSNewProcess as object
@@ -100,6 +102,7 @@ static method Activate() class Protheus
 
         bSRAMsNewProcess:={|lEnd|ProcRedefine(oSRAMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRA(oSRAMSNewProcess,@lEnd)}
         bSRBMsNewProcess:={|lEnd|ProcRedefine(oSRBMSNewProcess,@oFont,0,650,650,.T.,.T.),importSRB(oSRBMSNewProcess,@lEnd)}
+        bSRDMsNewProcess:={|lEnd|ProcRedefine(oSRDMSNewProcess,@oFont,0,650,650,.T.,.T.),importSRD(oSRDMSNewProcess,@lEnd)}
         bSRFMsNewProcess:={|lEnd|ProcRedefine(oSRFMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRF(oSRFMSNewProcess,@lEnd)}
         bSR3MsNewProcess:={|lEnd|ProcRedefine(oSR3MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR3(oSR3MSNewProcess,@lEnd)}
         bSR8MsNewProcess:={|lEnd|ProcRedefine(oSR8MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8(oSR8MSNewProcess,@lEnd)}
@@ -111,6 +114,7 @@ static method Activate() class Protheus
                 MENU
                     MENUITEM "Import SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oSRAMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRAMSNewProcess:Activate())
                     MENUITEM "Import SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oSRBMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRBMSNewProcess:Activate())
+                    MENUITEM "Import SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.)) ACTION (oSRDMSNewProcess:=MsNewProcess():New(bSRDMsNewProcess,"Importing SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRDMSNewProcess:Activate())
                     MENUITEM "Import SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
                     MENUITEM "Import SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.)) ACTION (oSR3MSNewProcess:=MsNewProcess():New(bSR3MsNewProcess,"Importing SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR3MSNewProcess:Activate())
                     MENUITEM "Import SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
@@ -1718,6 +1722,32 @@ static function importSRB(oMsNewProcess as object,lEnd as logical) as logical
     FWFreeArray(@aLogTitle)
 
 return(lImportSRB)
+
+static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
+
+    local aLog:=array(0) as array
+    local aLogDet:=array(0) as array
+    local aLogTitle:=array(0) as array
+
+    local lImportSRD as logical
+
+    lImportSRD:=ImportData(@oMsNewProcess,@lEnd,@aLog,@aLogDet,@aLogTitle,"SRD","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN",{"RD_FILIAL","RD_MAT","RD_CC","RD_ITEM","RD_CLVL","RD_DATARQ","RD_PD","RD_SEQ","RD_PERIODO","RD_SEMANA","RD_ROTEIR","RD_DTREF","RD_CONVOC","RD_NRBEN"})
+
+    if (lImportSRD)
+        ApMsgInfo("SRD Table Import Completed","Info")
+    else
+        ApMsgInfo("Problems were encountered while processing the SRD table","Info")
+    endif
+
+    if (!empty(aLogDet))
+        fMakeLog(aLogDet,aLogTitle,nil,nil,ProcName(),"Log de Ocorrencias na Importacao","G","L",nil,.F.)
+    endif
+
+    FWFreeArray(@aLog)
+    FWFreeArray(@aLogDet)
+    FWFreeArray(@aLogTitle)
+
+return(lImportSRD)
 
 static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
