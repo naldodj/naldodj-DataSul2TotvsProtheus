@@ -183,6 +183,7 @@ static function readIniFile(cINIfile as character) as logical
         cRootPath:=cSPPDrive
         cRootPath+=cSPPPath
 
+        cacheData():Set("datasul2totvsprotheus","cINIfile",cINIfile)
         cacheData():Set("datasul2totvsprotheus","cRootPath",cRootPath)
 
         oTFIni:=TFIni():New(cINIfile,"#")
@@ -642,7 +643,14 @@ static procedure CFGFile()
         if (EdtCFGFile(@cINIfile,@cMemoEdit))
             if ("datasul2protheus.ini"$lower(cINIfile))
                 MsAguarde({||readIniFile(@cINIfile)},"Loading Settings","Wait")
+                if (valType(st_oHMbTransform)=="O")
+                    st_oHMbTransform:Clean()
+                endif
+                MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
             else
+                cINIfile:=cacheData():Get("datasul2totvsprotheus","cINIfile")
+                cacheData():delSection("datasul2totvsprotheus")
+                MsAguarde({||readIniFile(@cINIfile)},"Loading Settings","Wait")
                 if (valType(st_oHMbTransform)=="O")
                     st_oHMbTransform:Clean()
                 endif
