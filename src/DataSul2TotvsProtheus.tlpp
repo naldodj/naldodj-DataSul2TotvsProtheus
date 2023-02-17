@@ -1157,6 +1157,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
     local ldbCommit as logical
     local lHasError:=.F. as logical
     local lChkFilial as logical
+    local lChkEncode as logical
     local lSeekTable as logical
     local lImportData as logical
     local lRecCountStep as logical
@@ -1292,6 +1293,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
             cAliasxFilial:=xFilial(cAlias)
         endif
 
+        lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cAlias,"ChkEncode","0"))=="1")
+
         lSeekTable:=(!empty(cSeekTable:=allTrim(oTFIni:GetPropertyValue(cAlias,"seekTable",""))))
         if (lSeekTable)
             lSeekTable:=chkFile(cSeekTable)
@@ -1388,14 +1391,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                         break
                     endif
                     if (lAppend)
-                        cLineUTF8:=DecodeUTF8(cLine)
-                        if (empty(cLineUTF8))
-                            cLine:=OemToAnsi(cLine)
-                            FWFreeArray(@aLine)
-                            aLine:=strTokArr2(cLine,";")
+                        if (lChkEncode)
+                            cLineUTF8:=DecodeUTF8(cLine)
+                            if (empty(cLineUTF8))
+                                cLine:=OemToAnsi(cLine)
+                                FWFreeArray(@aLine)
+                                aLine:=strTokArr2(cLine,";")
+                            endif
+                            cLineUTF8:=""
                         endif
                         cLine:=""
-                        cLineUTF8:=""
                         (cTmpAlias)->(dbAppend(.F.))
                             if (lSeekTable)
                                 cAllSeekIndexKey:=cSeekIndexKey
