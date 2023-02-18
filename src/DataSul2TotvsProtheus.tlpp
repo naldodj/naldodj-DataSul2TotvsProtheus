@@ -1363,7 +1363,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                     cUpdateTableSource:=allTrim(oTFIni:GetPropertyValue(cAlias,"updateTableSource",""))
                     aUpdateTableSource:=strToKArr2(cUpdateTableSource,",")
                     nUpdateTableSource:=len(aUpdateTableFields)
-                    lUpdateTableFields:=(nUpdateTableSource==len(aUpdateTableSource))
+                    lUpdateTableFields:=((nUpdateTableSource>0).and.(nUpdateTableSource==len(aUpdateTableSource)))
                 endif
             endif
         endif
