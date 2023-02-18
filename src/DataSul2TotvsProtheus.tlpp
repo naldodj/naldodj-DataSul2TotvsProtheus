@@ -481,18 +481,18 @@ static function NormalizeData(lHasError as logical,xValue as variant,cType as ch
         endif
     else
         if (valType(xValue)=="C")
-            if (cType=="char")
+            if ("char"$cType)
                 xValue:=strTran(xValue,'"',"")
-            elseif (cType=="inte")
+            elseif ("inte"$cType)
                 xValue:=Int(val(xValue))
             elseif ("deci"$cType)
                 if (","$xValue)
                     xValue:=strTran(xValue,",",".")
                 endif
                 xValue:=val(xValue)
-            elseif (cType=="date")
+            elseif ("date"$cType)
                 xValue:=CToD(xValue)
-            elseif (cType=="logi")
+            elseif ("logi"$cType)
                 xValue:=(Left(lower(xValue),1)$"sty1")
             endif
         endif
