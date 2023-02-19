@@ -645,8 +645,8 @@ static function SetFilAnt(cFil)
         cSvFilAnt:=&("cFilAnt")
         if (cFil!=cSvFilAnt)
             &("cFilAnt"):=cFil
+            FWSM0Util():setSM0PositionBycFilAnt()
         endif
-        FWSM0Util():setSM0PositionBycFilAnt()
     endif
 return(cSvFilAnt)
 
@@ -1174,6 +1174,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
     local cSourceFile as character
     local cSourceTable as character
 
+    local cDeleteIfEmpty:="" as character
+
     local cSVFilAnt:=&("cFilAnt") as character
 
     local cRecCount as character
@@ -1192,10 +1194,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
     local cUpdateTableFields as character
     local cUpdateTableSource as character
 
+    local cFWTemporaryTableRealName as character
+
     local lFound as logical
     local lAddNew as logical
     local lAppend as logical
-    local ldbPack:=.F. as logical
     local ldbCommit as logical
     local lHasError:=.F. as logical
     local lChkFilial as logical
@@ -1224,6 +1227,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
     local nUpdateTableSource as numeric
 
     local nIncProcStep as numeric
+
+    local nDeleteIfEmpty:=0 as numeric
 
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
@@ -1329,9 +1334,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
         oFWTemporaryTable:=FWTemporaryTable():New(@cTmpAlias,@aTargetStruct)
         oFWTemporaryTable:AddIndex("01",aAddIndex)
         oFWTemporaryTable:Create()
-
+        
         cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Alias",cTmpAlias)
-        cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Table",oFWTemporaryTable:getRealName())
+        
+        cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
+        cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Table",cFWTemporaryTableRealName)
 
         FWFreeArray(@aField)
         FWFreeArray(@aTargetStruct)
@@ -1534,8 +1541,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                                         next nMLLine
                                         aAdd(aLogDet,aClone(aLog))
                                         aSize(aLog,0)
-                                        ldbPack:=.T.
-                                        (cTmpAlias)->(dbDelete())
+                                        if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
+                                            cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                                            cDeleteIfEmpty+=","
+                                            nDeleteIfEmpty++
+                                        endif
                                         exit
                                     endif //(lHasError)
                                     loop
@@ -1556,8 +1566,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                             next nField
 
                             if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
-                                ldbPack:=.T.
-                                (cTmpAlias)->(dbDelete())
+                                cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                                cDeleteIfEmpty+=","
+                                nDeleteIfEmpty++
                             endif
 
                             if (lSeekTable)
@@ -1669,8 +1680,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                                     next nField
 
                                     if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
-                                        ldbPack:=.T.
-                                        (cTmpAlias)->(dbDelete())
+                                        cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                                        cDeleteIfEmpty+=","
+                                        nDeleteIfEmpty++
                                     endif
 
                                 ldbCommit:=(++nCommitBuffer>=1024)
@@ -1720,6 +1732,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                     (cTmpAlias)->(dbCommitAll())
                 endif
 
+                if (nDeleteIfEmpty>=1024)
+                    if (right(cDeleteIfEmpty,1)==',')
+                        cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
+                    endif
+                    TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
+                    cDeleteIfEmpty:=""
+                    nDeleteIfEmpty:=0
+                endif
+
                 oFT:ft_fDelete()
                 oFT:ft_fSkip()
 
@@ -1729,15 +1750,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                 (cTmpAlias)->(dbCommitAll())
             endif
 
+            if (nDeleteIfEmpty>=0)
+                TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
+                cDeleteIfEmpty:=""
+                nDeleteIfEmpty:=0
+            endif
+
             oFT:ft_fUse()
 
             if (lEnd)
                 break
-            endif
-
-            if (ldbPack)
-                MsAguarde({||(cTmpAlias)->(__dbPack())})
-                (cTmpAlias)->(dbGoTop())
             endif
 
             nRecCount:=(cTmpAlias)->(recCount())
