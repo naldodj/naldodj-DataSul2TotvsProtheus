@@ -1218,6 +1218,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
 
     local nRecProc:=0 as numeric
     local nRecCount as numeric
+    local nRecUpdated:=0 as numeric
     local nRecCountStep as numeric
     local nCommitBuffer as numeric
     local nTargetFieldPos as numeric
@@ -1480,6 +1481,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
 
                         (cTmpAlias)->(dbAppend(.F.))
 
+                            nRecUpdated++
+
                             if (lSeekTable)
                                 cAllSeekIndexKey:=cSeekIndexKey
                             endif
@@ -1650,6 +1653,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                             while (nReplicate<=nReplicates)
 
                                 (cTmpAlias)->(dbAppend(.F.))
+                                
+                                    nRecUpdated++
 
                                     for nField:=1 to nFields
 
@@ -1733,6 +1738,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                 endif
 
                 if (nDeleteIfEmpty>=1024)
+                    nRecUpdated-=nDeleteIfEmpty
                     if (right(cDeleteIfEmpty,1)==',')
                         cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
                     endif
@@ -1751,6 +1757,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
             endif
 
             if (nDeleteIfEmpty>0)
+                nRecUpdated-=nDeleteIfEmpty
                 TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                 cDeleteIfEmpty:=""
                 nDeleteIfEmpty:=0
@@ -1762,7 +1769,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                 break
             endif
 
-            nRecCount:=(cTmpAlias)->(recCount())
+            nRecCount:=nRecUpdated
             cRecCount:=cTools():NToS(nRecCount)
             nRecCountStep:=if(nRecCount>=(nIncProcStep*2),Int(nRecCount/nIncProcStep),nRecCount)
             lRecCountStep:=(nRecCountStep!=nRecCount)
