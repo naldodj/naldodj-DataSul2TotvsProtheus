@@ -1750,7 +1750,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                 (cTmpAlias)->(dbCommitAll())
             endif
 
-            if (nDeleteIfEmpty>=0)
+            if (nDeleteIfEmpty>0)
                 TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                 cDeleteIfEmpty:=""
                 nDeleteIfEmpty:=0
