@@ -1440,7 +1440,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                                 if (lHasError)
                                     cError:=CacheData():Get("EvalBlock","ErrorDescription","")
                                     if (!empty(cError))
-                                        aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                                        aAdd(aLogTitle,"table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
                                         nMLCount:=MLCount(cError,nMLCountSize)
                                         for nMLLine:=1 to nMLCount
                                             aAdd(aLog,memoLine(cError,nMLCountSize,nMLLine))
@@ -1454,7 +1454,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                                 endif
                                 if (empty(xValue))
                                     if (lHasError)
-                                        aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                                        aAdd(aLogTitle,"table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
                                         aAdd(aLog,"Estrutura da Linha diferente da estrutura de Dados")
                                         nMLCount:=MLCount(cLine,nMLCountSize)
                                         for nMLLine:=1 to nMLCount
@@ -1530,7 +1530,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                                         cError:=CacheData():Get("EvalBlock","ErrorDescription","")
 
                                         if (!empty(cError))
-                                            aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                                            aAdd(aLogTitle,"table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
                                             nMLCount:=MLCount(cError,nMLCountSize)
                                             for nMLLine:=1 to nMLCount
                                                 aAdd(aLog,memoLine(cError,nMLCountSize,nMLLine))
@@ -1548,7 +1548,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
 
                                 if (empty(xValue))
                                     if (lHasError)
-                                        aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                                        aAdd(aLogTitle,"table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
                                         aAdd(aLog,"Estrutura da Linha diferente da estrutura de Dados")
                                         nMLCount:=MLCount(cLine,nMLCountSize)
                                         for nMLLine:=1 to nMLCount
@@ -1606,7 +1606,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
 
                                                     cError:=CacheData():Get("EvalBlock","ErrorDescription","")
                                                     if (!empty(cError))
-                                                        aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                                                        aAdd(aLogTitle,"table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
                                                         nMLCount:=MLCount(cError,nMLCountSize)
                                                         for nMLLine:=1 to nMLCount
                                                             aAdd(aLog,memoLine(cError,nMLCountSize,nMLLine))
@@ -1627,7 +1627,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                                                     cError:=CacheData():Get("EvalBlock","ErrorDescription","")
 
                                                     if (!empty(cError))
-                                                        aAdd(aLogTitle,"foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
+                                                        aAdd(aLogTitle,"table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]")
                                                         nMLCount:=MLCount(cError,nMLCountSize)
                                                         for nMLLine:=1 to nMLCount
                                                             aAdd(aLog,memoLine(cError,nMLCountSize,nMLLine))
