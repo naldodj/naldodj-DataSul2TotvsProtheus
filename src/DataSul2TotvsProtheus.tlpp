@@ -1164,6 +1164,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
 
     local aTargetStruct:=(cAlias)->(dbStruct()) as array
     local aTargetFieldsDef as array
+    local aReplicateValues as array
+    local aTargetReplicateFields as array
     local aTargetFieldsDefReplicate as array
 
     local aUpdateTableFields as array
@@ -1234,6 +1236,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
     local nCommitBuffer as numeric
     local nTargetFieldPos as numeric
 
+    local nReplicateValuesAT as numeric
+    
     local nIndexKey:=retOrder(cAlias,cIndexKey,.T.) as numeric
     local nSeekTableIndex as numeric
     local nUpdateTableSource as numeric
@@ -1256,6 +1260,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
     local oTimeRemaining as object
     local oFWTemporaryTable as object
     local oHMSourceFieldsDef as object
+    local oHMTargetReplicateFields as object
 
     begin sequence
 
@@ -1321,6 +1326,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
         oHMTargetStruct:=aToHM(aTargetStruct,DBS_NAME)
 
         nFields:=Len(aTargetFieldsDef)
+        
+        if (lTypeReplicate)
+            aTargetReplicateFields:=array(0)
+            oHMTargetReplicateFields:=THashMap():New()
+        endif
+
         for nField:=1 to nFields
             cField:=aTargetFieldsDef[nField][1]
             if (oHMTargetStruct:Get(cField,@aField))
@@ -1329,6 +1340,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
                 nTargetFieldPos:=0
             endif
             aAdd(aTargetFieldsDef[nField],nTargetFieldPos)
+            if (lTypeReplicate).and.(nTargetFieldPos>0)
+                aAdd(aTargetReplicateFields,cField)
+                oHMTargetReplicateFields:Set(cField,Len(aTargetReplicateFields))
+            endif
         next nField
 
         oHMTargetStruct:Clean()
@@ -1659,7 +1674,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
 
                         if (nReplicates>0)
 
-                            aReplicate:=(cTmpAlias)->(aUtils():RegToArray())
+                            aReplicateValues:=(cTmpAlias)->(aUtils():RegToArray(cTmpAlias,recNo(),aTargetReplicateFields))
                             nReplicate:=2
                         
                             while (nReplicate<=nReplicates)
@@ -1688,7 +1703,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
 
                                         else
 
-                                            xValue:=aReplicate[nTargetFieldPos]
+                                            if (!oHMTargetReplicateFields:Get(cField,@nReplicateValuesAT))
+                                                loop
+                                            endif
+                                            
+                                            xValue:=aReplicateValues[nReplicateValuesAT]
 
                                         endif
 
@@ -1708,7 +1727,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
 
                             end while
 
-                            FwFreeArray(@aReplicate)
+                            FwFreeArray(@aReplicateValues)
 
                         endif
 
@@ -1884,6 +1903,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,aLogDet as ar
     if (valtype(oHMSourceFieldsDef)=="O")
         oHMSourceFieldsDef:Clean()
         oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
+    endif
+
+    if (lTypeReplicate)
+        FWFreeArray(@aTargetReplicateFields)
+        if (valtype(oHMTargetReplicateFields)=="O")
+            oHMTargetReplicateFields:=Clean()
+            oHMTargetReplicateFields:=FreeObj(oHMTargetReplicateFields)
+        endif
     endif
 
     if (valType(aTargetStruct)=="A")
