@@ -33,6 +33,7 @@ static method Activate() class Protheus
     local bSRQMsNewProcess as codeblock
     local bSR3MsNewProcess as codeblock
     local bSR8MsNewProcess as codeblock
+    local bSRJMsNewProcess as codeblock
 
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
@@ -56,6 +57,7 @@ static method Activate() class Protheus
     local oSRQMSNewProcess as object
     local oSR3MSNewProcess as object
     local oSR8MSNewProcess as object
+    local oSRJMSNewProcess as object
 
     if (valType(st_oHMbTransform)=="O")
         st_oHMbTransform:Clean()
@@ -125,12 +127,14 @@ static method Activate() class Protheus
         bSRQMsNewProcess:={|lEnd|ProcRedefine(oSRQMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRQ(oSRQMSNewProcess,@lEnd,@oTFIni)}
         bSR3MsNewProcess:={|lEnd|ProcRedefine(oSR3MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR3(oSR3MSNewProcess,@lEnd,@oTFIni)}
         bSR8MsNewProcess:={|lEnd|ProcRedefine(oSR8MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8(oSR8MSNewProcess,@lEnd,@oTFIni)}
+        bSRJMsNewProcess:={|lEnd|ProcRedefine(oSRJMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRJ(oSRJMSNewProcess,@lEnd,@oTFIni)}
 
         DEFINE MSDIALOG oDlg TITLE "TOTVS :: DataSul To Protheus" FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
             MENU oMenu IMAGE "" OF oDlg
                 MENUITEM "TOTVS :: DataSul To Protheus"
                 MENU
+                    MENUITEM "Import SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oSRJMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRJMSNewProcess:Activate())
                     MENUITEM "Import SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oSRAMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRAMSNewProcess:Activate())
                     MENUITEM "Import SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oSRBMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRBMSNewProcess:Activate())
                     MENUITEM "Import SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.)) ACTION (oSRDMSNewProcess:=MsNewProcess():New(bSRDMsNewProcess,"Importing SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRDMSNewProcess:Activate())
@@ -1171,6 +1175,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local aUpdateTableSource as array
 
     local bDeleteIfEmpty as codeblock
+    local bUpdateMemoVirtual as codeblock
 
     local cError as character
     local cField as character
@@ -1219,6 +1224,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local lChkEncode as logical
     local lSeekTable as logical
     local lImportData as logical
+    local lMemoVirutal as logical
     local lRecCountStep as logical
     local lTypeReplicate:=.F. as logical
     local lAppendIfNotExist as logical
@@ -1238,7 +1244,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nTargetFieldPos as numeric
 
     local nReplicateValuesAT as numeric
-    
+
     local nIndexKey:=retOrder(cAlias,cIndexKey,.T.) as numeric
     local nSeekTableIndex as numeric
     local nUpdateTableSource as numeric
@@ -1250,13 +1256,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
 
-    local nMLLine as numeric
-    local nMLCount as numeric
     local nMLCountSize:=220 as numeric
 
     local oFT as object
     local oTFIni as object
     local oProgress as object
+    local oHMMemoVirutal as object
     local oHMTargetStruct as object
     local oTimeRemaining as object
     local oFWTemporaryTable as object
@@ -1320,14 +1325,26 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             break
         endif
 
+        lMemoVirutal:=(allTrim(oTFIni:GetPropertyValue(cAlias,"MemoVirtual","0"))=="1")
+        if (lMemoVirutal)
+            oHMMemoVirutal:=THashMap():New()
+        endif
+
         nFields:=Len(aTargetStruct)
         for nField:=1 to nFields
             aAdd(aTargetStruct[nField],nField)
+            if (lMemoVirutal)
+                cField:=aTargetStruct[nField][DBS_NAME]
+                if (allTrim(oTFIni:GetPropertyValue(cField,"MemoVirtual","0"))=="1")
+                    bUpdateMemoVirtual:=&(allTrim(oTFIni:GetPropertyValue(cField,"bUpdateMemoVirtual","{||}")))
+                    oHMMemoVirutal:Set(cField,bUpdateMemoVirtual)
+                endif
+            endif
         next nField
         oHMTargetStruct:=aToHM(aTargetStruct,DBS_NAME)
 
         nFields:=Len(aTargetFieldsDef)
-        
+
         if (lTypeReplicate)
             aTargetReplicateFields:=array(0)
             oHMTargetReplicateFields:=THashMap():New()
@@ -1362,10 +1379,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         oFWTemporaryTable:=FWTemporaryTable():New(@cTmpAlias,@aTargetStruct)
         oFWTemporaryTable:AddIndex("01",aAddIndex)
         oFWTemporaryTable:Create()
-        
+
         cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Alias",cTmpAlias)
         cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
-        
+
         cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
         cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Table",cFWTemporaryTableRealName)
 
@@ -1458,10 +1475,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     if (!empty(cError))
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
-                                        nMLCount:=MLCount(cError,nMLCountSize)
-                                        for nMLLine:=1 to nMLCount
-                                            oTLogReport:AddDetail(cTLogReport,memoLine(cError,nMLCountSize,nMLLine))
-                                        next nMLLine
+                                        oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                         lEnd:=oMsNewProcess:lEnd:=.T.
                                         lAppend:=.F.
                                         break
@@ -1472,10 +1486,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,"Estrutura da Linha diferente da estrutura de Dados")
-                                        nMLCount:=MLCount(cLine,nMLCountSize)
-                                        for nMLLine:=1 to nMLCount
-                                            oTLogReport:AddDetail(cTLogReport,memoLine(cLine,nMLCountSize,nMLLine))
-                                        next nMLLine
+                                        oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
                                     endif
                                     lAppend:=.F.
                                     exit
@@ -1546,10 +1557,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         if (!empty(cError))
                                             cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                             oTLogReport:AddGroup(cTLogReport)
-                                            nMLCount:=MLCount(cError,nMLCountSize)
-                                            for nMLLine:=1 to nMLCount
-                                                oTLogReport:AddDetail(cTLogReport,memoLine(cError,nMLCountSize,nMLLine))
-                                            next nMLLine
+                                            oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                             lEnd:=oMsNewProcess:lEnd:=.T.
                                             lAppend:=.F.
                                             break
@@ -1564,10 +1572,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,"Estrutura da Linha diferente da estrutura de Dados")
-                                        nMLCount:=MLCount(cLine,nMLCountSize)
-                                        for nMLLine:=1 to nMLCount
-                                            oTLogReport:AddDetail(cTLogReport,memoLine(cLine,nMLCountSize,nMLLine))
-                                        next nMLLine
+                                        oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
                                         if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
                                             cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                                             cDeleteIfEmpty+=","
@@ -1620,10 +1625,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                                     if (!empty(cError))
                                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                                         oTLogReport:AddGroup(cTLogReport)
-                                                        nMLCount:=MLCount(cError,nMLCountSize)
-                                                        for nMLLine:=1 to nMLCount
-                                                            oTLogReport:AddDetail(cTLogReport,memoLine(cError,nMLCountSize,nMLLine))
-                                                        next nMLLine
+                                                        oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                                         lEnd:=oMsNewProcess:lEnd:=.T.
                                                         break
                                                     endif //(!empty(cError))
@@ -1640,10 +1642,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                                     if (!empty(cError))
                                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                                         oTLogReport:AddGroup(cTLogReport)
-                                                        nMLCount:=MLCount(cError,nMLCountSize)
-                                                        for nMLLine:=1 to nMLCount
-                                                            oTLogReport:AddDetail(cTLogReport,memoLine(cError,nMLCountSize,nMLLine))
-                                                        next nMLLine
+                                                        oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                                         lEnd:=oMsNewProcess:lEnd:=.T.
                                                         (cSeekTable)->(MsUnLock())
                                                         break
@@ -1671,11 +1670,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                             aReplicateValues:=(cTmpAlias)->(aUtils():RegToArray(cTmpAlias,recNo(),aTargetReplicateFields,.F.,.F.,@aTargetReplicateFieldsPos))
                             nReplicate:=2
-                        
+
                             while (nReplicate<=nReplicates)
 
                                 (cTmpAlias)->(dbAppend(.F.))
-                                
+
                                     nRecUpdated++
 
                                     for nField:=1 to nFields
@@ -1701,7 +1700,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                             if (!oHMTargetReplicateFields:Get(cField,@nReplicateValuesAT))
                                                 loop
                                             endif
-                                            
+
                                             xValue:=aReplicateValues[nReplicateValuesAT]
 
                                         endif
@@ -1791,7 +1790,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             oFT:ft_fUse()
 
             dfv():Default(@lPreLoadTable,.F.)
-            
+
             if ((lEnd).or.(lPreLoadTable))
                 break
             endif
@@ -1836,7 +1835,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                             if (empty(xValue))
                                 loop
                             endif
-                            (cAlias)->(FieldPut(nTargetFieldPos,xValue))
+                            if ((lMemoVirutal).and.(oHMMemoVirutal:Get(cField,@bUpdateMemoVirtual)))
+                                (cAlias)->(Eval(bUpdateMemoVirtual))
+                            else
+                                (cAlias)->(FieldPut(nTargetFieldPos,xValue))
+                            endif
                         next nField
                         if (cAlias=="SRA")
                             if (empty((cAlias)->RA_CODUNIC))
@@ -1896,6 +1899,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
     endif
 
+    if (lMemoVirutal)
+        if (valtype(oHMMemoVirutal)=="O")
+            oHMMemoVirutal:Clean()
+            oHMMemoVirutal:=FreeObj(oHMMemoVirutal)
+        endif
+    endif
+
     if (lTypeReplicate)
         FWFreeArray(@aTargetReplicateFields)
         FWFreeArray(@aTargetReplicateFieldsPos)
@@ -1953,7 +1963,7 @@ static function importSRA(oMsNewProcess as object,lEnd as logical,oTFIni as obje
         endif
     endif
 
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clear()
     oTLogReport:=FreeObj(oTLogReport)
 
@@ -1984,7 +1994,7 @@ static function importSRB(oMsNewProcess as object,lEnd as logical,oTFIni as obje
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
     endif
 
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clear()
     oTLogReport:=FreeObj(oTLogReport)
 
@@ -2015,7 +2025,7 @@ static function importSRD(oMsNewProcess as object,lEnd as logical,oTFIni as obje
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
     endif
 
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clear()
     oTLogReport:=FreeObj(oTLogReport)
 
@@ -2046,7 +2056,7 @@ static function importSRF(oMsNewProcess as object,lEnd as logical,oTFIni as obje
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
     endif
 
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clear()
     oTLogReport:=FreeObj(oTLogReport)
 
@@ -2112,7 +2122,7 @@ static function importSRQ(oMsNewProcess as object,lEnd as logical,oTFIni as obje
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
     endif
 
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clear()
     oTLogReport:=FreeObj(oTLogReport)
 
@@ -2142,12 +2152,11 @@ static function importSR3(oMsNewProcess as object,lEnd as logical,oTFIni as obje
         oMsNewProcess:IncRegua1("Wait!")
         oMsNewProcess:SetRegua2(0)
         oMsNewProcess:IncRegua2("...")
-        cAlias:="SR7"
         cTableImport:="SR7"
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R7_FILIAL+R7_MAT+DTOS(R7_DATA)+R7_SEQ+R7_TIPO"))
         FWFreeArray(@aAddIndex)
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")),",")
-        lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
         if (lImportSR3)
             ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
         else
@@ -2155,7 +2164,7 @@ static function importSR3(oMsNewProcess as object,lEnd as logical,oTFIni as obje
         endif
     endif
 
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clear()
     oTLogReport:=FreeObj(oTLogReport)
 
@@ -2186,10 +2195,52 @@ static function importSR8(oMsNewProcess as object,lEnd as logical,oTFIni as obje
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
     endif
 
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clear()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
 return(lImportSR8)
+
+static function importSRJ(oMsNewProcess as object,lEnd as logical,oTFIni as object) as logical
+
+    local aAddIndex as array
+
+    local cAlias:="SRJ" as character
+    local cIndexKey as character
+    local cTableImport:="SRJ" as character
+
+    local lImportSRJ as logical
+
+    local oTLogReport:=tLogReport():New() as object
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RJ_FILIAL+RJ_FUNCAO"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RJ_FILIAL,RJ_FUNCAO")),",")
+
+    lImportSRJ:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+    if ((lImportSRJ).and.(!lEnd))
+        oMsNewProcess:SetRegua1(0)
+        oMsNewProcess:IncRegua1("Wait!")
+        oMsNewProcess:SetRegua2(0)
+        oMsNewProcess:IncRegua2("...")
+        cTableImport:="SQ3"
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","Q3_FILIAL+Q3_CARGO+Q3_CC"))
+        FWFreeArray(@aAddIndex)
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","Q3_FILIAL,Q3_CARGO,Q3_CC")),",")
+        lImportSRJ:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
+        if (lImportSRJ)
+            ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+        endif
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clear()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+return(lImportSRJ)
