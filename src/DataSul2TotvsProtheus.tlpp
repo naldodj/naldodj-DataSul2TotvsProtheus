@@ -139,18 +139,18 @@ static method Activate() class Protheus
                 MENU 
                     MENUITEM "Registers"
                     MENU
-                        MENUITEM "Import SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oSRJMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRJMSNewProcess:Activate())
-                        MENUITEM "Import SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.)) ACTION (oSR6MSNewProcess:=MsNewProcess():New(bSR6MsNewProcess,"Importing SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR6MSNewProcess:Activate())
+                        MENUITEM "SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oSRJMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRJMSNewProcess:Activate())
+                        MENUITEM "SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.)) ACTION (oSR6MSNewProcess:=MsNewProcess():New(bSR6MsNewProcess,"Importing SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR6MSNewProcess:Activate())
                     ENDMENU
                     MENUITEM "Employees"
                     MENU
-                        MENUITEM "Import SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oSRAMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRAMSNewProcess:Activate())
-                        MENUITEM "Import SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.)) ACTION (oSRQMSNewProcess:=MsNewProcess():New(bSRQMsNewProcess,"Importing SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRQMSNewProcess:Activate())
-                        MENUITEM "Import SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oSRBMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRBMSNewProcess:Activate())
-                        MENUITEM "Import SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
-                        MENUITEM "Import SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.)) ACTION (oSR3MSNewProcess:=MsNewProcess():New(bSR3MsNewProcess,"Importing SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR3MSNewProcess:Activate())
-                        MENUITEM "Import SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
-                        MENUITEM "Import SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.)) ACTION (oSRDMSNewProcess:=MsNewProcess():New(bSRDMsNewProcess,"Importing SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRDMSNewProcess:Activate())
+                        MENUITEM "SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oSRAMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRAMSNewProcess:Activate())
+                        MENUITEM "SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.)) ACTION (oSRQMSNewProcess:=MsNewProcess():New(bSRQMsNewProcess,"Importing SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRQMSNewProcess:Activate())
+                        MENUITEM "SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oSRBMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRBMSNewProcess:Activate())
+                        MENUITEM "SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
+                        MENUITEM "SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.)) ACTION (oSR3MSNewProcess:=MsNewProcess():New(bSR3MsNewProcess,"Importing SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR3MSNewProcess:Activate())
+                        MENUITEM "SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
+                        MENUITEM "SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.)) ACTION (oSRDMSNewProcess:=MsNewProcess():New(bSRDMsNewProcess,"Importing SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRDMSNewProcess:Activate())
                     ENDMENU
                 ENDMENU
                 MENUITEM "Tools"
