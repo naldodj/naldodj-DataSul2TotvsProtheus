@@ -1057,16 +1057,16 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
     local nDirectories as numeric
     local nGetFileOptions as numeric
 
-    cGetFileTitle:="Diretorio de Configuração DataSul2Protheus.ini"
-    nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE+GETF_RETDIRECTORY)
-    cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
-
     begin sequence
 
-        lSendDataToServer:=((getComputerName()=="DNA-CSDJ-01").and.(ApMsgNoYes("Sending Data To Server?")))
-        if (lSendDataToServer)
+        lSendDataToServer:=(getComputerName()=="DNA-CSDJ-01")
+        if (!lSendDataToServer)
             break
         endif
+
+        cGetFileTitle:="Diretorio de Configuração DataSul2Protheus.ini"
+        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE+GETF_RETDIRECTORY)
+        cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
 
         lSendDataToServer:=((lIsDir(cDirectoryClient)).and.("datasul2protheus"$StrTran(lower(cDirectoryClient),"totvs","")))
         if (!lSendDataToServer)
