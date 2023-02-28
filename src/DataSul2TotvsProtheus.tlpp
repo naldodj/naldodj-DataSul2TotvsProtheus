@@ -69,7 +69,7 @@ static method Activate() class Protheus
 
     begin sequence
 
-        lActivate:=FWIsAdmin(__cUserID)
+        lActivate:=((FWIsAdmin(__cUserID)).and.(GetNewPar("TOTVSDS2PT",.T.)))
         if (!lActivate)
             ApMsgAlert("User without administrative privileges")
             break
