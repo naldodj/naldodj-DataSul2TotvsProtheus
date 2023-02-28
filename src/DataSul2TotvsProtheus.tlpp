@@ -35,6 +35,7 @@ static method Activate() class Protheus
     local bSR8MsNewProcess as codeblock
     local bSRJMsNewProcess as codeblock
     local bSR6MsNewProcess as codeblock
+    local bSRVMsNewProcess as codeblock
 
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
@@ -60,6 +61,7 @@ static method Activate() class Protheus
     local oSR8MSNewProcess as object
     local oSRJMSNewProcess as object
     local oSR6MSNewProcess as object
+    local oSRVMSNewProcess as object
 
     if (valType(st_oHMbTransform)=="O")
         st_oHMbTransform:Clean()
@@ -131,6 +133,7 @@ static method Activate() class Protheus
         bSR8MsNewProcess:={|lEnd|ProcRedefine(oSR8MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8(oSR8MSNewProcess,@lEnd,@oTFIni)}
         bSRJMsNewProcess:={|lEnd|ProcRedefine(oSRJMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRJ(oSRJMSNewProcess,@lEnd,@oTFIni)}
         bSR6MsNewProcess:={|lEnd|ProcRedefine(oSR6MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR6(oSR6MSNewProcess,@lEnd,@oTFIni)}
+        bSRVMsNewProcess:={|lEnd|ProcRedefine(oSRVMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRV(oSRVMSNewProcess,@lEnd,@oTFIni)}
 
         DEFINE MSDIALOG oDlg TITLE "TOTVS :: DataSul To Protheus" FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
@@ -141,6 +144,7 @@ static method Activate() class Protheus
                     MENU
                         MENUITEM "SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oSRJMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRJMSNewProcess:Activate())
                         MENUITEM "SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.)) ACTION (oSR6MSNewProcess:=MsNewProcess():New(bSR6MsNewProcess,"Importing SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR6MSNewProcess:Activate())
+                        MENUITEM "SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.)) ACTION (oSRVMSNewProcess:=MsNewProcess():New(bSRVMsNewProcess,"Importing SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRVMSNewProcess:Activate())
                     ENDMENU
                     MENUITEM "Employees"
                     MENU
@@ -1291,7 +1295,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
 
-    local nMLCountSize:=220 as numeric
+    local nMLCountSize:=150 as numeric
 
     local oFT as object
     local oTFIni as object
@@ -1507,7 +1511,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                                 if (lHasError)
                                     cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                    CacheData():delSection("EvalBlock")
                                     if (!empty(cError))
+                                        cError:=cTools():StrReplace(cError,{CRLF,""})
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
@@ -1588,8 +1595,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     if (lHasError)
 
                                         cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                                        cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                        CacheData():delSection("EvalBlock")
 
                                         if (!empty(cError))
+                                            cError:=cTools():StrReplace(cError,{CRLF,""})
                                             cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                             oTLogReport:AddGroup(cTLogReport)
                                             oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
@@ -1657,7 +1667,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                                 if (lHasError)
 
                                                     cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                                    CacheData():delSection("EvalBlock")
+
                                                     if (!empty(cError))
+                                                        cError:=cTools():StrReplace(cError,{CRLF,""})
                                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                                         oTLogReport:AddGroup(cTLogReport)
                                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
@@ -1673,8 +1687,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                                 if (lHasError)
 
                                                     cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                                    CacheData():delSection("EvalBlock")
 
                                                     if (!empty(cError))
+                                                        cError:=cTools():StrReplace(cError,{CRLF,""})
                                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                                         oTLogReport:AddGroup(cTLogReport)
                                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
@@ -2310,3 +2327,34 @@ static function importSR6(oMsNewProcess as object,lEnd as logical,oTFIni as obje
     FWFreeArray(@aAddIndex)
 
 return(lImportSR6)
+
+static function importSRV(oMsNewProcess as object,lEnd as logical,oTFIni as object) as logical
+
+    local aAddIndex as array
+
+    local cAlias:="SRV" as character
+    local cIndexKey as character
+    local cTableImport:="SRV" as character
+
+    local lImportSRV as logical
+
+    local oTLogReport:=tLogReport():New() as object
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RV_FILIAL+RV_COD"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RV_FILIAL,RV_COD")),",")
+
+    lImportSRV:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+    if (lImportSRV)
+        ApMsgInfo(cAlias+" Table Import Completed","Info")
+    else
+        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clear()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+return(lImportSRV)
