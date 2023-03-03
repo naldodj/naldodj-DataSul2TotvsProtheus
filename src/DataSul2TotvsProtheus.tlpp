@@ -195,6 +195,8 @@ static method Activate() class Protheus
         st_oHMbTransform:Clean()
     endif
 
+    DelClassIntF()
+
 return(lActivate)
 
 static function readIniFile(cINIFile as character) as logical
@@ -400,6 +402,8 @@ static function readTableDefinition() as logical
     if (valtype(aTablesImport)=="A")
         FWFreeArray(@aTablesImport)
     endif
+
+    DelClassIntF()
 
 return(lreadTableDefinition)
 
@@ -1210,6 +1214,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local bUpdateMemoVirtual as codeblock
 
     local bEnableFilterBlock as codeblock
+    local bEnableFilterBlockMem as codeblock
 
     local cError as character
     local cField as character
@@ -1439,6 +1444,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         if (lEnableFilterBlock)
             bEnableFilterBlock:=cacheData():Get("datasul2totvsprotheus",cAlias+"EnableFilterBlock",{||.T.})
             cFieldsFilterBlock:=allTrim(oTFIni:GetPropertyValue(cAlias,"FieldsFilterBlock",""))
+            bEnableFilterBlockMem:=cacheData():get("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",{||.T.})
         endif
 
         bDeleteIfEmpty:=&(allTrim(oTFIni:GetPropertyValue(cAlias,"bDeleteIfEmpty","{|cAlias|.F.}")))
@@ -1463,8 +1469,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             endif
         endif
 
-        nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","20"))))
-        nIncProcStep:=Min(Max(nIncProcStep,1),100)
+        nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue(cAlias,"IncProcStep","0"))))
+        if (empty(nIncProcStep))
+            nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","1"))))
+        endif
+        nIncProcStep:=Min(Max(nIncProcStep,1),1000)
 
         begin sequence
 
@@ -1498,18 +1507,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                     lAppend:=.T.
 
-                    if (lChkFilial)
+                    if ((lChkFilial).or.(lEnableFilterBlock))
 
                         for nField:=1 to nFields
-
                             nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
-
                             if (nTargetFieldPos==0)
                                 loop
                             endif
-
                             cField:=aTargetFieldsDef[nField][1]
-                            if (cField==cFieldFilial)
+                            if (((lChkFilial).and.(cField==cFieldFilial)).or.((lEnableFilterBlock).and.(cField$cFieldsFilterBlock)))
                                 lHasError:=.F.
                                 xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                                 if (lHasError)
@@ -1536,9 +1542,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     lAppend:=.F.
                                     exit
                                 endif
-                                SetFilAnt(xValue)
                             endif
-
+                            if ((lChkFilial).and.(cField==cFieldFilial))
+                                SetFilAnt(xValue)
+                            elseif ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
+                                lAppend:=(Eval(bEnableFilterBlockMem,xValue))
+                                if (!lAppend)
+                                    exit
+                                endif
+                            endif
                         next nField
 
                     endif
@@ -1797,9 +1809,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                     endif
 
-                    FWFreeArray(@aLine)
-
                 end sequence
+
+                FWFreeArray(@aLine)
 
                 nRecProc++
                 if ((!lRecCountStep).or.(Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
@@ -1835,7 +1847,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     if (!ldbCommit)
                         (cTmpAlias)->(dbCommitAll())
                     endif
-                    if (right(cDeleteIfEmpty,1)==',')
+                    if (right(cDeleteIfEmpty,1)==",")
                         cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
                     endif
                     TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
@@ -1857,7 +1869,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             endif
 
             if (nDeleteIfEmpty>0)
-                if (right(cDeleteIfEmpty,1)==',')
+                if (right(cDeleteIfEmpty,1)==",")
                     cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
                 endif
                 TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
@@ -2005,6 +2017,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         FWFreeArray(@aTargetFieldsDef)
     endif
 
+    DelClassIntF()
+
 return(lImportData)
 
 static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
@@ -2048,6 +2062,8 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
 
     FWFreeArray(@aAddIndex)
 
+    DelClassIntF()
+
 return(lImportSRA)
 
 static function importSRB(oMsNewProcess as object,lEnd as logical) as logical
@@ -2080,6 +2096,8 @@ static function importSRB(oMsNewProcess as object,lEnd as logical) as logical
 
     FWFreeArray(@aAddIndex)
 
+    DelClassIntF()
+
 return(lImportSRB)
 
 static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
@@ -2087,6 +2105,7 @@ static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
     local aAddIndex as array
 
     local bEnableFilterBlock as codeblock
+    local bEnableFilterBlockMem as codeblock
 
     local cAlias:="SRD" as character
     local cIndexKey as character
@@ -2111,8 +2130,10 @@ static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
             endif
             cCompetenciaDe:=oSRDPergunte:Get("Competencia.De")
             cCompetenciaAte:=oSRDPergunte:Get("Competencia.Ate")
-            bEnableFilterBlock:={|cAlias|(cAlias)->((RD_DATARQ>=cCompetenciaDe).and.(RD_DATARQ<=cCompetenciaDe))}
+            bEnableFilterBlock:={|cAlias|(cAlias)->((RD_DATARQ>=cCompetenciaDe).and.(RD_DATARQ<=cCompetenciaAte))}
+            bEnableFilterBlockMem:={|cDATARQValue|((cDATARQValue>=cCompetenciaDe).and.(cDATARQValue<=cCompetenciaAte))}
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
+            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
         endif
 
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN"))
@@ -2135,8 +2156,11 @@ static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
     end sequence
 
     if (valtype(oSRDPergunte)=="O")
+        oSRDPergunte:Clear()
         oSRDPergunte:=FreeObj(oSRDPergunte)
     endif
+
+    DelClassIntF()
 
 return(lImportSRD)
 
@@ -2235,6 +2259,8 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
     FWFreeArray(@aAddIndex)
 
+    DelClassIntF()
+
 return(lImportSRF)
 
 static function importSRQ(oMsNewProcess as object,lEnd as logical) as logical
@@ -2302,6 +2328,8 @@ static function importSRQ(oMsNewProcess as object,lEnd as logical) as logical
 
     FWFreeArray(@aAddIndex)
 
+    DelClassIntF()
+
 return(lImportSRQ)
 
 static function importSR3(oMsNewProcess as object,lEnd as logical) as logical
@@ -2345,6 +2373,8 @@ static function importSR3(oMsNewProcess as object,lEnd as logical) as logical
 
     FWFreeArray(@aAddIndex)
 
+    DelClassIntF()
+
 return(lImportSR3)
 
 static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
@@ -2376,6 +2406,8 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
 
 return(lImportSR8)
 
@@ -2420,6 +2452,8 @@ static function importSRJ(oMsNewProcess as object,lEnd as logical) as logical
 
     FWFreeArray(@aAddIndex)
 
+    DelClassIntF()
+
 return(lImportSRJ)
 
 static function importSR6(oMsNewProcess as object,lEnd as logical) as logical
@@ -2452,6 +2486,8 @@ static function importSR6(oMsNewProcess as object,lEnd as logical) as logical
 
     FWFreeArray(@aAddIndex)
 
+    DelClassIntF()
+
 return(lImportSR6)
 
 static function importSRV(oMsNewProcess as object,lEnd as logical) as logical
@@ -2483,5 +2519,7 @@ static function importSRV(oMsNewProcess as object,lEnd as logical) as logical
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
 
 return(lImportSRV)

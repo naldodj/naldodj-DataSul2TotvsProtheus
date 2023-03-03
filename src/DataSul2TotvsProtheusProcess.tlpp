@@ -1,4 +1,7 @@
 #include "totvs.ch"
 using namespace datasul2totvs
-function u_datasul2totvsProtheus()
-return(Protheus():Activate())
+function u_datasul2totvsProtheus() as logical
+    local lDatasul2TotvsProtheus as logical
+    lDatasul2TotvsProtheus:=Protheus():Activate()
+    DelClassIntF()
+return(lDatasul2TotvsProtheus)
