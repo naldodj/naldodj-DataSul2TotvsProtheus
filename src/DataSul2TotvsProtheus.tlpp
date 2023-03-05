@@ -16,7 +16,6 @@
 #include "jsonarray.ch"
 
 static st_lfRACodUnic:=FindFunction("fRACodUnic") as logical
-static st_oHMbTransform:=THashMap():New() as object
 
 namespace datasul2totvs
 
@@ -62,9 +61,9 @@ static method Activate() class Protheus
     local oSR6MSNewProcess as object
     local oSRVMSNewProcess as object
 
-    if (valType(st_oHMbTransform)=="O")
-        st_oHMbTransform:Clean()
-    endif
+    private st_oHMbTransform:=THashMap():New() as object
+
+    private cCadastro:="TOTVS :: DataSul To Protheus" as character
 
     begin sequence
 
@@ -132,10 +131,10 @@ static method Activate() class Protheus
         bSR6MsNewProcess:={|lEnd|ProcRedefine(oSR6MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR6(oSR6MSNewProcess,@lEnd)}
         bSRVMsNewProcess:={|lEnd|ProcRedefine(oSRVMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRV(oSRVMSNewProcess,@lEnd)}
 
-        DEFINE MSDIALOG oDlg TITLE "TOTVS :: DataSul To Protheus" FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
+        DEFINE MSDIALOG oDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
             MENU oMenu IMAGE "" OF oDlg
-                MENUITEM "TOTVS :: DataSul To Protheus"
+                MENUITEM cCadastro
                 MENU 
                     MENUITEM "Registers"
                     MENU
@@ -193,6 +192,7 @@ static method Activate() class Protheus
 
     if (valType(st_oHMbTransform)=="O")
         st_oHMbTransform:Clean()
+        st_oHMbTransform:=FreeObj(st_oHMbTransform)
     endif
 
     DelClassIntF()
@@ -2057,7 +2057,7 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clear()
+    oTLogReport:Clean()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
@@ -2091,7 +2091,7 @@ static function importSRB(oMsNewProcess as object,lEnd as logical) as logical
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clear()
+    oTLogReport:Clean()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
@@ -2148,7 +2148,7 @@ static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
         endif
 
         oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-        oTLogReport:Clear()
+        oTLogReport:Clean()
         oTLogReport:=FreeObj(oTLogReport)
 
         FWFreeArray(@aAddIndex)
@@ -2254,7 +2254,7 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clear()
+    oTLogReport:Clean()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
@@ -2323,7 +2323,7 @@ static function importSRQ(oMsNewProcess as object,lEnd as logical) as logical
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clear()
+    oTLogReport:Clean()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
@@ -2368,7 +2368,7 @@ static function importSR3(oMsNewProcess as object,lEnd as logical) as logical
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clear()
+    oTLogReport:Clean()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
@@ -2402,10 +2402,15 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clear()
+    oTLogReport:Clean()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
+
+    if (type("oPVTHMSR8Seq")=="O")
+        oPVTHMSR8Seq:Clean()
+        oPVTHMSR8Seq:=FreeObj(oPVTHMSR8Seq)
+    endif
 
     DelClassIntF()
 
@@ -2447,7 +2452,7 @@ static function importSRJ(oMsNewProcess as object,lEnd as logical) as logical
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clear()
+    oTLogReport:Clean()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
@@ -2481,7 +2486,7 @@ static function importSR6(oMsNewProcess as object,lEnd as logical) as logical
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clear()
+    oTLogReport:Clean()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
@@ -2515,7 +2520,7 @@ static function importSRV(oMsNewProcess as object,lEnd as logical) as logical
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clear()
+    oTLogReport:Clean()
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
