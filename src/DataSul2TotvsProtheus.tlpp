@@ -5,7 +5,7 @@
 #DEFINE DTS_DBS_FLG 3
 #DEFINE DTS_DBS_FORMAT 4
 
-#DEFINE DTS_DBS_SIZE 4
+#DEFINE DTS_DBS_ALEN 4
 
 #include "totvs.ch"
 #include "shell.ch"
@@ -168,19 +168,19 @@ static method Activate() class Protheus
 
         ACTIVATE DIALOG oDlg CENTERED
 
-        oFont:=FreeObj(oFont)
-        oMenu:=FreeObj(oMenu)
-        oDlg:=FreeObj(oDlg)
+        oFont:=FWFreeObj(oFont)
+        oMenu:=FWFreeObj(oMenu)
+        oDlg:=FWFreeObj(oDlg)
 
-        oSRAMSNewProcess:=FreeObj(oSRAMSNewProcess)
-        oSRBMSNewProcess:=FreeObj(oSRBMSNewProcess)
-        oSRDMSNewProcess:=FreeObj(oSRDMSNewProcess)
-        oSRFMSNewProcess:=FreeObj(oSRFMSNewProcess)
-        oSRQMSNewProcess:=FreeObj(oSRQMSNewProcess)
-        oSR3MSNewProcess:=FreeObj(oSR3MSNewProcess)
-        oSR8MSNewProcess:=FreeObj(oSR8MSNewProcess)
-        oSRJMSNewProcess:=FreeObj(oSRJMSNewProcess)
-        oSR6MSNewProcess:=FreeObj(oSR6MSNewProcess)
+        oSRAMSNewProcess:=FWFreeObj(oSRAMSNewProcess)
+        oSRBMSNewProcess:=FWFreeObj(oSRBMSNewProcess)
+        oSRDMSNewProcess:=FWFreeObj(oSRDMSNewProcess)
+        oSRFMSNewProcess:=FWFreeObj(oSRFMSNewProcess)
+        oSRQMSNewProcess:=FWFreeObj(oSRQMSNewProcess)
+        oSR3MSNewProcess:=FWFreeObj(oSR3MSNewProcess)
+        oSR8MSNewProcess:=FWFreeObj(oSR8MSNewProcess)
+        oSRJMSNewProcess:=FWFreeObj(oSRJMSNewProcess)
+        oSR6MSNewProcess:=FWFreeObj(oSR6MSNewProcess)
 
     end sequence
 
@@ -192,7 +192,7 @@ static method Activate() class Protheus
 
     if (valType(st_oHMbTransform)=="O")
         st_oHMbTransform:Clean()
-        st_oHMbTransform:=FreeObj(st_oHMbTransform)
+        st_oHMbTransform:=FWFreeObj(st_oHMbTransform)
     endif
 
     DelClassIntF()
@@ -298,6 +298,8 @@ static function readTableDefinition() as logical
         nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)
         lreadTableDefinition:=(nft_fHandle>=0)
         if (!lreadTableDefinition)
+            oFT:ft_fUse()
+            oFT:=FWFreeObj(oFT)
             ApMsgAlert("Could not open the file: "+cFileTablesDefinition,"Attention")
             break
         endif
@@ -346,8 +348,8 @@ static function readTableDefinition() as logical
                         cLineUTF8:=""
                         aFieldDef:=strTokArr2(cLine," ")
                         cLine:=""
-                        if (len(aFieldDef)!=DTS_DBS_SIZE)
-                            aFieldDefTmp:=array(DTS_DBS_SIZE)
+                        if (len(aFieldDef)!=DTS_DBS_ALEN)
+                            aFieldDefTmp:=array(DTS_DBS_ALEN)
                             aFieldDefTmp[DTS_DBS_NAME]:=aFieldDef[DTS_DBS_NAME]
                             aFieldDefTmp[DTS_DBS_TYPE]:=aFieldDef[DTS_DBS_TYPE]
                             aFieldDefTmp[DTS_DBS_FLG]:=""//DTS_DBS_FLG
@@ -388,7 +390,7 @@ static function readTableDefinition() as logical
         end while
 
         oFT:ft_fUse()
-        oFT:=FreeObj(oFT)
+        oFT:=FWFreeObj(oFT)
 
     end sequence
 
@@ -396,7 +398,7 @@ static function readTableDefinition() as logical
 
     if (valtype(oHMTablesImport)=="O")
         oHMTablesImport:Clean()
-        oHMTablesImport:=FreeObj(oHMTablesImport)
+        oHMTablesImport:=FWFreeObj(oHMTablesImport)
     endif
 
     if (valtype(aTablesImport)=="A")
@@ -483,13 +485,8 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
 
     end sequence
 
-    if (!empty(aValueField))
-        FWFreeArray(@aValueField)
-    endif
-
-    if (!empty(aValueField))
-        FwFreeArray(@aSourceField)
-    endif
+    FWFreeArray(@aValueField)
+    FwFreeArray(@aSourceField)
 
 return(xValue)
 
@@ -1158,17 +1155,9 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
 
     end sequence
 
-    if (!empty(aFiles))
-        FWFreeArray(@aFiles)
-    endif
-
-    if (!empty(aZipFiles))
-        FWFreeArray(@aZipFiles)
-    endif
-
-    if (!empty(aDirectories))
-        FWFreeArray(@aDirectories)
-    endif
+    FWFreeArray(@aFiles)
+    FWFreeArray(@aZipFiles)
+    FWFreeArray(@aDirectories)
 
     if (!empty(cZipFile)).and.(file(cZipFile))
         fErase(cZipFile)
@@ -1297,6 +1286,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
 
+    local nDBS_ALEN:=(DBS_ALEN+1) as numeric
+
     local nMLCountSize:=150 as numeric
 
     local oFT as object
@@ -1371,18 +1362,17 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             oHMMemoVirutal:=THashMap():New()
         endif
 
-        nFields:=Len(aTargetStruct)
-        for nField:=1 to nFields
-            aAdd(aTargetStruct[nField],nField)
-            if (lMemoVirutal)
+        if (lMemoVirutal)
+            nFields:=Len(aTargetStruct)
+            for nField:=1 to nFields
                 cField:=aTargetStruct[nField][DBS_NAME]
                 if (allTrim(oTFIni:GetPropertyValue(cField,"MemoVirtual","0"))=="1")
                     bUpdateMemoVirtual:=&(allTrim(oTFIni:GetPropertyValue(cField,"bUpdateMemoVirtual","{||}")))
                     oHMMemoVirutal:Set(cField,bUpdateMemoVirtual)
                 endif
-            endif
-        next nField
-        oHMTargetStruct:=aToHM(aTargetStruct,DBS_NAME)
+            next nField
+        endif
+        oHMTargetStruct:=aUtils():dbStructHM(@aTargetStruct)
 
         nFields:=Len(aTargetFieldsDef)
 
@@ -1394,7 +1384,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         for nField:=1 to nFields
             cField:=aTargetFieldsDef[nField][1]
             if (oHMTargetStruct:Get(cField,@aField))
-                nTargetFieldPos:=aField[1][DBS_ALEN+1]
+                nTargetFieldPos:=aField[1][nDBS_ALEN]
             else
                 nTargetFieldPos:=0
             endif
@@ -1406,7 +1396,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         next nField
 
         oHMTargetStruct:Clean()
-        oHMTargetStruct:=FreeObj(oHMTargetStruct)
+        oHMTargetStruct:=FWFreeObj(oHMTargetStruct)
 
         oFT:=uft():New()
 
@@ -1975,7 +1965,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         if (!lPreLoadTable)
             (cTmpAlias)->(dbCloseArea())
             oFWTemporaryTable:Delete()
-            oFWTemporaryTable:=FreeObj(oFWTemporaryTable)
+            oFWTemporaryTable:=FWFreeObj(oFWTemporaryTable)
         endif
 
     end sequence
@@ -1986,13 +1976,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     if (valtype(oHMSourceFieldsDef)=="O")
         oHMSourceFieldsDef:Clean()
-        oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
+        oHMSourceFieldsDef:=FWFreeObj(oHMSourceFieldsDef)
     endif
 
     if (lMemoVirutal)
         if (valtype(oHMMemoVirutal)=="O")
             oHMMemoVirutal:Clean()
-            oHMMemoVirutal:=FreeObj(oHMMemoVirutal)
+            oHMMemoVirutal:=FWFreeObj(oHMMemoVirutal)
         endif
     endif
 
@@ -2001,21 +1991,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         FWFreeArray(@aTargetReplicateFieldsPos)
         if (valtype(oHMTargetReplicateFields)=="O")
             oHMTargetReplicateFields:Clean()
-            oHMTargetReplicateFields:=FreeObj(oHMTargetReplicateFields)
+            oHMTargetReplicateFields:=FWFreeObj(oHMTargetReplicateFields)
         endif
     endif
 
-    if (valType(aTargetStruct)=="A")
-        FWFreeArray(@aTargetStruct)
-    endif
-
-    if (valType(aFieldsDef)=="A")
-        FWFreeArray(@aFieldsDef)
-    endif
-
-    if (valType(aTargetFieldsDef)=="A")
-        FWFreeArray(@aTargetFieldsDef)
-    endif
+    FWFreeArray(@aTargetStruct)
+    FWFreeArray(@aFieldsDef)
+    FWFreeArray(@aTargetFieldsDef)
 
     DelClassIntF()
 
@@ -2058,7 +2040,7 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
+    oTLogReport:=FWFreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
@@ -2092,7 +2074,7 @@ static function importSRB(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
+    oTLogReport:=FWFreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
@@ -2149,7 +2131,7 @@ static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
 
         oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
         oTLogReport:Clean()
-        oTLogReport:=FreeObj(oTLogReport)
+        oTLogReport:=FWFreeObj(oTLogReport)
 
         FWFreeArray(@aAddIndex)
 
@@ -2157,7 +2139,7 @@ static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
 
     if (valtype(oSRDPergunte)=="O")
         oSRDPergunte:Clear()
-        oSRDPergunte:=FreeObj(oSRDPergunte)
+        oSRDPergunte:=FWFreeObj(oSRDPergunte)
     endif
 
     DelClassIntF()
@@ -2191,7 +2173,7 @@ static function SRDPergunte(oSRDPergunte as object) as logical
         aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
         aPBoxPrm[nPBox][2]:="Competencia.De"//[2]:Descricao
         aPBoxPrm[nPBox][3]:=cSizeYearMonth  //[3]:String contendo o inicializador do campo
-        aPBoxPrm[nPBox][4]:="@R 9999/99"        //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][4]:="@R 9999/99"    //[4]:String contendo a Picture do campo
         aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
         aPBoxPrm[nPBox][6]:=""              //[6]:Consulta F3
         aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
@@ -2227,6 +2209,9 @@ static function SRDPergunte(oSRDPergunte as object) as logical
 
     restInter()
 
+    FWFreeArray(@aPBoxRet)
+    FWFreeArray(@aPBoxPrm)
+
 return(lParamBox)
 
 static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
@@ -2255,7 +2240,7 @@ static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
+    oTLogReport:=FWFreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
@@ -2312,7 +2297,7 @@ static function importSRQ(oMsNewProcess as object,lEnd as logical) as logical
         oFWTemporaryTable:=cacheData():Get("datasul2totvsprotheus","import"+cPreLoadTableImport+"FWTemporaryTable")
         if (valType(oFWTemporaryTable)=="O")
             oFWTemporaryTable:Delete()
-            oFWTemporaryTable:=FreeObj(oFWTemporaryTable)
+            oFWTemporaryTable:=FWFreeObj(oFWTemporaryTable)
         endif
     endif
 
@@ -2324,7 +2309,7 @@ static function importSRQ(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
+    oTLogReport:=FWFreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
@@ -2369,7 +2354,7 @@ static function importSR3(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
+    oTLogReport:=FWFreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
@@ -2403,13 +2388,13 @@ static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
+    oTLogReport:=FWFreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
     if (type("oPVTHMSR8Seq")=="O")
         oPVTHMSR8Seq:Clean()
-        oPVTHMSR8Seq:=FreeObj(oPVTHMSR8Seq)
+        oPVTHMSR8Seq:=FWFreeObj(oPVTHMSR8Seq)
     endif
 
     DelClassIntF()
@@ -2453,7 +2438,7 @@ static function importSRJ(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
+    oTLogReport:=FWFreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
@@ -2487,7 +2472,7 @@ static function importSR6(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
+    oTLogReport:=FWFreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
@@ -2521,7 +2506,7 @@ static function importSRV(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
+    oTLogReport:=FWFreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
