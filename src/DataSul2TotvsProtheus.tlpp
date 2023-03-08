@@ -50,16 +50,7 @@ static method Activate() class Protheus
     local oFont as object
     local oFWDefSize as object
 
-    local oSRAMSNewProcess as object
-    local oSRBMSNewProcess as object
-    local oSRDMSNewProcess as object
-    local oSRFMSNewProcess as object
-    local oSRQMSNewProcess as object
-    local oSR3MSNewProcess as object
-    local oSR8MSNewProcess as object
-    local oSRJMSNewProcess as object
-    local oSR6MSNewProcess as object
-    local oSRVMSNewProcess as object
+    local oMSNewProcess as object
 
     private st_oHMbTransform:=THashMap():New() as object
 
@@ -120,16 +111,16 @@ static method Activate() class Protheus
 
         oFont:=TFont():New("Courier New",nil,16,nil,.T.)
 
-        bSRAMsNewProcess:={|lEnd|ProcRedefine(oSRAMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRA(oSRAMSNewProcess,@lEnd)}
-        bSRBMsNewProcess:={|lEnd|ProcRedefine(oSRBMSNewProcess,@oFont,0,650,650,.T.,.T.),importSRB(oSRBMSNewProcess,@lEnd)}
-        bSRDMsNewProcess:={|lEnd|ProcRedefine(oSRDMSNewProcess,@oFont,0,650,650,.T.,.T.),importSRD(oSRDMSNewProcess,@lEnd)}
-        bSRFMsNewProcess:={|lEnd|ProcRedefine(oSRFMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRF(oSRFMSNewProcess,@lEnd)}
-        bSRQMsNewProcess:={|lEnd|ProcRedefine(oSRQMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRQ(oSRQMSNewProcess,@lEnd)}
-        bSR3MsNewProcess:={|lEnd|ProcRedefine(oSR3MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR3(oSR3MSNewProcess,@lEnd)}
-        bSR8MsNewProcess:={|lEnd|ProcRedefine(oSR8MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8(oSR8MSNewProcess,@lEnd)}
-        bSRJMsNewProcess:={|lEnd|ProcRedefine(oSRJMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRJ(oSRJMSNewProcess,@lEnd)}
-        bSR6MsNewProcess:={|lEnd|ProcRedefine(oSR6MSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR6(oSR6MSNewProcess,@lEnd)}
-        bSRVMsNewProcess:={|lEnd|ProcRedefine(oSRVMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRV(oSRVMSNewProcess,@lEnd)}
+        bSRAMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRA(oMSNewProcess,@lEnd)}
+        bSRBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),importSRB(oMSNewProcess,@lEnd)}
+        bSRDMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),importSRD(oMSNewProcess,@lEnd)}
+        bSRFMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRF(oMSNewProcess,@lEnd)}
+        bSRQMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRQ(oMSNewProcess,@lEnd)}
+        bSR3MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR3(oMSNewProcess,@lEnd)}
+        bSR8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8(oMSNewProcess,@lEnd)}
+        bSRJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRJ(oMSNewProcess,@lEnd)}
+        bSR6MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR6(oMSNewProcess,@lEnd)}
+        bSRVMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRV(oMSNewProcess,@lEnd)}
 
         DEFINE MSDIALOG oDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
@@ -138,19 +129,19 @@ static method Activate() class Protheus
                 MENU 
                     MENUITEM "Registers"
                     MENU
-                        MENUITEM "SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oSRJMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRJMSNewProcess:Activate())
-                        MENUITEM "SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.)) ACTION (oSR6MSNewProcess:=MsNewProcess():New(bSR6MsNewProcess,"Importing SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR6MSNewProcess:Activate())
-                        MENUITEM "SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.)) ACTION (oSRVMSNewProcess:=MsNewProcess():New(bSRVMsNewProcess,"Importing SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRVMSNewProcess:Activate())
+                        MENUITEM "SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR6MsNewProcess,"Importing SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRVMsNewProcess,"Importing SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                     ENDMENU
                     MENUITEM "Employees"
                     MENU
-                        MENUITEM "SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oSRAMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRAMSNewProcess:Activate())
-                        MENUITEM "SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.)) ACTION (oSRQMSNewProcess:=MsNewProcess():New(bSRQMsNewProcess,"Importing SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRQMSNewProcess:Activate())
-                        MENUITEM "SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oSRBMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRBMSNewProcess:Activate())
-                        MENUITEM "SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oSRFMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRFMSNewProcess:Activate())
-                        MENUITEM "SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.)) ACTION (oSR3MSNewProcess:=MsNewProcess():New(bSR3MsNewProcess,"Importing SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR3MSNewProcess:Activate())
-                        MENUITEM "SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oSR8MSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSR8MSNewProcess:Activate())
-                        MENUITEM "SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.)) ACTION (oSRDMSNewProcess:=MsNewProcess():New(bSRDMsNewProcess,"Importing SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oSRDMSNewProcess:Activate())
+                        MENUITEM "SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRQMsNewProcess,"Importing SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR3MsNewProcess,"Importing SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRDMsNewProcess,"Importing SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                     ENDMENU
                 ENDMENU
                 MENUITEM "Tools"
@@ -171,16 +162,7 @@ static method Activate() class Protheus
         oFont:=FWFreeObj(oFont)
         oMenu:=FWFreeObj(oMenu)
         oDlg:=FWFreeObj(oDlg)
-
-        oSRAMSNewProcess:=FWFreeObj(oSRAMSNewProcess)
-        oSRBMSNewProcess:=FWFreeObj(oSRBMSNewProcess)
-        oSRDMSNewProcess:=FWFreeObj(oSRDMSNewProcess)
-        oSRFMSNewProcess:=FWFreeObj(oSRFMSNewProcess)
-        oSRQMSNewProcess:=FWFreeObj(oSRQMSNewProcess)
-        oSR3MSNewProcess:=FWFreeObj(oSR3MSNewProcess)
-        oSR8MSNewProcess:=FWFreeObj(oSR8MSNewProcess)
-        oSRJMSNewProcess:=FWFreeObj(oSRJMSNewProcess)
-        oSR6MSNewProcess:=FWFreeObj(oSR6MSNewProcess)
+        oMSNewProcess:=FWFreeObj(oMSNewProcess)
 
     end sequence
 
