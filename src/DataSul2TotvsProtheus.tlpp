@@ -2470,21 +2470,44 @@ static function importSRV(oMsNewProcess as object,lEnd as logical) as logical
     local cIndexKey as character
     local cTableImport:="SRV" as character
 
+    local cAliasTMP:=getNextAlias() as character
+
     local lImportSRV as logical
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
     local oTLogReport:=tLogReport():New() as object
 
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RV_FILIAL+RV_COD"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RV_FILIAL,RV_COD")),",")
+    begin sequence
 
-    lImportSRV:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        beginSQL alias cAliasTMP
+            %noParser%
+            SELECT DISTINCT 1 RVCODFOL
+              FROM %table:SRV% SRV
+             WHERE SRV.%NotDel%
+               AND SRV.RV_CODFOL<>''
+        endSQL
 
-    if (lImportSRV)
-        ApMsgInfo(cAlias+" Table Import Completed","Info")
-    else
-        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-    endif
+        lImportSRV:=((cAliasTMP)->RVCODFOL!=1)
+        
+        (cAliasTMP)->(dbCloseArea())
+
+        if (!lImportSRV)
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table. Already Exists RV_CODFOL","Info")
+            break
+        endif
+
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RV_FILIAL+RV_COD"))
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RV_FILIAL,RV_COD")),",")
+
+        lImportSRV:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+        if (lImportSRV)
+            ApMsgInfo(cAlias+" Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+        endif
+
+    end sequence    
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
