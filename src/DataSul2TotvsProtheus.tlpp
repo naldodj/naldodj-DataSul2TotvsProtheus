@@ -64,7 +64,7 @@ static method Activate() class Protheus
             break
         endif
 
-        lSendDataToServer:=((getComputerName()=="DNA-CSDJ-01").and.(ApMsgNoYes("Sending Data To Server?")))
+        lSendDataToServer:=((getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01"))).and.(ApMsgNoYes("Sending Data To Server?")))
         if (lSendDataToServer)
             MsAguarde({||lSendDataToServer:=sendDataToServer(@cGetFileRoot,.F.)},"Sending Data To Server","Wait!")
         elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
@@ -1039,7 +1039,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
 
     begin sequence
 
-        lSendDataToServer:=(getComputerName()=="DNA-CSDJ-01")
+        lSendDataToServer:=(getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01")))
         if (!lSendDataToServer)
             break
         endif
