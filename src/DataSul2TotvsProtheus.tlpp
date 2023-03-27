@@ -1261,6 +1261,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nSeekTableIndex as numeric
     local nUpdateTableSource as numeric
 
+    local nFieldFilial as numeric
+
     local nIncProcStep as numeric
 
     local nDeleteIfEmpty:=0 as numeric
@@ -1271,6 +1273,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nDBS_ALEN:=(DBS_ALEN+1) as numeric
 
     local nMLCountSize:=150 as numeric
+
+    local nAliasdbCount:=0 as numeric
 
     local oFT as object
     local oTFIni as object
@@ -1284,12 +1288,38 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     begin sequence
 
-        if (nIndexKey==0)
+        lImportData:=(nIndexKey!=0)
+        if (!lImportData)
             ApMsgAlert("Unlocalized "+cAlias+" table search index ("+cIndexKey+")")
             break
         endif
 
         oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+
+        cFieldFilial:=PrefixoCpo(cAlias)
+        cFieldFilial+="_FILIAL"
+
+        lChkFilial:=(allTrim(oTFIni:GetPropertyValue(cAlias,"ChkFilial","1"))=="1")
+        cAliasxFilial:=xFilial(cAlias)
+
+        if (cAlias==cTableImport)
+            if (lChkFilial)
+                nFieldFilial:=(cAlias)->(FieldPos(cFieldFilial))
+                if (left(cIndexKey,Len(cFieldFilial))==cFieldFilial)
+                    (cAlias)->(dbSetOrder(nIndexKey))
+                    (cAlias)->(dbSeek(cAliasxFilial,.T.))
+                else
+                    (cAlias)->(dbGoTop())
+                endif
+            endif
+            MsAguarde({||dbEval():Eval(cAlias,{||++nAliasdbCount},{||!deleted().and.if(lChkFilial,FieldGet(nFieldFilial)==cAliasxFilial,.T.)},{||nAliasdbCount==0},nil,nil,.F.,{||dbGoTop()})})
+            if (nAliasdbCount>0)
+                lImportData:=ApMsgNoYes("There is already data in this table. Do you want to update them?","Info")
+                if (!lImportData)
+                    break
+                endif
+            endif
+        endif
 
         cSourceTable:=allTrim(oTFIni:GetPropertyValue("TablesImport",cTableImport,""))
         lImportData:=(!empty(cSourceTable))
@@ -1401,14 +1431,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
         FWFreeArray(@aField)
         FWFreeArray(@aTargetStruct)
-
-        cFieldFilial:=PrefixoCpo(cAlias)
-        cFieldFilial+="_FILIAL"
-
-        lChkFilial:=(allTrim(oTFIni:GetPropertyValue(cAlias,"ChkFilial","1"))=="1")
-        if (!lChkFilial)
-            cAliasxFilial:=xFilial(cAlias)
-        endif
 
         lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cAlias,"ChkEncode","0"))=="1")
 
