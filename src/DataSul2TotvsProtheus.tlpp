@@ -41,6 +41,7 @@ static method Activate() class Protheus
     local cGetFileTitle as character
 
     local lActivate as logical
+    local lSetCentury:=__SetCentury("ON") as logical
     local lSendDataToServer as logical
 
     local nGetFileOptions as numeric
@@ -165,6 +166,8 @@ static method Activate() class Protheus
         oMSNewProcess:=FWFreeObj(oMSNewProcess)
 
     end sequence
+
+    __SetCentury(if(lSetCentury,"ON","OFF"))
 
     cacheData():delSection("datasul2totvsprotheus")
 
@@ -1095,9 +1098,13 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
             aFiles:=Directory(cDirectory+"*.*")
             nFiles:=Len(aFiles)
             for nFile:=1 To nFiles
+                MsProcTxt(aFiles[nFile][1])
                 cFile:=cDirectory+aFiles[nFile][1]
                 aAdd(aZipFiles,cFile)
-                MsProcTxt(aFiles[nFile][1])
+                cFile:=cDirectoryServer+aFiles[nFile][1]
+                if (file(cFile))
+                    fErase(cFile)
+                endif
             next nFile
         next nDirectory
 
@@ -2044,7 +2051,8 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     oTLogReport:Clean()
-    oTLogReport:=FWFreeObj(oTLogReport)
+    //FWFreeObj => Stack depth overflow
+    oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
