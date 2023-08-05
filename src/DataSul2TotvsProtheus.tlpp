@@ -35,6 +35,7 @@ static method Activate() class Protheus
     local bSRJMsNewProcess as codeblock
     local bSR6MsNewProcess as codeblock
     local bSRVMsNewProcess as codeblock
+    local bRCEMsNewProcess as codeblock
 
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
@@ -122,6 +123,7 @@ static method Activate() class Protheus
         bSRJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRJ(oMSNewProcess,@lEnd)}
         bSR6MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR6(oMSNewProcess,@lEnd)}
         bSRVMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRV(oMSNewProcess,@lEnd)}
+        bRCEMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportRCE(oMSNewProcess,@lEnd)}
 
         DEFINE MSDIALOG oDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
@@ -133,6 +135,7 @@ static method Activate() class Protheus
                         MENUITEM "SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR6MsNewProcess,"Importing SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRVMsNewProcess,"Importing SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "RCE :: "+Upper(FWSX2Util():GetX2Name("RCE",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bRCEMsNewProcess,"Importing RCE :: "+Upper(FWSX2Util():GetX2Name("RCE",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                     ENDMENU
                     MENUITEM "Employees"
                     MENU
@@ -2547,3 +2550,37 @@ static function importSRV(oMsNewProcess as object,lEnd as logical) as logical
     DelClassIntF()
 
 return(lImportSRV)
+
+static function importRCE(oMsNewProcess as object,lEnd as logical) as logical
+
+    local aAddIndex as array
+
+    local cAlias:="RCE" as character
+    local cIndexKey as character
+    local cTableImport:="RCE" as character
+
+    local lImportRCE as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RCE_FILIAL+RCE_CODIGO"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RCE_FILIAL,RCE_CODIGO")),",")
+
+    lImportRCE:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+    if (lImportRCE)
+        ApMsgInfo(cAlias+" Table Import Completed","Info")
+    else
+        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clean()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
+
+return(lImportRCE)
