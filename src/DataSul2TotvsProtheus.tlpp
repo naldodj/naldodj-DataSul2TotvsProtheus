@@ -2045,9 +2045,22 @@ static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
         FWFreeArray(@aAddIndex)
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_MATMIG")),",")
         lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-        if (lImportSRA)
-            ApMsgInfo(cAlias+" Table Import Completed","Info")
-        else
+        if ((lImportSRA).and.(!lEnd))
+            oMsNewProcess:SetRegua1(0)
+            oMsNewProcess:IncRegua1("Wait!")
+            oMsNewProcess:SetRegua2(0)
+            oMsNewProcess:IncRegua2("...")
+            cTableImport:="SRA_SPED"
+            cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_FILIAL+RA_MAT"))
+            FWFreeArray(@aAddIndex)
+            aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_FILIAL,RA_MAT")),",")
+            lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+            if ((lImportSRA).and.(!lEnd))
+                ApMsgInfo(cAlias+" Table Import Completed","Info")
+            elseif (!lEnd)
+                ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+            endif            
+        elseif (!lEnd)
             ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
         endif
     endif
