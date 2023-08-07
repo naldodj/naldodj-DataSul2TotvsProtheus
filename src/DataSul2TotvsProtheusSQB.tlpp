@@ -1,0 +1,45 @@
+#include "totvs.ch"
+#include "shell.ch"
+
+#include "dbstruct.ch"
+
+#include "jsonhash.ch"
+#include "jsonarray.ch"
+
+class ImportSQB
+    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+end class
+
+static method ImportData(oMsNewProcess,lEnd) class ImportSQB
+
+    local aAddIndex as array
+
+    local cAlias:="SQB" as character
+    local cIndexKey as character
+    local cTableImport:="SQB" as character
+
+    local lImportSQB as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","QB_FILIAL+QB_DEPTO+QB_CC"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","QB_FILIAL,QB_DEPTO,QB_CC")),",")
+
+    lImportSQB:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+    if (lImportSQB)
+        ApMsgInfo(cAlias+" Table Import Completed","Info")
+    else
+        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clean()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
+
+return(lImportSQB)
