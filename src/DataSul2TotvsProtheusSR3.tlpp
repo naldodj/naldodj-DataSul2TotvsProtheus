@@ -1,0 +1,50 @@
+#include "totvs.ch"
+
+class ImportSR3
+    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+end class
+
+static method ImportData(oMsNewProcess,lEnd) class ImportSR3
+
+    local aAddIndex as array
+
+    local cAlias:="SR3" as character
+    local cIndexKey as character
+    local cTableImport:="SR3" as character
+
+    local lImportSR3 as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R3_FILIAL+R3_MAT+DTOS(R3_DATA)+R3_SEQ+R3_TIPO+R3_PD"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R3_FILIAL,R3_MAT,R3_DATA,R3_SEQ,R3_TIPO,R3_PD")),",")
+
+    lImportSR3:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+    if ((lImportSR3).and.(!lEnd))
+        oMsNewProcess:SetRegua1(0)
+        oMsNewProcess:IncRegua1("Wait!")
+        oMsNewProcess:SetRegua2(0)
+        oMsNewProcess:IncRegua2("...")
+        cTableImport:="SR7"
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R7_FILIAL+R7_MAT+DTOS(R7_DATA)+R7_SEQ+R7_TIPO"))
+        FWFreeArray(@aAddIndex)
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")),",")
+        lImportSR3:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
+        if (lImportSR3)
+            ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+        endif
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clean()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
+
+return(lImportSR3)

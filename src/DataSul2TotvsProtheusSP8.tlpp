@@ -1,0 +1,165 @@
+#include "totvs.ch"
+
+#IFNDEF _AMARC_CH    
+
+    #DEFINE _AMARC_CH    
+
+        #DEFINE ELEMENTOS_AMARC      38    //Numero de Elementos do Array aMarcacoes
+
+        #DEFINE AMARC_DATA           01    //Data da Marcacao
+        #DEFINE AMARC_HORA           02    //Hora da Marcacao
+        #DEFINE AMARC_ORDEM          03    //Ordem da Marcacao
+        #DEFINE AMARC_FLAG           04    //Flag (Origem) da Marcacao
+        #DEFINE AMARC_RECNO          05    //Recno ou Logico Alterar Ordem/Turno
+        #DEFINE AMARC_TURNO          06    //Turno da Marcacao
+        #DEFINE AMARC_FUNCAO         07    //Funcao do Relogio
+        #DEFINE AMARC_GIRO           08    //Giro do Relogio
+        #DEFINE AMARC_CC             09    //Centro de Custo da Marcacao
+        #DEFINE AMARC_APONTA         10    //Flag de Marcacao Apontada
+        #DEFINE AMARC_RELOGIO        11    //Relogio da Marcacao
+        #DEFINE AMARC_TIPOMARC       12    //Flag de Tipo de Marcacao
+        #DEFINE AMARC_L_ORIGEM       13    //Define Se a Marcacao Pode ou Nao ser (Re)Ordenada
+        #DEFINE AMARC_DTHR2STR       14    //String de Data/Hora para aSort
+        #DEFINE AMARC_PERAPONTA      15    //String de Data com o Periodo de Apontamento
+        #DEFINE AMARC_SEQ            16    //String de Sequencia da Tabela Padrao
+        #DEFINE AMARC_DIA            17    //String de Dia da Semana da Tabela de Horario Padrao
+        #DEFINE AMARC_PROCESSO       18    //Processo
+        #DEFINE AMARC_ROTEIRO        19    //Roteiro
+        #DEFINE AMARC_PERIODO        20    //Periodo
+        #DEFINE AMARC_NUM_PAGTO      21    //Num. pagto                        
+        #DEFINE AMARC_DEPTO          22    //Depto
+        #DEFINE AMARC_POSTO          23    //Posto
+        #DEFINE AMARC_CODFUNC        24    //C?. FUnc        
+        #DEFINE AMARC_DATAAPO        25    //Data de Apontamento
+        #DEFINE AMARC_NUMREP         26    //N?ero do REP
+        #DEFINE AMARC_TPMCREP        27    //Tipo de Marca?o no REP
+        #DEFINE AMARC_TIPOREG        28    //Tipo de Registro
+        #DEFINE AMARC_MOTIVRG        29    //Motivo Modifica?o do Registro
+        #DEFINE AMARC_TNOPC          30    //Flag para controlar turno opcional
+        #DEFINE AMARC_EMPORG         31    //Empresa Origem da marcacao
+        #DEFINE AMARC_FILORG         32    //Filial Origem da marcacao
+        #DEFINE AMARC_MATORG         33    //Matricula Origem da marcacao
+        #DEFINE AMARC_DHORG          34    //Data/Hora Origem da marcacao
+        #DEFINE AMARC_IDORG          35    //Identificacao da Origem da marcacao
+        #DEFINE AMARC_LATITU         36    //Latitude 
+        #DEFINE AMARC_LONGIT         37    //Longitude
+        #DEFINE AMARC_GEOFENCE       38    //Define se a marca?o est?dentro ou fora do per?etro
+
+#ENDIF
+
+class ImportSP8
+    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+end class
+
+static method ImportData(oMsNewProcess,lEnd) class ImportSP8
+
+    local aAddIndex as array
+
+    local bCustomUpdate as codeblock
+
+    local cAlias:="SP8" as character
+    local cIndexKey as character
+    local cTableImport:="SP8" as character
+
+    local lImportSP8 as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","SP8_FILIAL+SP8_CODIGO"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","SP8_FILIAL,SP8_CODIGO")),",")
+
+    bCustomUpdate:={;
+        |;
+            cTmpAlias,;
+            cAlias,;
+            lFound,;
+            lAddNew,;
+            cIndexKey,;
+            cIndexID,;
+            nFields,;
+            aTargetFieldsDef;
+        |;
+        SP8CustomUpdate(@cTmpAlias,@cAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef);
+    }
+
+    lImportSP8:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,/*lPreLoadTable*/,bCustomUpdate)
+
+    if (lImportSP8)
+        ApMsgInfo(cAlias+" Table Import Completed","Info")
+    else
+        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clean()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
+
+return(lImportSP8)
+
+static procedure SP8CustomUpdate(cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef)
+
+    local aMarcacoes:=array(0) as array
+
+    aAdd(aMarcacoes,array(ELEMENTOS_AMARC))
+
+    aMarcacoes[1][AMARC_DATA]:=(cTmpAlias)->P8_DATA
+    aMarcacoes[1][AMARC_HORA]:=(cTmpAlias)->P8_HORA
+    aMarcacoes[1][AMARC_ORDEM]:=(cTmpAlias)->P8_ORDEM
+    aMarcacoes[1][AMARC_FLAG]:=(cTmpAlias)->P8_FLAG
+    aMarcacoes[1][AMARC_RECNO]:=0
+    aMarcacoes[1][AMARC_TURNO]:=SRA->RA_TNOTRAB
+    aMarcacoes[1][AMARC_FUNCAO]:=(cTmpAlias)->P8_FUNCAO
+    aMarcacoes[1][AMARC_GIRO]:=(cTmpAlias)->P8_GIRO
+    aMarcacoes[1][AMARC_CC]:=(cTmpAlias)->P8_CC
+    aMarcacoes[1][AMARC_APONTA]:=(cTmpAlias)->P8_APONTA
+    aMarcacoes[1][AMARC_RELOGIO]:=(cTmpAlias)->P8_RELOGIO
+    aMarcacoes[1][AMARC_TIPOMARC]:=(cTmpAlias)->P8_TIPOMARC
+    aMarcacoes[1][AMARC_L_ORIGEM]:=.F.
+    aMarcacoes[1][AMARC_DTHR2STR]:=nil
+    aMarcacoes[1][AMARC_PERAPONTA]:=nil
+    aMarcacoes[1][AMARC_SEQ]:=nil
+    aMarcacoes[1][AMARC_DIA]:=nil
+    aMarcacoes[1][AMARC_PROCESSO]:=nil
+    aMarcacoes[1][AMARC_ROTEIRO]:=nil
+    aMarcacoes[1][AMARC_PERIODO]:=nil
+    aMarcacoes[1][AMARC_NUM_PAGTO]:=nil
+    aMarcacoes[1][AMARC_DEPTO]:=nil
+    aMarcacoes[1][AMARC_POSTO]:=nil
+    aMarcacoes[1][AMARC_CODFUNC]:=nil
+    aMarcacoes[1][AMARC_DATAAPO]:=nil
+    aMarcacoes[1][AMARC_NUMREP]:=nil
+    aMarcacoes[1][AMARC_TPMCREP]:=nil
+    aMarcacoes[1][AMARC_TIPOREG]:=nil
+    aMarcacoes[1][AMARC_MOTIVRG]:=nil
+    aMarcacoes[1][AMARC_TNOPC]:=nil
+    aMarcacoes[1][AMARC_EMPORG]:=nil
+    aMarcacoes[1][AMARC_FILORG]:=nil
+    aMarcacoes[1][AMARC_MATORG]:=nil
+    aMarcacoes[1][AMARC_DHORG]:=nil
+    aMarcacoes[1][AMARC_IDORG]:=nil
+    aMarcacoes[1][AMARC_LATITU]:=nil
+    aMarcacoes[1][AMARC_LONGIT]:=nil
+    aMarcacoes[1][AMARC_GEOFENCE]:=nil
+
+    PutMarcacoes(;
+        aMarcacoes,;//01 -> Array contendo as Marcacoes do Funcionario
+        (cTmpAlias)->P8_FILIAL,;//02 -> Filial do Funcionario
+        (cTmpAlias)->P8_MAT,;//03 -> Matricula do Funcionario
+        cAlias,;//04 -> Arquivo para Gravacao ( "SP8" ou "SPG" )
+        lAddNew,;//05 -> Se Forca a Inclusao de Novo Registro
+        .T.,;//06 -> Se Forca a Substituicao da Data/Hora
+        nil,;//07 -> Posicao Inicial para o aMarcacoes
+        .T.,;//08 -> Se Forca a Substituicao de Tudo
+        .F.,;//09 -> Se eh executado via workflow
+        1,;//10 -> Se leitura, apontamento ou ambos
+        .F.;//11 -> Se deve gravar campos do usu?io
+    )
+
+    FWFreeArray(@aMarcacoes)
+
+return

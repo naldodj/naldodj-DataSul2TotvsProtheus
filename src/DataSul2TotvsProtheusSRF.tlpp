@@ -1,0 +1,39 @@
+#include "totvs.ch"
+
+class ImportSRF
+    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+end class
+
+static method ImportData(oMsNewProcess,lEnd) class ImportSRF
+
+    local aAddIndex as array
+
+    local cAlias:="SRF" as character
+    local cIndexKey as character
+    local cTableImport:="SRF" as character
+
+    local lImportSRF as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RF_FILIAL+RF_MAT+DTOS(RF_DATABAS)+RF_PD"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RF_FILIAL,RF_MAT,RF_DATABAS,RF_PD")),",")
+
+    lImportSRF:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+    if (lImportSRF)
+        ApMsgInfo(cAlias+" Table Import Completed","Info")
+    else
+        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clean()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
+
+return(lImportSRF)

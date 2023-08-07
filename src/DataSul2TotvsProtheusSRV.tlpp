@@ -1,0 +1,62 @@
+#include "totvs.ch"
+
+class ImportSRV
+    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+end class
+
+static method ImportData(oMsNewProcess,lEnd) class ImportSRV
+
+    local aAddIndex as array
+
+    local cAlias:="SRV" as character
+    local cIndexKey as character
+    local cTableImport:="SRV" as character
+
+    local cAliasTMP:=getNextAlias() as character
+
+    local lImportSRV as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+
+    begin sequence
+
+        beginSQL alias cAliasTMP
+            %noParser%
+            SELECT DISTINCT 1 RVCODFOL
+              FROM %table:SRV% SRV
+             WHERE SRV.%NotDel%
+               AND SRV.RV_CODFOL<>''
+        endSQL
+
+        lImportSRV:=((cAliasTMP)->RVCODFOL!=1)
+        
+        (cAliasTMP)->(dbCloseArea())
+
+        if (!lImportSRV)
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table. Already Exists RV_CODFOL","Info")
+            break
+        endif
+
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RV_FILIAL+RV_COD"))
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RV_FILIAL,RV_COD")),",")
+
+        lImportSRV:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+        if (lImportSRV)
+            ApMsgInfo(cAlias+" Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+        endif
+
+    end sequence    
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clean()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
+
+return(lImportSRV)

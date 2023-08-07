@@ -1,0 +1,137 @@
+#include "totvs.ch"
+
+class ImportSRD
+    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+end class
+
+static method ImportData(oMsNewProcess,lEnd) class ImportSRD
+
+    local aAddIndex as array
+
+    local bEnableFilterBlock as codeblock
+    local bEnableFilterBlockMem as codeblock
+
+    local cAlias:="SRD" as character
+    local cIndexKey as character
+    local cTableImport:="SRD" as character
+
+    local cCompetenciaDe as character
+    local cCompetenciaAte as character
+
+    local lImportSRD as logical
+    local lEnableFilterBlock as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+    local oSRDPergunte:=tHash():New() as object
+
+    begin sequence
+
+        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cAlias,"EnableFilterBlock","0"))=="1")
+        if (lEnableFilterBlock)
+            if (!SRDPergunte(@oSRDPergunte))
+                break
+            endif
+            cCompetenciaDe:=oSRDPergunte:Get("Competencia.De")
+            cCompetenciaAte:=oSRDPergunte:Get("Competencia.Ate")
+            bEnableFilterBlock:={|cAlias|(cAlias)->((RD_DATARQ>=cCompetenciaDe).and.(RD_DATARQ<=cCompetenciaAte))}
+            bEnableFilterBlockMem:={|cDATARQValue|((cDATARQValue>=cCompetenciaDe).and.(cDATARQValue<=cCompetenciaAte))}
+            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
+            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
+        endif
+
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN"))
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RD_FILIAL,RD_MAT,RD_CC,RD_ITEM,RD_CLVL,RD_DATARQ,RD_PD,RD_SEQ,RD_PERIODO,RD_SEMANA,RD_ROTEIR,RD_DTREF,RD_CONVOC,RD_NRBEN")),",")
+
+        lImportSRD:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+        if (lImportSRD)
+            ApMsgInfo(cAlias+" Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+        endif
+
+        oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+        oTLogReport:Clean()
+        oTLogReport:=FreeObj(oTLogReport)
+
+        FWFreeArray(@aAddIndex)
+
+    end sequence
+
+    if (valtype(oSRDPergunte)=="O")
+        oSRDPergunte:Clear()
+        oSRDPergunte:=FreeObj(oSRDPergunte)
+    endif
+
+    DelClassIntF()
+
+return(lImportSRD)
+
+static function SRDPergunte(oSRDPergunte as object) as logical
+
+    local aPBoxPrm:=Array(0) as array
+    local aPBoxRet:=Array(0) as array
+
+    local cPBoxTit:=OemToAnsi("Informe os parametros") as character
+
+    local cSizeYearMonth as character
+
+    local lParamBox:=.F. as logical
+
+    local nPBox as numeric
+
+    local nSizeYear:=6 as numeric
+
+    local nGSizeYearMonth:=nSizeYear+100 as numeric
+
+    saveInter()
+
+        cSizeYearMonth:=Space(nSizeYear)
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //01----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Competencia.De"//[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cSizeYearMonth  //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@R 9999/99"    //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:=""              //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=nGSizeYearMonth //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //01----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1                //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Competencia.Ate"//[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cSizeYearMonth   //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@R 9999/99"     //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="NaoVazio()"     //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:=""               //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()"  //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=nGSizeYearMonth  //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.T.              //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,NIL,NIL,.T.,NIL,NIL,NIL,NIL,.T.,.T.)))
+            lParamBox:=MsgYesNo("Deseja Abortar a Importacao?","Atencao!")
+            if (lParamBox)
+                lParamBox:=.F.
+                exit
+            endif
+        end while
+
+        if (lParamBox)
+            for nPBox:=1 To Len(aPBoxPrm)
+                oSRDPergunte:Set(aPBoxPrm[nPBox][2],aPBoxRet[nPBox])
+            next nPBox
+        endif
+
+    restInter()
+
+    FWFreeArray(@aPBoxRet)
+    FWFreeArray(@aPBoxPrm)
+
+return(lParamBox)

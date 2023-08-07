@@ -1,0 +1,63 @@
+#include "totvs.ch"
+
+class ImportSRA
+    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+end class
+
+static method ImportData(oMsNewProcess,lEnd) class ImportSRA
+
+    local aAddIndex as array
+
+    local cAlias:="SRA" as character
+    local cIndexKey as character
+    local cTableImport:="SRA" as character
+
+    local lImportSRA as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RA_FILIAL+RA_MAT"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RA_FILIAL,RA_MAT")),",")
+
+    lImportSRA:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+    if ((lImportSRA).and.(!lEnd))
+        oMsNewProcess:SetRegua1(0)
+        oMsNewProcess:IncRegua1("Wait!")
+        oMsNewProcess:SetRegua2(0)
+        oMsNewProcess:IncRegua2("...")
+        cTableImport:="SRA_RHPF"
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_MATMIG"))
+        FWFreeArray(@aAddIndex)
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_MATMIG")),",")
+        lImportSRA:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        if ((lImportSRA).and.(!lEnd))
+            oMsNewProcess:SetRegua1(0)
+            oMsNewProcess:IncRegua1("Wait!")
+            oMsNewProcess:SetRegua2(0)
+            oMsNewProcess:IncRegua2("...")
+            cTableImport:="SRA_SPED"
+            cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_FILIAL+RA_MAT"))
+            FWFreeArray(@aAddIndex)
+            aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_FILIAL,RA_MAT")),",")
+            lImportSRA:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+            if ((lImportSRA).and.(!lEnd))
+                ApMsgInfo(cAlias+" Table Import Completed","Info")
+            elseif (!lEnd)
+                ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+            endif            
+        elseif (!lEnd)
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+        endif
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clean()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
+
+return(lImportSRA)

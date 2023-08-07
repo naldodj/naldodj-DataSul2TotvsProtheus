@@ -1,0 +1,50 @@
+#include "totvs.ch"
+
+class ImportSRJ
+    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+end class
+
+static method ImportData(oMsNewProcess,lEnd) class ImportSRJ
+
+    local aAddIndex as array
+
+    local cAlias:="SRJ" as character
+    local cIndexKey as character
+    local cTableImport:="SRJ" as character
+
+    local lImportSRJ as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RJ_FILIAL+RJ_FUNCAO"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RJ_FILIAL,RJ_FUNCAO")),",")
+
+    lImportSRJ:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+    if ((lImportSRJ).and.(!lEnd))
+        oMsNewProcess:SetRegua1(0)
+        oMsNewProcess:IncRegua1("Wait!")
+        oMsNewProcess:SetRegua2(0)
+        oMsNewProcess:IncRegua2("...")
+        cTableImport:="SQ3"
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","Q3_FILIAL+Q3_CARGO+Q3_CC"))
+        FWFreeArray(@aAddIndex)
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","Q3_FILIAL,Q3_CARGO,Q3_CC")),",")
+        lImportSRJ:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
+        if (lImportSRJ)
+            ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+        endif
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clean()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
+
+return(lImportSRJ)

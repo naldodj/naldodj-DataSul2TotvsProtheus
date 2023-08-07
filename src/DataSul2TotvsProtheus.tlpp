@@ -15,8 +15,6 @@
 #include "jsonhash.ch"
 #include "jsonarray.ch"
 
-static st_lfRACodUnic:=FindFunction("fRACodUnic") as logical
-
 namespace datasul2totvs
 
 class Protheus
@@ -36,6 +34,7 @@ static method Activate() class Protheus
     local bSR6MsNewProcess as codeblock
     local bSRVMsNewProcess as codeblock
     local bRCEMsNewProcess as codeblock
+    local bSP8MsNewProcess as codeblock
 
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
@@ -113,17 +112,18 @@ static method Activate() class Protheus
 
         oFont:=TFont():New("Courier New",nil,16,nil,.T.)
 
-        bSRAMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRA(oMSNewProcess,@lEnd)}
-        bSRBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),importSRB(oMSNewProcess,@lEnd)}
-        bSRDMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),importSRD(oMSNewProcess,@lEnd)}
-        bSRFMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRF(oMSNewProcess,@lEnd)}
-        bSRQMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRQ(oMSNewProcess,@lEnd)}
-        bSR3MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR3(oMSNewProcess,@lEnd)}
-        bSR8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8(oMSNewProcess,@lEnd)}
-        bSRJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRJ(oMSNewProcess,@lEnd)}
-        bSR6MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR6(oMSNewProcess,@lEnd)}
-        bSRVMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRV(oMSNewProcess,@lEnd)}
-        bRCEMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportRCE(oMSNewProcess,@lEnd)}
+        bSRAMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRA():ImportData(oMSNewProcess,@lEnd)}
+        bSRBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRB():ImportData(oMSNewProcess,@lEnd)}
+        bSRDMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRD():ImportData(oMSNewProcess,@lEnd)}
+        bSRFMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRF():ImportData(oMSNewProcess,@lEnd)}
+        bSRQMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRQ():ImportData(oMSNewProcess,@lEnd)}
+        bSR3MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR3():ImportData(oMSNewProcess,@lEnd)}
+        bSR8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8():ImportData(oMSNewProcess,@lEnd)}
+        bSRJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRJ():ImportData(oMSNewProcess,@lEnd)}
+        bSR6MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR6():ImportData(oMSNewProcess,@lEnd)}
+        bSRVMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRV():ImportData(oMSNewProcess,@lEnd)}
+        bRCEMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportRCE():ImportData(oMSNewProcess,@lEnd)}
+        bSP8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSP8():ImportData(oMSNewProcess,@lEnd)}
 
         DEFINE MSDIALOG oDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
@@ -145,6 +145,7 @@ static method Activate() class Protheus
                         MENUITEM "SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR3MsNewProcess,"Importing SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SP8 :: "+Upper(FWSX2Util():GetX2Name("SP8",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSP8MsNewProcess,"Importing SP8 :: "+Upper(FWSX2Util():GetX2Name("SP8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRDMsNewProcess,"Importing SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                     ENDMENU
                 ENDMENU
@@ -1174,7 +1175,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
 
 return(lSendDataToServer)
 
-static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport as object,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array,lPreLoadTable as logical) as logical
+static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport as object,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array,lPreLoadTable as logical,bCustomUpdate as codeblock) as logical
 
     local aLine as array
     local aField as array
@@ -1192,8 +1193,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local aUpdateTableSource as array
 
     local bDeleteIfEmpty as codeblock
+    local bAfterUpdateRecNo as codeblock
     local bUpdateMemoVirtual as codeblock
-
+    
     local bEnableFilterBlock as codeblock
     local bEnableFilterBlockMem as codeblock
 
@@ -1248,8 +1250,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local lImportData as logical
     local lMemoVirutal as logical
     local lRecCountStep as logical
+    local lCustomUpdate:=.F. as logical
     local lTypeReplicate:=.F. as logical
     local lAppendIfNotExist as logical
+    local lUpdateEmptyValue:=.F. as logical
     local lUpdateTableFields:=.F. as logical
     local lEnableFilterBlock as logical
 
@@ -1285,6 +1289,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nMLCountSize:=150 as numeric
 
     local nAliasdbCount:=0 as numeric
+
+    local nTmpAliasOrder as numeric
+    local nTmpAliasRecNo as numeric
+    local nTmpAliasNextRecNo:=(-1) as numeric
 
     local oFT as object
     local oTFIni as object
@@ -1426,6 +1434,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         lImportData:=(nft_fHandle>=0)
         if (!lImportData)
             ApMsgAlert("Could not open the file: "+cSourceFile,"Attention")
+            break
+        endif
+
+        lImportData:=(Len(aTargetStruct)>=0)
+        if (!lImportData)
+            ApMsgAlert("Could not get structure for table:  "+cTableImport,"Attention")
             break
         endif
 
@@ -1903,11 +1917,24 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             nRecProc:=0
 
+            lCustomUpdate:=((valType(bCustomUpdate)=="B").or.(allTrim(oTFIni:GetPropertyValue(cTableImport,"CustomUpdate","0"))=="1"))
+            if (lCustomUpdate)
+                if (valType(bCustomUpdate)!="B")
+                    bCustomUpdate:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bCustomUpdate","{|cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef|.F.}")))
+                endif
+            endif
             lAppendIfNotExist:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"AppendIfNotExist","1"))=="1")
+            lUpdateEmptyValue:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"UpdateEmptyValue","0"))=="1")
+            bAfterUpdateRecNo:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateRecNo","{|cAlias,nRecNo|.F.}")))
 
             (cTmpAlias)->(dbGoTop())
 
+            nTmpAliasOrder:=(cTmpAlias)->(IndexOrd())
+
             while (cTmpAlias)->(!eof())
+                if ((cTmpAlias)->(!dbEval():GetNextRecNo(@cTmpAlias,@nTmpAliasNextRecNo,@nTmpAliasRecNo,@nTmpAliasOrder)))
+				    exit
+                endif
                 cIndexID:=(cTmpAlias)->(&(cIndexKey))
                 lFound:=(cAlias)->(dbSeek(cIndexID,.F.))
                 begin sequence
@@ -1915,34 +1942,34 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                         break
                     endif
                     lAddNew:=(!lFound)
-                    if ((cAlias)->(recLock(cAlias,lAddNew)))
-                        for nField:=1 to nFields
-                            nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
-                            if (nTargetFieldPos==0)
-                                loop
-                            endif
-                            cField:=aTargetFieldsDef[nField][1]
-                            if ((lFound).and.(cField$cIndexKey))
-                                loop
-                            endif
-                            xValue:=(cTmpAlias)->(FieldGet(nTargetFieldPos))
-                            if (empty(xValue))
-                                loop
-                            endif
-                            if ((lMemoVirutal).and.(oHMMemoVirutal:Get(cField,@bUpdateMemoVirtual)))
-                                (cAlias)->(EvalBlock():EvalBlock(bUpdateMemoVirtual))
-                            else
-                                (cAlias)->(FieldPut(nTargetFieldPos,xValue))
-                            endif
-                        next nField
-                        if (cAlias=="SRA")
-                            if (empty((cAlias)->RA_CODUNIC))
-                                if (st_lfRACodUnic)
-                                    (cAlias)->RA_CODUNIC:=fRACodUnic()
+                    if (lCustomUpdate)
+                        (cAlias)->(Eval(bCustomUpdate,cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef))
+                    else
+                        if ((cAlias)->(recLock(cAlias,lAddNew)))
+                            for nField:=1 to nFields
+                                nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
+                                if (nTargetFieldPos==0)
+                                    loop
                                 endif
+                                cField:=aTargetFieldsDef[nField][1]
+                                if ((lFound).and.(cField$cIndexKey))
+                                    loop
+                                endif
+                                xValue:=(cTmpAlias)->(FieldGet(nTargetFieldPos))
+                                if (empty(xValue).and.(!lUpdateEmptyValue))
+                                    loop
+                                endif
+                                if ((lMemoVirutal).and.(oHMMemoVirutal:Get(cField,@bUpdateMemoVirtual)))
+                                    (cAlias)->(EvalBlock():EvalBlock(bUpdateMemoVirtual))
+                                else
+                                    (cAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                endif
+                            next nField
+                            if (valType(bAfterUpdateRecNo)=="B")
+                                (cAlias)->(Eval(bAfterUpdateRecNo,cAlias,RecNo()))
                             endif
+                            (cAlias)->(msUnLock())
                         endif
-                        (cAlias)->(msUnLock())
                     endif
                 end sequence
                 nRecProc++
@@ -1967,7 +1994,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     oTLogReport:AddDetail(cTLogReport,"Process canceled by user ["+DtoC(Date())+"]["+Time()+"]")
                     exit
                 endif
-                (cTmpAlias)->(dbSkip())
+                if ((cTmpAlias)->(!dbEval():GoToNextRecNo(@cTmpAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
+                    exit
+                endif
             end while
 
             if (lEnd)
@@ -2016,584 +2045,3 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     DelClassIntF()
 
 return(lImportData)
-
-static function importSRA(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="SRA" as character
-    local cIndexKey as character
-    local cTableImport:="SRA" as character
-
-    local lImportSRA as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RA_FILIAL+RA_MAT"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RA_FILIAL,RA_MAT")),",")
-
-    lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-    if ((lImportSRA).and.(!lEnd))
-        oMsNewProcess:SetRegua1(0)
-        oMsNewProcess:IncRegua1("Wait!")
-        oMsNewProcess:SetRegua2(0)
-        oMsNewProcess:IncRegua2("...")
-        cTableImport:="SRA_RHPF"
-        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_MATMIG"))
-        FWFreeArray(@aAddIndex)
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_MATMIG")),",")
-        lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-        if ((lImportSRA).and.(!lEnd))
-            oMsNewProcess:SetRegua1(0)
-            oMsNewProcess:IncRegua1("Wait!")
-            oMsNewProcess:SetRegua2(0)
-            oMsNewProcess:IncRegua2("...")
-            cTableImport:="SRA_SPED"
-            cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_FILIAL+RA_MAT"))
-            FWFreeArray(@aAddIndex)
-            aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_FILIAL,RA_MAT")),",")
-            lImportSRA:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-            if ((lImportSRA).and.(!lEnd))
-                ApMsgInfo(cAlias+" Table Import Completed","Info")
-            elseif (!lEnd)
-                ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-            endif            
-        elseif (!lEnd)
-            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-        endif
-    endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    DelClassIntF()
-
-return(lImportSRA)
-
-static function importSRB(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="SRB" as character
-    local cIndexKey as character
-    local cTableImport:="SRB" as character
-
-    local lImportSRB as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RB_FILIAL+RB_MAT+RB_COD"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RB_FILIAL,RB_MAT,RB_COD")),",")
-
-    lImportSRB:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-    if (lImportSRB)
-        ApMsgInfo(cAlias+" Table Import Completed","Info")
-    else
-        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-    endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    DelClassIntF()
-
-return(lImportSRB)
-
-static function importSRD(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local bEnableFilterBlock as codeblock
-    local bEnableFilterBlockMem as codeblock
-
-    local cAlias:="SRD" as character
-    local cIndexKey as character
-    local cTableImport:="SRD" as character
-
-    local cCompetenciaDe as character
-    local cCompetenciaAte as character
-
-    local lImportSRD as logical
-    local lEnableFilterBlock as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-    local oSRDPergunte:=tHash():New() as object
-
-    begin sequence
-
-        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cAlias,"EnableFilterBlock","0"))=="1")
-        if (lEnableFilterBlock)
-            if (!SRDPergunte(@oSRDPergunte))
-                break
-            endif
-            cCompetenciaDe:=oSRDPergunte:Get("Competencia.De")
-            cCompetenciaAte:=oSRDPergunte:Get("Competencia.Ate")
-            bEnableFilterBlock:={|cAlias|(cAlias)->((RD_DATARQ>=cCompetenciaDe).and.(RD_DATARQ<=cCompetenciaAte))}
-            bEnableFilterBlockMem:={|cDATARQValue|((cDATARQValue>=cCompetenciaDe).and.(cDATARQValue<=cCompetenciaAte))}
-            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
-            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
-        endif
-
-        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN"))
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RD_FILIAL,RD_MAT,RD_CC,RD_ITEM,RD_CLVL,RD_DATARQ,RD_PD,RD_SEQ,RD_PERIODO,RD_SEMANA,RD_ROTEIR,RD_DTREF,RD_CONVOC,RD_NRBEN")),",")
-
-        lImportSRD:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-        if (lImportSRD)
-            ApMsgInfo(cAlias+" Table Import Completed","Info")
-        else
-            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-        endif
-
-        oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-        oTLogReport:Clean()
-        oTLogReport:=FreeObj(oTLogReport)
-
-        FWFreeArray(@aAddIndex)
-
-    end sequence
-
-    if (valtype(oSRDPergunte)=="O")
-        oSRDPergunte:Clear()
-        oSRDPergunte:=FreeObj(oSRDPergunte)
-    endif
-
-    DelClassIntF()
-
-return(lImportSRD)
-
-static function SRDPergunte(oSRDPergunte as object) as logical
-
-    local aPBoxPrm:=Array(0) as array
-    local aPBoxRet:=Array(0) as array
-
-    local cPBoxTit:=OemToAnsi("Informe os parametros") as character
-
-    local cSizeYearMonth as character
-
-    local lParamBox:=.F. as logical
-
-    local nPBox as numeric
-
-    local nSizeYear:=6 as numeric
-
-    local nGSizeYearMonth:=nSizeYear+100 as numeric
-
-    saveInter()
-
-        cSizeYearMonth:=Space(nSizeYear)
-
-        aAdd(aPBoxPrm,Array(9))
-        nPBox:=Len(aPBoxPrm)
-        //01----------------------------------------------------------------------------------------------
-        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
-        aPBoxPrm[nPBox][2]:="Competencia.De"//[2]:Descricao
-        aPBoxPrm[nPBox][3]:=cSizeYearMonth  //[3]:String contendo o inicializador do campo
-        aPBoxPrm[nPBox][4]:="@R 9999/99"    //[4]:String contendo a Picture do campo
-        aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
-        aPBoxPrm[nPBox][6]:=""              //[6]:Consulta F3
-        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
-        aPBoxPrm[nPBox][8]:=nGSizeYearMonth //[8]:Tamanho do MsGet
-        aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
-
-        aAdd(aPBoxPrm,Array(9))
-        nPBox:=Len(aPBoxPrm)
-        //01----------------------------------------------------------------------------------------------
-        aPBoxPrm[nPBox][1]:=1                //[1]:1 - MsGet
-        aPBoxPrm[nPBox][2]:="Competencia.Ate"//[2]:Descricao
-        aPBoxPrm[nPBox][3]:=cSizeYearMonth   //[3]:String contendo o inicializador do campo
-        aPBoxPrm[nPBox][4]:="@R 9999/99"     //[4]:String contendo a Picture do campo
-        aPBoxPrm[nPBox][5]:="NaoVazio()"     //[5]:String contendo a validacao
-        aPBoxPrm[nPBox][6]:=""               //[6]:Consulta F3
-        aPBoxPrm[nPBox][7]:="AllWaysTrue()"  //[7]:String contendo a validacao When
-        aPBoxPrm[nPBox][8]:=nGSizeYearMonth  //[8]:Tamanho do MsGet
-        aPBoxPrm[nPBox][9]:=.T.              //[9]:Flag .T./.F. Parametro Obrigatorio ?
-
-        while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,NIL,NIL,.T.,NIL,NIL,NIL,NIL,.T.,.T.)))
-            lParamBox:=MsgYesNo("Deseja Abortar a Importacao?","Atencao!")
-            if (lParamBox)
-                lParamBox:=.F.
-                exit
-            endif
-        end while
-
-        if (lParamBox)
-            for nPBox:=1 To Len(aPBoxPrm)
-                oSRDPergunte:Set(aPBoxPrm[nPBox][2],aPBoxRet[nPBox])
-            next nPBox
-        endif
-
-    restInter()
-
-    FWFreeArray(@aPBoxRet)
-    FWFreeArray(@aPBoxPrm)
-
-return(lParamBox)
-
-static function importSRF(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="SRF" as character
-    local cIndexKey as character
-    local cTableImport:="SRF" as character
-
-    local lImportSRF as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RF_FILIAL+RF_MAT+DTOS(RF_DATABAS)+RF_PD"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RF_FILIAL,RF_MAT,RF_DATABAS,RF_PD")),",")
-
-    lImportSRF:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-    if (lImportSRF)
-        ApMsgInfo(cAlias+" Table Import Completed","Info")
-    else
-        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-    endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    DelClassIntF()
-
-return(lImportSRF)
-
-static function importSRQ(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="SRQ" as character
-    local cIndexKey as character
-    local cTableImport:="SRQ" as character
-
-    local cTmpAlias as character
-
-    local cPreLoadAlias as character
-    local cPreLoadTableImport as character
-    local cPreLoadIndexKey as character
-    local aPreLoadAddIndex as array
-
-    local lImportSRQ as logical
-    local lPreLoadTable as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-    local oFWTemporaryTable as object
-
-    cPreLoadAlias:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAlias",""))
-    cPreLoadTableImport:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadTableImport",""))
-    cPreLoadIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadIndexKey",""))
-    aPreLoadAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAddIndex","")),",")
-
-    lPreLoadTable:=(!empty(cPreLoadAlias))
-    lPreLoadTable:=((lPreLoadTable).and.(!empty(cPreLoadTableImport)))
-    lPreLoadTable:=((lPreLoadTable).and.(!empty(cPreLoadIndexKey)))
-    lPreLoadTable:=((lPreLoadTable).and.(!empty(aPreLoadAddIndex)))
-
-    if (lPreLoadTable)
-        lPreLoadTable:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cPreLoadAlias,@cPreLoadIndexKey,@cPreLoadTableImport,@aPreLoadAddIndex,@lPreLoadTable)
-    endif
-
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RQ_FILIAL+RQ_MAT+RQ_ORDEM+RQ_SEQUENC"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RQ_FILIAL,RQ_MAT,RQ_ORDEM,RQ_SEQUENC")),",")
-
-    lImportSRQ:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-    if (lPreLoadTable)
-        cTmpAlias:=cacheData():Get("datasul2totvsprotheus","import"+cPreLoadTableImport+"Alias")
-        if (select(cTmpAlias)>0)
-            (cTmpAlias)->(dbCloseArea())
-        endif
-        oFWTemporaryTable:=cacheData():Get("datasul2totvsprotheus","import"+cPreLoadTableImport+"FWTemporaryTable")
-        if (valType(oFWTemporaryTable)=="O")
-            oFWTemporaryTable:Delete()
-            oFWTemporaryTable:=FreeObj(oFWTemporaryTable)
-        endif
-    endif
-
-    if (lImportSRQ)
-        ApMsgInfo(cAlias+" Table Import Completed","Info")
-    else
-        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-    endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    DelClassIntF()
-
-return(lImportSRQ)
-
-static function importSR3(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="SR3" as character
-    local cIndexKey as character
-    local cTableImport:="SR3" as character
-
-    local lImportSR3 as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R3_FILIAL+R3_MAT+DTOS(R3_DATA)+R3_SEQ+R3_TIPO+R3_PD"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R3_FILIAL,R3_MAT,R3_DATA,R3_SEQ,R3_TIPO,R3_PD")),",")
-
-    lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-    if ((lImportSR3).and.(!lEnd))
-        oMsNewProcess:SetRegua1(0)
-        oMsNewProcess:IncRegua1("Wait!")
-        oMsNewProcess:SetRegua2(0)
-        oMsNewProcess:IncRegua2("...")
-        cTableImport:="SR7"
-        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R7_FILIAL+R7_MAT+DTOS(R7_DATA)+R7_SEQ+R7_TIPO"))
-        FWFreeArray(@aAddIndex)
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")),",")
-        lImportSR3:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
-        if (lImportSR3)
-            ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
-        else
-            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-        endif
-    endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    DelClassIntF()
-
-return(lImportSR3)
-
-static function importSR8(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="SR8" as character
-    local cIndexKey as character
-    local cTableImport:="SR8" as character
-
-    local lImportSR8 as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","R8_FILIAL,R8_MAT,R8_DATAINI,R8_TIPO,R8_TIPOAFA")),",")
-
-    lImportSR8:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-    if (lImportSR8)
-        ApMsgInfo(cAlias+" Table Import Completed","Info")
-    else
-        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-    endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    if (type("oPVTHMSR8Seq")=="O")
-        oPVTHMSR8Seq:Clean()
-        oPVTHMSR8Seq:=FreeObj(oPVTHMSR8Seq)
-    endif
-
-    DelClassIntF()
-
-return(lImportSR8)
-
-static function importSRJ(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="SRJ" as character
-    local cIndexKey as character
-    local cTableImport:="SRJ" as character
-
-    local lImportSRJ as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RJ_FILIAL+RJ_FUNCAO"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RJ_FILIAL,RJ_FUNCAO")),",")
-
-    lImportSRJ:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-    if ((lImportSRJ).and.(!lEnd))
-        oMsNewProcess:SetRegua1(0)
-        oMsNewProcess:IncRegua1("Wait!")
-        oMsNewProcess:SetRegua2(0)
-        oMsNewProcess:IncRegua2("...")
-        cTableImport:="SQ3"
-        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","Q3_FILIAL+Q3_CARGO+Q3_CC"))
-        FWFreeArray(@aAddIndex)
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","Q3_FILIAL,Q3_CARGO,Q3_CC")),",")
-        lImportSRJ:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
-        if (lImportSRJ)
-            ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
-        else
-            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-        endif
-    endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    DelClassIntF()
-
-return(lImportSRJ)
-
-static function importSR6(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="SR6" as character
-    local cIndexKey as character
-    local cTableImport:="SR6" as character
-
-    local lImportSR6 as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","R6_FILIAL+R6_TURNO"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","R6_FILIAL,R6_TURNO")),",")
-
-    lImportSR6:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-    if (lImportSR6)
-        ApMsgInfo(cAlias+" Table Import Completed","Info")
-    else
-        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-    endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    DelClassIntF()
-
-return(lImportSR6)
-
-static function importSRV(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="SRV" as character
-    local cIndexKey as character
-    local cTableImport:="SRV" as character
-
-    local cAliasTMP:=getNextAlias() as character
-
-    local lImportSRV as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-
-    begin sequence
-
-        beginSQL alias cAliasTMP
-            %noParser%
-            SELECT DISTINCT 1 RVCODFOL
-              FROM %table:SRV% SRV
-             WHERE SRV.%NotDel%
-               AND SRV.RV_CODFOL<>''
-        endSQL
-
-        lImportSRV:=((cAliasTMP)->RVCODFOL!=1)
-        
-        (cAliasTMP)->(dbCloseArea())
-
-        if (!lImportSRV)
-            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table. Already Exists RV_CODFOL","Info")
-            break
-        endif
-
-        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RV_FILIAL+RV_COD"))
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RV_FILIAL,RV_COD")),",")
-
-        lImportSRV:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-        if (lImportSRV)
-            ApMsgInfo(cAlias+" Table Import Completed","Info")
-        else
-            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-        endif
-
-    end sequence    
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    DelClassIntF()
-
-return(lImportSRV)
-
-static function importRCE(oMsNewProcess as object,lEnd as logical) as logical
-
-    local aAddIndex as array
-
-    local cAlias:="RCE" as character
-    local cIndexKey as character
-    local cTableImport:="RCE" as character
-
-    local lImportRCE as logical
-
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
-    local oTLogReport:=tLogReport():New() as object
-
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RCE_FILIAL+RCE_CODIGO"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RCE_FILIAL,RCE_CODIGO")),",")
-
-    lImportRCE:=ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
-
-    if (lImportRCE)
-        ApMsgInfo(cAlias+" Table Import Completed","Info")
-    else
-        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
-    endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
-
-    DelClassIntF()
-
-return(lImportRCE)
