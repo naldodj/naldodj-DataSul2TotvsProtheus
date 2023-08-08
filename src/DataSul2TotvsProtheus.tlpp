@@ -338,6 +338,8 @@ static function readTableDefinition() as logical
                         cLineUTF8:=DecodeUTF8(cLine)
                         if (empty(cLineUTF8))
                             cLine:=OemToAnsi(cLine)
+                        else
+                            cLine:=cLineUTF8
                         endif
                         cLineUTF8:=""
                         aFieldDef:=strTokArr2(cLine," ")
@@ -1197,6 +1199,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local lHasError:=.F. as logical
     local lChkFilial as logical
     local lChkEncode as logical
+    local lAskUpdate as logical
     local lSeekTable as logical
     local lImportData as logical
     local lMemoVirutal as logical
@@ -1272,7 +1275,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         lChkFilial:=(allTrim(oTFIni:GetPropertyValue(cAlias,"ChkFilial","1"))=="1")
         cAliasxFilial:=xFilial(cAlias)
 
-        if (cAlias==cTableImport)
+        lAskUpdate:=(allTrim(oTFIni:GetPropertyValue(cAlias,"AskUpdate","1"))=="1")
+        if ((lAskUpdate).and.(cAlias==cTableImport))
             if (lChkFilial)
                 nFieldFilial:=(cAlias)->(FieldPos(cFieldFilial))
                 if (left(cIndexKey,Len(cFieldFilial))==cFieldFilial)
