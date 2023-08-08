@@ -133,7 +133,7 @@ static method Activate() class Protheus
 
             MENU oMenu IMAGE "" OF oDlg
                 MENUITEM cCadastro
-                MENU 
+                MENU
                     MENUITEM "Registers"
                     MENU
                         MENUITEM "SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
@@ -142,7 +142,7 @@ static method Activate() class Protheus
                         MENUITEM "RCE :: "+Upper(FWSX2Util():GetX2Name("RCE",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bRCEMsNewProcess,"Importing RCE :: "+Upper(FWSX2Util():GetX2Name("RCE",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "SQB :: "+Upper(FWSX2Util():GetX2Name("SQB",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSQBMsNewProcess,"Importing SQB :: "+Upper(FWSX2Util():GetX2Name("SQB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                     ENDMENU
-                    MENUITEM "Employees"    
+                    MENUITEM "Employees"
                     MENU
                         MENUITEM "SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRQMsNewProcess,"Importing SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
@@ -584,78 +584,6 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
     endif
 
 return(xValue)
-
-static function getR8Seq() as character
-
-    static c_stHMSR8SeqKey as character
-
-    local cStack:="DATASUL2TOTVS.IMPORTSR8" as character
-
-    local cR8MAT as character
-    local cR8SEQ:="" as character
-    local cR8TIPO as character
-    local cR8FILIAL as character
-    local cR8DATAINI as character
-    local cR8TIPOAFA as character
-
-    local cHMSR8SeqKey:="" as character
-
-    local cTmpAlias as character
-
-    local dR8DATAINI as date
-
-    begin sequence
-
-        if (type("cPVTSR8Alias")!="C")
-            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvsprotheus","importSR8Alias","__NOALIAS__"),cStack)
-        endif
-
-        cTmpAlias:=cPVTSR8Alias
-        if (select(cTmpAlias)==0)
-            break
-        endif
-
-        cR8FILIAL:=(cTmpAlias)->R8_FILIAL
-        cR8MAT:=(cTmpAlias)->R8_MAT
-        dR8DATAINI:=(cTmpAlias)->R8_DATAINI
-        cR8TIPO:=(cTmpAlias)->R8_TIPO
-        cR8TIPOAFA:=(cTmpAlias)->R8_TIPOAFA
-
-        cR8DATAINI:=DToS(dR8DATAINI)
-
-        cHMSR8SeqKey:=&("cEmpAnt")
-        cHMSR8SeqKey+=cR8FILIAL
-        cHMSR8SeqKey+=cR8MAT
-
-        if (type("oPVTHMSR8Seq")!="O")
-            _SetNamedPRVT("oPVTHMSR8Seq",THashMap():New(),cStack)
-        else
-            if (c_stHMSR8SeqKey!=cHMSR8SeqKey)
-                c_stHMSR8SeqKey:=cHMSR8SeqKey
-                oPVTHMSR8Seq:Clean()
-            endif
-        endif
-
-        cHMSR8SeqKey+=cR8DATAINI
-        cHMSR8SeqKey+=cR8TIPO
-        cHMSR8SeqKey+=cR8TIPOAFA
-
-        if (!oPVTHMSR8Seq:Get(cHMSR8SeqKey,@cR8SEQ)).or.(Empty(cR8SEQ))
-            if (type("nPVTSR8Seq")!="N")
-                _SetNamedPRVT("nPVTSR8Seq",GetSx3Cache("R8_SEQ","X3_TAMANHO"),cStack)
-                cR8SEQ:=Replicate("0",nPVTSR8Seq)
-                _SetNamedPRVT("cPVTR8SEQ",cR8SEQ,cStack)
-            endif
-            cR8SEQ:=cPVTR8SEQ
-        endif
-
-        cR8SEQ:=__Soma1(cR8SEQ)
-
-        oPVTHMSR8Seq:Set(cHMSR8SeqKey,cR8SEQ)
-
-    end sequence
-
-return(cR8SEQ)
 
 static function ProcRedefine(oProcess as object,oFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,lODlgF as logical,lODlgW as logical) as logical
     local lProcRedefine as logical
@@ -1200,7 +1128,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local bDeleteIfEmpty as codeblock
     local bAfterUpdateRecNo as codeblock
     local bUpdateMemoVirtual as codeblock
-    
+
     local bEnableFilterBlock as codeblock
     local bEnableFilterBlockMem as codeblock
 
@@ -1211,6 +1139,24 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local cTmpAlias:=getNextAlias() as character
 
     local cType as character
+
+    local cCHR128:=chr(128) as character
+    local cCHR135:=chr(135) as character
+    local cCHR144:=chr(144) as character
+    local cCHR162:=chr(162) as character
+    local cCHR163:=chr(163) as character
+    local cCHR182:=chr(182) as character
+    local cCHR194:=chr(194) as character
+    local cCHR195:=chr(195) as character
+    local cCHR198:=chr(198) as character
+    local cCHR199:=chr(199) as character
+    local cCHR201:=chr(201) as character
+    local cCHR205:=chr(205) as character
+    local cCHR214:=chr(214) as character
+    local cCHR227:=chr(227) as character
+    local cCHR231:=chr(231) as character
+    local cCHR243:=chr(243) as character
+    local cCHR250:=chr(250) as character
 
     local cLine as character
     local cRootPath as character
@@ -1255,6 +1201,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local lImportData as logical
     local lMemoVirutal as logical
     local lRecCountStep as logical
+    local lTablesEncodeUTF8 as logical 
     local lCustomUpdate:=.F. as logical
     local lTypeReplicate:=.F. as logical
     local lAppendIfNotExist as logical
@@ -1498,6 +1445,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         endif
         nIncProcStep:=Min(Max(nIncProcStep,1),1000)
 
+        lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
+
         begin sequence
 
             nRecCount:=oFT:ft_fLastRec()
@@ -1585,13 +1534,30 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     if (lAppend)
 
                         if (lChkEncode)
-                            cLineUTF8:=DecodeUTF8(cLine)
-                            if (empty(cLineUTF8))
-                                cLine:=OemToAnsi(cLine)
-                                FWFreeArray(@aLine)
-                                aLine:=strTokArr2(cLine,";")
+                            FWFreeArray(@aLine)
+                            if (lTablesEncodeUTF8)
+                                cLineUTF8:=DecodeUTF8(cLine)
+                            else
+                                cLineUTF8:=""
                             endif
-                            cLineUTF8:=""
+                            if (empty(cLineUTF8))
+                                cLine:=cTools():StrReplace(;
+                                    cLine,;
+                                    {cCHR144,cCHR201},;
+                                    {cCHR214,cCHR205},;
+                                    {cCHR199,cCHR195},;
+                                    {cCHR128,cCHR199},;
+                                    {cCHR182,cCHR194},;
+                                    {cCHR135,cCHR231},;
+                                    {cCHR198,cCHR227},;
+                                    {cCHR162,cCHR243},;
+                                    {cCHR163,cCHR250};
+                                )
+                                aLine:=strTokArr2(cLine,";")
+                            else
+                                aLine:=strTokArr2(cLineUTF8,";")
+                                cLineUTF8:=""
+                            endif
                         endif
 
                         cLine:=""

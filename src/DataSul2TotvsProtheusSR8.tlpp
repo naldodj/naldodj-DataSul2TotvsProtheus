@@ -2,6 +2,7 @@
 
 class ImportSR8
     static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+    static method getR8Seq() as character
 end class
 
 static method ImportData(oMsNewProcess,lEnd) class ImportSR8
@@ -42,3 +43,75 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSR8
     DelClassIntF()
 
 return(lImportSR8)
+
+static method getR8Seq() class ImportSR8
+
+    static c_stHMSR8SeqKey as character
+
+    local cStack:="IMPORTDATA" as character
+
+    local cR8MAT as character
+    local cR8SEQ:="" as character
+    local cR8TIPO as character
+    local cR8FILIAL as character
+    local cR8DATAINI as character
+    local cR8TIPOAFA as character
+
+    local cHMSR8SeqKey:="" as character
+
+    local cTmpAlias as character
+
+    local dR8DATAINI as date
+
+    begin sequence
+
+        if (type("cPVTSR8Alias")!="C")
+            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvsprotheus","importSR8Alias","__NOALIAS__"),cStack)
+        endif
+
+        cTmpAlias:=cPVTSR8Alias
+        if (select(cTmpAlias)==0)
+            break
+        endif
+
+        cR8FILIAL:=(cTmpAlias)->R8_FILIAL
+        cR8MAT:=(cTmpAlias)->R8_MAT
+        dR8DATAINI:=(cTmpAlias)->R8_DATAINI
+        cR8TIPO:=(cTmpAlias)->R8_TIPO
+        cR8TIPOAFA:=(cTmpAlias)->R8_TIPOAFA
+
+        cR8DATAINI:=DToS(dR8DATAINI)
+
+        cHMSR8SeqKey:=&("cEmpAnt")
+        cHMSR8SeqKey+=cR8FILIAL
+        cHMSR8SeqKey+=cR8MAT
+
+        if (type("oPVTHMSR8Seq")!="O")
+            _SetNamedPRVT("oPVTHMSR8Seq",THashMap():New(),cStack)
+        else
+            if (c_stHMSR8SeqKey!=cHMSR8SeqKey)
+                c_stHMSR8SeqKey:=cHMSR8SeqKey
+                oPVTHMSR8Seq:Clean()
+            endif
+        endif
+
+        cHMSR8SeqKey+=cR8DATAINI
+        cHMSR8SeqKey+=cR8TIPO
+        cHMSR8SeqKey+=cR8TIPOAFA
+
+        if (!oPVTHMSR8Seq:Get(cHMSR8SeqKey,@cR8SEQ)).or.(Empty(cR8SEQ))
+            if (type("nPVTSR8Seq")!="N")
+                _SetNamedPRVT("nPVTSR8Seq",GetSx3Cache("R8_SEQ","X3_TAMANHO"),cStack)
+                cR8SEQ:=Replicate("0",nPVTSR8Seq)
+                _SetNamedPRVT("cPVTR8SEQ",cR8SEQ,cStack)
+            endif
+            cR8SEQ:=cPVTR8SEQ
+        endif
+
+        cR8SEQ:=__Soma1(cR8SEQ)
+
+        oPVTHMSR8Seq:Set(cHMSR8SeqKey,cR8SEQ)
+
+    end sequence
+
+return(cR8SEQ)
