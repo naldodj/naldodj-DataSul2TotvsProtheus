@@ -35,7 +35,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRD
             cCompetenciaDe:=oSRDPergunte:Get("Competencia.De")
             cCompetenciaAte:=oSRDPergunte:Get("Competencia.Ate")
             bEnableFilterBlock:={|cAlias|(cAlias)->((RD_DATARQ>=cCompetenciaDe).and.(RD_DATARQ<=cCompetenciaAte))}
-            bEnableFilterBlockMem:={|cDATARQValue|((cDATARQValue>=cCompetenciaDe).and.(cDATARQValue<=cCompetenciaAte))}
+            bEnableFilterBlockMem:={|xValue,cField|IF((cField=="RD_DATARQ"),((xValue>=cCompetenciaDe).and.(xValue<=cCompetenciaAte)),.T.)}
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
         endif
@@ -75,31 +75,29 @@ static function SRDPergunte(oSRDPergunte as object) as logical
 
     local cPBoxTit:=OemToAnsi("Informe os parametros") as character
 
-    local cSizeYearMonth as character
+    local cDatArq as character
 
     local lParamBox:=.F. as logical
 
     local nPBox as numeric
-
-    local nSizeYear:=6 as numeric
-
-    local nGSizeYearMonth:=nSizeYear+100 as numeric
+    local nDatArq as numeric
 
     saveInter()
 
-        cSizeYearMonth:=Space(nSizeYear)
+        nDatArq:=GetSx3Cache("RD_DATARQ","X3_TAMANHO")
+        cDatArq:=Space(nDatArq)
 
         aAdd(aPBoxPrm,Array(9))
         nPBox:=Len(aPBoxPrm)
         //01----------------------------------------------------------------------------------------------
         aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
         aPBoxPrm[nPBox][2]:="Competencia.De"//[2]:Descricao
-        aPBoxPrm[nPBox][3]:=cSizeYearMonth  //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][3]:=cDatArq  //[3]:String contendo o inicializador do campo
         aPBoxPrm[nPBox][4]:="@R 9999/99"    //[4]:String contendo a Picture do campo
         aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
         aPBoxPrm[nPBox][6]:=""              //[6]:Consulta F3
         aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
-        aPBoxPrm[nPBox][8]:=nGSizeYearMonth //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nDatArq,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
         aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
         aAdd(aPBoxPrm,Array(9))
@@ -107,12 +105,12 @@ static function SRDPergunte(oSRDPergunte as object) as logical
         //01----------------------------------------------------------------------------------------------
         aPBoxPrm[nPBox][1]:=1                //[1]:1 - MsGet
         aPBoxPrm[nPBox][2]:="Competencia.Ate"//[2]:Descricao
-        aPBoxPrm[nPBox][3]:=cSizeYearMonth   //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][3]:=cDatArq   //[3]:String contendo o inicializador do campo
         aPBoxPrm[nPBox][4]:="@R 9999/99"     //[4]:String contendo a Picture do campo
         aPBoxPrm[nPBox][5]:="NaoVazio()"     //[5]:String contendo a validacao
         aPBoxPrm[nPBox][6]:=""               //[6]:Consulta F3
         aPBoxPrm[nPBox][7]:="AllWaysTrue()"  //[7]:String contendo a validacao When
-        aPBoxPrm[nPBox][8]:=nGSizeYearMonth  //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nDatArq,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2])  //[8]:Tamanho do MsGet
         aPBoxPrm[nPBox][9]:=.T.              //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
         while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,NIL,NIL,.T.,NIL,NIL,NIL,NIL,.T.,.T.)))

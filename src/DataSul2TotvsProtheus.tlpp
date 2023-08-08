@@ -42,6 +42,9 @@ static method Activate() class Protheus
     local cGetFileMask as character
     local cGetFileTitle as character
 
+    local lFastMode as logical
+    local lPercentage as logical
+
     local lActivate as logical
     local lSetCentury:=__SetCentury("ON") as logical
     local lSendDataToServer as logical
@@ -53,6 +56,8 @@ static method Activate() class Protheus
     local oFont as object
     local oFWDefSize as object
 
+    local oTFIni as object
+    
     local oMSNewProcess as object
 
     private st_oHMbTransform:=THashMap():New() as object
@@ -101,6 +106,10 @@ static method Activate() class Protheus
             break
         endif
 
+        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+        lFastMode:=(allTrim(oTFIni:GetPropertyValue("General","IncProcFastMode","0"))=="1")
+        lPercentage:=(allTrim(oTFIni:GetPropertyValue("General","IncProcPercentage","0"))=="1")
+
         oFWDefSize:=FWDefSize():New(.T.,.T.)//Sem enchoicebar
         oFWDefSize:lLateral:=.F.//Calculo vertical
         oFWDefSize:AddObject("TMENU",100,100,.T.,.T.)//TMENU
@@ -114,20 +123,20 @@ static method Activate() class Protheus
 
         oFont:=TFont():New("Courier New",nil,16,nil,.T.)
 
-        bSRJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRJ():ImportData(oMSNewProcess,@lEnd)}
-        bSR6MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR6():ImportData(oMSNewProcess,@lEnd)}
-        bSRVMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRV():ImportData(oMSNewProcess,@lEnd)}
-        bRCEMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportRCE():ImportData(oMSNewProcess,@lEnd)}
-        bSQBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSQB():ImportData(oMSNewProcess,@lEnd)}
+        bSRJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRJ():ImportData(oMSNewProcess,@lEnd)}
+        bSR6MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR6():ImportData(oMSNewProcess,@lEnd)}
+        bSRVMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRV():ImportData(oMSNewProcess,@lEnd)}
+        bRCEMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportRCE():ImportData(oMSNewProcess,@lEnd)}
+        bSQBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSQB():ImportData(oMSNewProcess,@lEnd)}
 
-        bSRAMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRA():ImportData(oMSNewProcess,@lEnd)}
-        bSRBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRB():ImportData(oMSNewProcess,@lEnd)}
-        bSRDMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRD():ImportData(oMSNewProcess,@lEnd)}
-        bSRFMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRF():ImportData(oMSNewProcess,@lEnd)}
-        bSRQMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSRQ():ImportData(oMSNewProcess,@lEnd)}
-        bSR3MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR3():ImportData(oMSNewProcess,@lEnd)}
-        bSR8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSR8():ImportData(oMSNewProcess,@lEnd)}
-        bSP8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.),ImportSP8():ImportData(oMSNewProcess,@lEnd)}
+        bSRAMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRA():ImportData(oMSNewProcess,@lEnd)}
+        bSRBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRB():ImportData(oMSNewProcess,@lEnd)}
+        bSRDMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRD():ImportData(oMSNewProcess,@lEnd)}
+        bSRFMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRF():ImportData(oMSNewProcess,@lEnd)}
+        bSRQMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRQ():ImportData(oMSNewProcess,@lEnd)}
+        bSR3MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR3():ImportData(oMSNewProcess,@lEnd)}
+        bSR8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR8():ImportData(oMSNewProcess,@lEnd)}
+        bSP8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSP8():ImportData(oMSNewProcess,@lEnd)}
 
         DEFINE MSDIALOG oDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
@@ -172,6 +181,7 @@ static method Activate() class Protheus
         oFont:=FreeObj(oFont)
         oMenu:=FreeObj(oMenu)
         oDlg:=FreeObj(oDlg)
+        oTFIni:=FreeObj(oTFIni)
         oMSNewProcess:=FreeObj(oMSNewProcess)
 
     end sequence
@@ -587,9 +597,9 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
 
 return(xValue)
 
-static function ProcRedefine(oProcess as object,oFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,lODlgF as logical,lODlgW as logical) as logical
+static function ProcRedefine(oProcess as object,oFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,lODlgF as logical,lODlgW as logical,lPercentage as logical,lFastMode as logical) as logical
     local lProcRedefine as logical
-    lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oFont,@nLeft,@nWidth,@nCTLFLeft,@lODlgF,@lODlgW)
+    lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oFont,@nLeft,@nWidth,@nCTLFLeft,@lODlgF,@lODlgW,lPercentage,lFastMode)
     return(lProcRedefine)
 
 static function SetFilAnt(cFil)
@@ -1203,7 +1213,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local lSeekTable as logical
     local lImportData as logical
     local lMemoVirutal as logical
-    local lRecCountStep as logical
     local lTablesEncodeUTF8 as logical 
     local lCustomUpdate:=.F. as logical
     local lTypeReplicate:=.F. as logical
@@ -1220,7 +1229,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     local nRecProc:=0 as numeric
     local nRecCount as numeric
-    local nRecCountStep as numeric
     local nCommitBuffer as numeric
     local nTargetFieldPos as numeric
 
@@ -1455,13 +1463,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             nRecCount:=oFT:ft_fLastRec()
             cRecCount:=cTools():NToS(nRecCount)
-            nRecCountStep:=if(nRecCount>=(nIncProcStep*2),Int(nRecCount/nIncProcStep),nRecCount)
-            lRecCountStep:=(nRecCountStep!=nRecCount)
-            if (lRecCountStep)
-                nRecCountStep+=(nRecCount-(nRecCountStep*nIncProcStep))
-            endif
-            oMsNewProcess:SetRegua1(nRecCountStep)
-            oTimeRemaining:=timeRemaining():New(nRecCountStep)
+            oMsNewProcess:SetRegua1(0)
+            oTimeRemaining:=timeRemaining():New(nRecCount)
 
             oProgress:=txtProgress():New()
 
@@ -1522,7 +1525,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                             if ((lChkFilial).and.(cField==cFieldFilial))
                                 SetFilAnt(xValue)
                             elseif ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
-                                lAppend:=(Eval(bEnableFilterBlockMem,xValue))
+                                lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))
                                 if (!lAppend)
                                     exit
                                 endif
@@ -1806,9 +1809,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                 FWFreeArray(@aLine)
 
-                nRecProc++
-                if ((!lRecCountStep).or.(Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
-                    oTimeRemaining:Calcule(.T.)
+                oTimeRemaining:nProgress:=(++nRecProc)
+                
+                if ((Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.F.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
@@ -1880,13 +1884,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             nRecCount:=(cTmpAlias)->(recCount())
             cRecCount:=cTools():NToS(nRecCount)
-            nRecCountStep:=if(nRecCount>=(nIncProcStep*2),Int(nRecCount/nIncProcStep),nRecCount)
-            lRecCountStep:=(nRecCountStep!=nRecCount)
-            if (lRecCountStep)
-                nRecCountStep+=(nRecCount-(nRecCountStep*nIncProcStep))
-            endif
-            oMsNewProcess:SetRegua2(nRecCountStep)
-            oTimeRemaining:SetRemaining(nRecCountStep)
+            oMsNewProcess:SetRegua2(0)
+            oTimeRemaining:SetRemaining(nRecCount)
 
             (cAlias)->(dbSetOrder(nIndexKey))
 
@@ -1947,9 +1946,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                         endif
                     endif
                 end sequence
-                nRecProc++
-                if ((!lRecCountStep).or.(Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
-                    oTimeRemaining:Calcule(.T.)
+                
+                oTimeRemaining:nProgress:=(++nRecProc)
+                
+                if ((Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
+                    oTimeRemaining:Calcule(.F.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
@@ -1962,16 +1963,20 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
                     oMsNewProcess:IncRegua2(cIncProc)
                 endif
+                
                 lEnd:=oMsNewProcess:lEnd
+                
                 if (lEnd)
                     cTLogReport:="Process canceled by user"
                     oTLogReport:AddGroup(cTLogReport)
                     oTLogReport:AddDetail(cTLogReport,"Process canceled by user ["+DtoC(Date())+"]["+Time()+"]")
                     exit
                 endif
+                
                 if ((cTmpAlias)->(!dbEval():GoToNextRecNo(@cTmpAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
                     exit
                 endif
+            
             end while
 
             if (lEnd)

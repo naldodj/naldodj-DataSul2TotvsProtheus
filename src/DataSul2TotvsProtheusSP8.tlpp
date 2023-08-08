@@ -56,50 +56,184 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSP8
     local aAddIndex as array
 
     local bCustomUpdate as codeblock
+    local bEnableFilterBlock as codeblock
+    local bEnableFilterBlockMem as codeblock
 
     local cAlias:="SP8" as character
     local cIndexKey as character
     local cTableImport:="SP8" as character
 
+    local cFilDe as character
+    local cFilAte as character
+
+    local dDataDe as date
+    local dDataAte as date
+
     local lImportSP8 as logical
+    local lEnableFilterBlock as logical
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oSP8Pergunte:=tHash():New() as object
     local oTLogReport:=tLogReport():New() as object
 
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","SP8_FILIAL+SP8_CODIGO"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","SP8_FILIAL,SP8_CODIGO")),",")
+    begin sequence
 
-    bCustomUpdate:={;
-        |;
-            cTmpAlias,;
-            cAlias,;
-            lFound,;
-            lAddNew,;
-            cIndexKey,;
-            cIndexID,;
-            nFields,;
-            aTargetFieldsDef;
-        |;
-        SP8CustomUpdate(@cTmpAlias,@cAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef);
-    }
+        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cAlias,"EnableFilterBlock","0"))=="1")
+        if (lEnableFilterBlock)
+            if (!SP8Pergunte(@oSP8Pergunte))
+                break
+            endif
+            cFilDe:=oSP8Pergunte:Get("Filial.De")
+            cFilAte:=oSP8Pergunte:Get("Filial.Ate")
+            dDataDe:=oSP8Pergunte:Get("Data.De")
+            dDataAte:=oSP8Pergunte:Get("Data.Ate")
+            bEnableFilterBlock:={|cAlias|(cAlias)->((P8_FILIAL>=cFilDe).and.(P8_FILIAL<=cFilAte).and.(P8_DATA>=dDataDe).and.(P8_DATA<=dDataAte))}
+            bEnableFilterBlockMem:={|xValue,cField|(IF((cField=="P8_FILIAL"),((xValue>=cFilDe).and.(xValue<=cFilAte)),IF((cField=="P8_DATA"),((xValue>=dDataDe).and.(xValue<=dDataAte)),.T.)))}
+            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
+            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
+        endif
 
-    lImportSP8:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,/*lPreLoadTable*/,bCustomUpdate)
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","P8_FILIAL+P8_MAT+P8_ORDEM+Dtos(P8_DATA)+Str(P8_HORA,5,2)"))
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","P8_FILIAL,P8_MAT,P8_ORDEM,P8_DATA,P8_HORA")),",")
 
-    if (lImportSP8)
-        ApMsgInfo(cAlias+" Table Import Completed","Info")
-    else
-        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+        bCustomUpdate:={;
+            |;
+                cTmpAlias,;
+                cAlias,;
+                lFound,;
+                lAddNew,;
+                cIndexKey,;
+                cIndexID,;
+                nFields,;
+                aTargetFieldsDef;
+            |;
+            SP8CustomUpdate(@cTmpAlias,@cAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef);
+        }
+
+        lImportSP8:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,/*lPreLoadTable*/,bCustomUpdate)
+
+        if (lImportSP8)
+            ApMsgInfo(cAlias+" Table Import Completed","Info")
+        else
+            ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+        endif
+
+        oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+        oTLogReport:Clean()
+        oTLogReport:=FreeObj(oTLogReport)
+
+        FWFreeArray(@aAddIndex)
+
+    end sequence   
+
+    if (valtype(oSP8Pergunte)=="O")
+        oSP8Pergunte:Clear()
+        oSP8Pergunte:=FreeObj(oSP8Pergunte)
     endif
-
-    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
-    oTLogReport:=FreeObj(oTLogReport)
-
-    FWFreeArray(@aAddIndex)
 
     DelClassIntF()
 
 return(lImportSP8)
+
+static function SP8Pergunte(oSP8Pergunte as object) as logical
+
+    local aPBoxPrm:=Array(0) as array
+    local aPBoxRet:=Array(0) as array
+
+    local cPBoxTit:=OemToAnsi("Informe os parametros") as character
+
+    local cFilDe as character
+    local cFilAte as character
+
+    local dDataDe:=CToD("") as date
+    local dDataAte:=CToD("") as date
+
+    local lParamBox:=.F. as logical
+
+    local nPBox as numeric
+    local nP8Data as numeric
+    local nP8Filial as numeric
+
+    saveInter()
+
+        nP8Filial:=GetSx3Cache("P8_FILIAL","X3_TAMANHO")
+        cFilDe:=Space(nP8Filial)
+        cFilAte:=cFilDe
+        
+        nP8Data:=(GetSx3Cache("P8_DATA","X3_TAMANHO")+2)
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //01----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Filial.De"     //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cFilDe          //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@!"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="AllWaysTrue()" //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="XM0"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nP8Filial,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.F.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //02----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Filial.Ate"    //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cFilAte         //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@!"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="XM0"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nP8Filial,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //03----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Data.De"       //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=dDataDe         //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@D"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="AllWaysTrue()" //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:=""              //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("D",nP8Data,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.F.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //04----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Data.Ate"      //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=dDataAte        //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@D"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:=""              //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("D",nP8Data,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,NIL,NIL,.T.,NIL,NIL,NIL,NIL,.T.,.T.)))
+            lParamBox:=MsgYesNo("Deseja Abortar a Importacao?","Atencao!")
+            if (lParamBox)
+                lParamBox:=.F.
+                exit
+            endif
+        end while
+
+        if (lParamBox)
+            for nPBox:=1 To Len(aPBoxPrm)
+                oSP8Pergunte:Set(aPBoxPrm[nPBox][2],aPBoxRet[nPBox])
+            next nPBox
+        endif
+
+    restInter()
+
+    FWFreeArray(@aPBoxRet)
+    FWFreeArray(@aPBoxPrm)
+
+return(lParamBox)
 
 static procedure SP8CustomUpdate(cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef)
 
