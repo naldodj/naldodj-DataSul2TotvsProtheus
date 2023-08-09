@@ -4,7 +4,7 @@
 
     #DEFINE _AMARC_CH    
 
-        #DEFINE ELEMENTOS_AMARC      38    //Numero de Elementos do Array aMarcacoes
+        #DEFINE ELEMENTOS_AMARC      50    //Numero de Elementos do Array aMarcacoes
 
         #DEFINE AMARC_DATA           01    //Data da Marcacao
         #DEFINE AMARC_HORA           02    //Hora da Marcacao
@@ -44,6 +44,7 @@
         #DEFINE AMARC_LATITU         36    //Latitude 
         #DEFINE AMARC_LONGIT         37    //Longitude
         #DEFINE AMARC_GEOFENCE       38    //Define se a marca?o est?dentro ou fora do per?etro
+        //...Outros Elementos de aMarcacoes
 
 #ENDIF
 
@@ -112,7 +113,11 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSP8
                         IF(;
                             (cField=="P8_DATA"),;
                             ((xValue>=dDataDe).and.(xValue<=dDataAte)),;
-                            .T.;
+                            IF(;
+                                (cField=="P8_MAT"),;
+                                ((xValue>=cMatDe).and.(xValue<=cMatAte)),;
+                                .T.;
+                            );
                         );
                     );
                 );
@@ -197,11 +202,11 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
         cFilDe:=Space(nP8Filial)
         cFilAte:=cFilDe
         
-        nP8Mat:=(GetSx3Cache("P8_MAT","X3_TAMANHO")+2)
+        nP8Mat:=GetSx3Cache("P8_MAT","X3_TAMANHO")
         cMatDe:=Space(nP8Mat)
         cMatAte:=cMatDe
 
-        nP8Data:=(GetSx3Cache("P8_DATA","X3_TAMANHO")+2)
+        nP8Data:=GetSx3Cache("P8_DATA","X3_TAMANHO")
 
         aAdd(aPBoxPrm,Array(9))
         nPBox:=Len(aPBoxPrm)
@@ -239,7 +244,7 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
         aPBoxPrm[nPBox][5]:="AllWaysTrue()" //[5]:String contendo a validacao
         aPBoxPrm[nPBox][6]:=""              //[6]:Consulta F3
         aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
-        aPBoxPrm[nPBox][8]:=CalcFieldSize("D",nP8Data,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][8]:=(CalcFieldSize("D",nP8Data,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2])+20) //[8]:Tamanho do MsGet
         aPBoxPrm[nPBox][9]:=.F.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
         aAdd(aPBoxPrm,Array(9))
@@ -252,7 +257,7 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
         aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
         aPBoxPrm[nPBox][6]:=""              //[6]:Consulta F3
         aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
-        aPBoxPrm[nPBox][8]:=CalcFieldSize("D",nP8Data,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][8]:=(CalcFieldSize("D",nP8Data,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2])+20) //[8]:Tamanho do MsGet
         aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
         aAdd(aPBoxPrm,Array(9))
@@ -319,6 +324,8 @@ static procedure SP8CustomUpdate(cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cInde
 
     local aMarcacoes:=array(0) as array
 
+    local lPutMarcacoes as logical
+
     aAdd(aMarcacoes,array(ELEMENTOS_AMARC))
 
     aMarcacoes[1][AMARC_DATA]:=(cTmpAlias)->P8_DATA
@@ -332,8 +339,9 @@ static procedure SP8CustomUpdate(cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cInde
     aMarcacoes[1][AMARC_CC]:=(cTmpAlias)->P8_CC
     aMarcacoes[1][AMARC_APONTA]:=(cTmpAlias)->P8_APONTA
     aMarcacoes[1][AMARC_RELOGIO]:=(cTmpAlias)->P8_RELOGIO
-    aMarcacoes[1][AMARC_TIPOMARC]:=(cTmpAlias)->P8_TIPOMARC
+    aMarcacoes[1][AMARC_TIPOMARC]:=(cTmpAlias)->P8_TPMARCA
     aMarcacoes[1][AMARC_L_ORIGEM]:=.F.
+    /*
     aMarcacoes[1][AMARC_DTHR2STR]:=nil
     aMarcacoes[1][AMARC_PERAPONTA]:=nil
     aMarcacoes[1][AMARC_SEQ]:=nil
@@ -359,8 +367,10 @@ static procedure SP8CustomUpdate(cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cInde
     aMarcacoes[1][AMARC_LATITU]:=nil
     aMarcacoes[1][AMARC_LONGIT]:=nil
     aMarcacoes[1][AMARC_GEOFENCE]:=nil
+    //...Outros Elementos de aMarcacoes
+    */
 
-    PutMarcacoes(;
+    lPutMarcacoes:=PutMarcacoes(;
         aMarcacoes,;//01 -> Array contendo as Marcacoes do Funcionario
         (cTmpAlias)->P8_FILIAL,;//02 -> Filial do Funcionario
         (cTmpAlias)->P8_MAT,;//03 -> Matricula do Funcionario

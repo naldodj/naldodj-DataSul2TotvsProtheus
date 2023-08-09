@@ -1466,7 +1466,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             nRecCount:=oFT:ft_fLastRec()
             cRecCount:=cTools():NToS(nRecCount)
-            oMsNewProcess:SetRegua1(0)
+            oMsNewProcess:SetRegua1(nRecCount)
             oTimeRemaining:=timeRemaining():New(nRecCount)
 
             oProgress:=txtProgress():New()
@@ -1537,7 +1537,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                             endif
                             if ((lChkFilial).and.(cField==cFieldFilial))
                                 SetFilAnt(xValue)
-                            elseif ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
+                            endif
+                            if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
                                 lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))
                                 if (!lAppend)
                                     exit
@@ -1630,11 +1631,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         lEnd:=oMsNewProcess:lEnd:=.T.
                                         lAppend:=.F.
                                         break
-                                    endif //(!empty(cError))
+                                    endif
 
-                                endif //(lHasError)
+                                endif
 
-                            endif //((!lChkFilial).and.(cField==cFieldFilial))
+                            endif
 
                             if (empty(xValue))
                                 if (lHasError)
@@ -1649,22 +1650,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         break
                                     endif
                                     exit
-                                endif //(lHasError)
+                                endif
                                 loop
-                            endif //(empty(xValue))
+                            endif
 
                             (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
-
-                            if (lEnableFilterBlock)
-                                if (cField$cFieldsFilterBlock)
-                                    if ((cTmpAlias)->(!Eval(bEnableFilterBlock,cTmpAlias)))
-                                        cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
-                                        cDeleteIfEmpty+=","
-                                        nDeleteIfEmpty++
-                                        break
-                                    endif
-                                endif
-                            endif
 
                             if ((lSeekTable).and.(!empty(cAllSeekIndexKey)))
                                 if (cField$cAllSeekIndexKey)
@@ -1723,9 +1713,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                                     oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                                     lEnd:=oMsNewProcess:lEnd:=.T.
                                                     break
-                                                endif //(!empty(cError))
+                                                endif 
 
-                                            endif //(lHasError)
+                                            endif 
 
                                             cField:=aUpdateTableFields[nField]
                                             xValue:=NormalizeData(@lHasError,xValue,cType,cField,.T.,@st_oHMbTransform,@oTFIni)
@@ -1744,11 +1734,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                                     lEnd:=oMsNewProcess:lEnd:=.T.
                                                     (cSeekTable)->(MsUnLock())
                                                     break
-                                                endif //(!empty(cError))
+                                                endif 
 
-                                            endif //(lHasError)
+                                            endif
 
-                                        endif //(nTargetFieldPos>0)
+                                        endif
 
                                         (cSeekTable)->(FieldPut(FieldPos(cField),xValue))
 
@@ -1756,11 +1746,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                     (cSeekTable)->(MsUnLock())
 
-                                endif //((lUpdateTableFields).and.(cSeekTable)->(recLock(cSeekTable,.F.)))
+                                endif
 
-                            endif //(cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
+                            endif
 
-                        endif //(lSeekTable)
+                        endif
 
                         if (nReplicates>0)
 
@@ -1836,8 +1826,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
                     cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
-                    oMsNewProcess:IncRegua1(cIncProc)
                 endif
+
+                oMsNewProcess:IncRegua1(cIncProc)
 
                 lEnd:=oMsNewProcess:lEnd
 
@@ -1897,7 +1888,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             nRecCount:=(cTmpAlias)->(recCount())
             cRecCount:=cTools():NToS(nRecCount)
-            oMsNewProcess:SetRegua2(0)
+            oMsNewProcess:SetRegua2(nRecCount)
             oTimeRemaining:SetRemaining(nRecCount)
 
             (cAlias)->(dbSetOrder(nIndexKey))
@@ -1974,9 +1965,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
                     cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
-                    oMsNewProcess:IncRegua2(cIncProc)
                 endif
-                
+
+                oMsNewProcess:IncRegua2(cIncProc)
+
                 lEnd:=oMsNewProcess:lEnd
                 
                 if (lEnd)

@@ -35,7 +35,12 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRD
             cCompetenciaDe:=oSRDPergunte:Get("Competencia.De")
             cCompetenciaAte:=oSRDPergunte:Get("Competencia.Ate")
             bEnableFilterBlock:={|cAlias|(cAlias)->((RD_DATARQ>=cCompetenciaDe).and.(RD_DATARQ<=cCompetenciaAte))}
-            bEnableFilterBlockMem:={|xValue,cField|IF((cField=="RD_DATARQ"),((xValue>=cCompetenciaDe).and.(xValue<=cCompetenciaAte)),.T.)}
+            bEnableFilterBlockMem:={|xValue,cField|;
+                IF((cField=="RD_DATARQ"),;
+                    ((xValue>=cCompetenciaDe).and.(xValue<=cCompetenciaAte)),;
+                    .T.;
+                );
+            }
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
         else
