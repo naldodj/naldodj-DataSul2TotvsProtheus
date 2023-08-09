@@ -1464,25 +1464,27 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
         begin sequence
 
-            nRecCount:=oFT:ft_fLastRec()
-            cRecCount:=cTools():NToS(nRecCount)
-            oMsNewProcess:SetRegua1(nRecCount)
-            oTimeRemaining:=timeRemaining():New(nRecCount)
-
-            oProgress:=txtProgress():New()
-
-            TCSrvMap(cTmpAlias,nil,.F.)
-
             nStartLine:=cacheData():Get("datasul2totvsprotheus",cTableImport+"StartLine",1)
             if (nStartLine==1)
                 nStartLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"StartLine","1")))
             endif
 
+            nRecCount:=oFT:ft_fLastRec()
+
             if (nStartLine>1)
+                nRecCount:=((nRecCount-nStartLine)+1)
                 oFT:ft_fGoTo(nStartLine)
             else
                 oFT:ft_fGoTop()
             endif
+
+            cRecCount:=cTools():NToS(nRecCount)
+            oMsNewProcess:SetRegua1(Round(nRecCount/nIncProcStep,0))
+            oTimeRemaining:=timeRemaining():New(nRecCount)
+
+            oProgress:=txtProgress():New()
+
+            TCSrvMap(cTmpAlias,nil,.F.)
 
             while (!oFT:ft_fEof())
 
@@ -1821,14 +1823,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                     cIncProc:="["+oProgress:Eval()+"] "
                     cIncProc+="Processing Record: "
-                    cIncProc+=cTools():NToS(nft_fRecNo)
+                    cIncProc+=cTools():NToS(nRecProc)
                     cIncProc+="/"
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
                     cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
+                    oMsNewProcess:IncRegua1(cIncProc)
                 endif
-
-                oMsNewProcess:IncRegua1(cIncProc)
 
                 lEnd:=oMsNewProcess:lEnd
 
@@ -1888,7 +1889,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             nRecCount:=(cTmpAlias)->(recCount())
             cRecCount:=cTools():NToS(nRecCount)
-            oMsNewProcess:SetRegua2(nRecCount)
+            oMsNewProcess:SetRegua2(Round(nRecCount/nIncProcStep,0))
             oTimeRemaining:SetRemaining(nRecCount)
 
             (cAlias)->(dbSetOrder(nIndexKey))
@@ -1965,9 +1966,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
                     cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
+                    oMsNewProcess:IncRegua2(cIncProc)
                 endif
-
-                oMsNewProcess:IncRegua2(cIncProc)
 
                 lEnd:=oMsNewProcess:lEnd
                 
