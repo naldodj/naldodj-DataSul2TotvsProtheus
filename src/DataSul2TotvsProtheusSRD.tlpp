@@ -38,6 +38,9 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRD
             bEnableFilterBlockMem:={|xValue,cField|IF((cField=="RD_DATARQ"),((xValue>=cCompetenciaDe).and.(xValue<=cCompetenciaAte)),.T.)}
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
+        else
+            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"EnableFilterBlock")
+            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem")
         endif
 
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN"))

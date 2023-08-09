@@ -1227,6 +1227,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nReplicate as numeric
     local nReplicates:=0 as numeric
 
+    local nStartLine as numeric
+
     local nRecProc:=0 as numeric
     local nRecCount as numeric
     local nCommitBuffer as numeric
@@ -1276,6 +1278,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         endif
 
         oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+        
+        nStartLine:=cacheData():Get("datasul2totvsprotheus",cTableImport+"StartLine",1)
+        if (nStartLine==1)
+            nStartLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"StartLine","1")))
+        endif
 
         cFieldFilial:=PrefixoCpo(cAlias)
         cFieldFilial+="_FILIAL"
@@ -1470,7 +1477,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             TCSrvMap(cTmpAlias,nil,.F.)
 
-            oFT:ft_fGoTop()
+            if (nStartLine>1)
+                oFT:ft_fGoTo(nStartLine)
+            else
+                oFT:ft_fGoTop()
+            endif
+
             while (!oFT:ft_fEof())
 
                 nft_fRecNo:=oFT:ft_fRecNo()

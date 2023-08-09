@@ -66,8 +66,13 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSP8
     local cFilDe as character
     local cFilAte as character
 
+    local cMatDe as character
+    local cMatAte as character
+
     local dDataDe as date
     local dDataAte as date
+
+    local nStartLine as numeric
 
     local lImportSP8 as logical
     local lEnableFilterBlock as logical
@@ -87,10 +92,38 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSP8
             cFilAte:=oSP8Pergunte:Get("Filial.Ate")
             dDataDe:=oSP8Pergunte:Get("Data.De")
             dDataAte:=oSP8Pergunte:Get("Data.Ate")
-            bEnableFilterBlock:={|cAlias|(cAlias)->((P8_FILIAL>=cFilDe).and.(P8_FILIAL<=cFilAte).and.(P8_DATA>=dDataDe).and.(P8_DATA<=dDataAte))}
-            bEnableFilterBlockMem:={|xValue,cField|(IF((cField=="P8_FILIAL"),((xValue>=cFilDe).and.(xValue<=cFilAte)),IF((cField=="P8_DATA"),((xValue>=dDataDe).and.(xValue<=dDataAte)),.T.)))}
+            cMatDe:=oSP8Pergunte:Get("Matricula.De")
+            cMatAte:=oSP8Pergunte:Get("Matricula.Ate")
+            nStartLine:=oSP8Pergunte:Get("Linha.Inicial")
+            bEnableFilterBlock:={|cAlias|;
+                (cAlias)->(;
+                    (P8_FILIAL>=cFilDe).and.;
+                    (P8_FILIAL<=cFilAte).and.;
+                    (P8_DATA>=dDataDe).and.;
+                    (P8_DATA<=dDataAte).and.;
+                    (P8_MAT>=cMatDe).and.;
+                    (P8_MAT<=cMatAte);
+                );
+            }
+            bEnableFilterBlockMem:={|xValue,cField|;
+                (;
+                    IF((cField=="P8_FILIAL"),;
+                        ((xValue>=cFilDe).and.(xValue<=cFilAte)),;
+                        IF(;
+                            (cField=="P8_DATA"),;
+                            ((xValue>=dDataDe).and.(xValue<=dDataAte)),;
+                            .T.;
+                        );
+                    );
+                );
+            }
+            cacheData():Set("datasul2totvsprotheus",cAlias+"StartLine",nStartLine)
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
+        else
+            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"StartLine")
+            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"EnableFilterBlock")
+            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem")
         endif
 
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","P8_FILIAL+P8_MAT+P8_ORDEM+Dtos(P8_DATA)+Str(P8_HORA,5,2)"))
@@ -145,12 +178,16 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
     local cFilDe as character
     local cFilAte as character
 
+    local cMatDe as character
+    local cMatAte as character
+
     local dDataDe:=CToD("") as date
     local dDataAte:=CToD("") as date
 
     local lParamBox:=.F. as logical
 
     local nPBox as numeric
+    local nP8Mat as numeric
     local nP8Data as numeric
     local nP8Filial as numeric
 
@@ -160,6 +197,10 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
         cFilDe:=Space(nP8Filial)
         cFilAte:=cFilDe
         
+        nP8Mat:=(GetSx3Cache("P8_MAT","X3_TAMANHO")+2)
+        cMatDe:=Space(nP8Mat)
+        cMatAte:=cMatDe
+
         nP8Data:=(GetSx3Cache("P8_DATA","X3_TAMANHO")+2)
 
         aAdd(aPBoxPrm,Array(9))
@@ -213,6 +254,45 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
         aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
         aPBoxPrm[nPBox][8]:=CalcFieldSize("D",nP8Data,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
         aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //05----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Matricula.De"  //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cMatDe          //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@!"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="AllWaysTrue()" //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="SRA"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nP8Mat,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.F.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //06----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Matricula.Ate" //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cMatAte         //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@!"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="SRA"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nP8Mat,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //06----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Linha.Inicial" //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=1               //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="9999999999"    //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="AllWaysTrue()" //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="SRA"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.F.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
         while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,NIL,NIL,.T.,NIL,NIL,NIL,NIL,.T.,.T.)))
             lParamBox:=MsgYesNo("Deseja Abortar a Importacao?","Atencao!")
