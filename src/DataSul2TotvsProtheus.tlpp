@@ -107,6 +107,7 @@ static method Activate() class Protheus
         endif
 
         oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+        
         lFastMode:=(allTrim(oTFIni:GetPropertyValue("General","IncProcFastMode","0"))=="1")
         lPercentage:=(allTrim(oTFIni:GetPropertyValue("General","IncProcPercentage","0"))=="1")
 
@@ -1278,11 +1279,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         endif
 
         oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
-        
-        nStartLine:=cacheData():Get("datasul2totvsprotheus",cTableImport+"StartLine",1)
-        if (nStartLine==1)
-            nStartLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"StartLine","1")))
-        endif
 
         cFieldFilial:=PrefixoCpo(cAlias)
         cFieldFilial+="_FILIAL"
@@ -1476,6 +1472,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             oProgress:=txtProgress():New()
 
             TCSrvMap(cTmpAlias,nil,.F.)
+
+            nStartLine:=cacheData():Get("datasul2totvsprotheus",cTableImport+"StartLine",1)
+            if (nStartLine==1)
+                nStartLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"StartLine","1")))
+            endif
 
             if (nStartLine>1)
                 oFT:ft_fGoTo(nStartLine)
