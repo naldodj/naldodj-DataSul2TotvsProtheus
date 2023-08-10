@@ -1479,6 +1479,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             endif
 
             cRecCount:=cTools():NToS(nRecCount)
+
+            if (nRecCount<=nIncProcStep)
+                nIncProcStep:=1
+            endif
+
             oMsNewProcess:SetRegua1(Round(nRecCount/nIncProcStep,0))
             oTimeRemaining:=timeRemaining():New(nRecCount)
 
@@ -1517,10 +1522,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     cError+=CacheData():Get("EvalBlock","ErrorStack","")
                                     CacheData():delSection("EvalBlock")
                                     if (!empty(cError))
-                                        cError:=cTools():StrReplace(cError,{CRLF,""})
+                                        cError:=cTools():StrReplace(cError,{CRLF," "})
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                        cError:=""
                                         lEnd:=oMsNewProcess:lEnd:=.T.
                                         lAppend:=.F.
                                         break
@@ -1626,10 +1632,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     CacheData():delSection("EvalBlock")
 
                                     if (!empty(cError))
-                                        cError:=cTools():StrReplace(cError,{CRLF,""})
+                                        cError:=cTools():StrReplace(cError,{CRLF," "})
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                        cError:=""
                                         lEnd:=oMsNewProcess:lEnd:=.T.
                                         lAppend:=.F.
                                         break
@@ -1709,10 +1716,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                                 CacheData():delSection("EvalBlock")
 
                                                 if (!empty(cError))
-                                                    cError:=cTools():StrReplace(cError,{CRLF,""})
+                                                    cError:=cTools():StrReplace(cError,{CRLF," "})
                                                     cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                                     oTLogReport:AddGroup(cTLogReport)
                                                     oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                                    cError:=""
                                                     lEnd:=oMsNewProcess:lEnd:=.T.
                                                     break
                                                 endif 
@@ -1729,10 +1737,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                                 CacheData():delSection("EvalBlock")
 
                                                 if (!empty(cError))
-                                                    cError:=cTools():StrReplace(cError,{CRLF,""})
+                                                    cError:=cTools():StrReplace(cError,{CRLF," "})
                                                     cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                                     oTLogReport:AddGroup(cTLogReport)
                                                     oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                                    cError:=""
                                                     lEnd:=oMsNewProcess:lEnd:=.T.
                                                     (cSeekTable)->(MsUnLock())
                                                     break
@@ -1889,6 +1898,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             nRecCount:=(cTmpAlias)->(recCount())
             cRecCount:=cTools():NToS(nRecCount)
+            
+            if (nRecCount<=nIncProcStep)
+                nIncProcStep:=1
+            endif
+            
             oMsNewProcess:SetRegua2(Round(nRecCount/nIncProcStep,0))
             oTimeRemaining:SetRemaining(nRecCount)
 
@@ -1922,7 +1936,19 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     endif
                     lAddNew:=(!lFound)
                     if (lCustomUpdate)
-                        (cAlias)->(Eval(bCustomUpdate,cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef))
+                        lHasError:=(!EvalBlock():EvalBlock({||(cAlias)->(Eval(bCustomUpdate,cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef))},nil,.F.,nil,nil))
+                        if (lHasError)
+                            cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                            cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                            CacheData():delSection("EvalBlock")
+                            if (!empty(cError))
+                                cError:=cTools():StrReplace(cError,{CRLF," "})
+                                cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                oTLogReport:AddGroup(cTLogReport)
+                                oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                cError:=""
+                            endif
+                        endif
                     else
                         if ((cAlias)->(recLock(cAlias,lAddNew)))
                             for nField:=1 to nFields
