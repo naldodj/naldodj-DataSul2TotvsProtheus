@@ -25,6 +25,7 @@ static method Activate() class Protheus
 
     local bSRJMsNewProcess as codeblock
     local bSR6MsNewProcess as codeblock
+    local bSPJMsNewProcess as codeblock
     local bSRVMsNewProcess as codeblock
     local bRCEMsNewProcess as codeblock
     local bSQBMsNewProcess as codeblock
@@ -126,6 +127,7 @@ static method Activate() class Protheus
 
         bSRJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRJ():ImportData(oMSNewProcess,@lEnd)}
         bSR6MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR6():ImportData(oMSNewProcess,@lEnd)}
+        bSPJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSPJ():ImportData(oMSNewProcess,@lEnd)}
         bSRVMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRV():ImportData(oMSNewProcess,@lEnd)}
         bRCEMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportRCE():ImportData(oMSNewProcess,@lEnd)}
         bSQBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSQB():ImportData(oMSNewProcess,@lEnd)}
@@ -148,6 +150,7 @@ static method Activate() class Protheus
                     MENU
                         MENUITEM "SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR6MsNewProcess,"Importing SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
+                        MENUITEM "SPJ :: "+Upper(FWSX2Util():GetX2Name("SPJ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSPJMsNewProcess,"Importing SPJ :: "+Upper(FWSX2Util():GetX2Name("SPJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())                        
                         MENUITEM "SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRVMsNewProcess,"Importing SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "RCE :: "+Upper(FWSX2Util():GetX2Name("RCE",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bRCEMsNewProcess,"Importing RCE :: "+Upper(FWSX2Util():GetX2Name("RCE",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
                         MENUITEM "SQB :: "+Upper(FWSX2Util():GetX2Name("SQB",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSQBMsNewProcess,"Importing SQB :: "+Upper(FWSX2Util():GetX2Name("SQB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
@@ -491,6 +494,8 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
         endif
 
     end sequence
+
+    cacheData():Set("datasul2totvsprotheus",cTargetField,xValue)
 
     FWFreeArray(@aValueField)
     FwFreeArray(@aSourceField)
@@ -1127,6 +1132,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local aField as array
 
     local aFieldsDef:=array(0) as array
+    local aTmpFields as array
+    local aTmpStruct as array
 
     local aTargetStruct:=(cAlias)->(dbStruct()) as array
     local aTargetFieldsDef as array
@@ -1214,6 +1221,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local lSeekTable as logical
     local lImportData as logical
     local lMemoVirutal as logical
+    local lAddFieldTmp as logical
     local lTablesEncodeUTF8 as logical 
     local lCustomUpdate:=.F. as logical
     local lTypeReplicate:=.F. as logical
@@ -1237,7 +1245,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     local nReplicateValuesAT as numeric
 
-    local nIndexKey:=retOrder(cAlias,cIndexKey,.T.) as numeric
+    local nIndexKey as numeric
     local nSeekTableIndex as numeric
     local nUpdateTableSource as numeric
 
@@ -1272,7 +1280,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     begin sequence
 
-        lImportData:=(nIndexKey!=0)
+        dfv():Default(@lPreLoadTable,.F.)
+
+        nIndexKey:=retOrder(cAlias,cIndexKey,(!lPreLoadTable))
+        
+        lImportData:=((lPreLoadTable).or.(nIndexKey!=0))
         if (!lImportData)
             ApMsgAlert("Unlocalized "+cAlias+" table search index ("+cIndexKey+")")
             break
@@ -1354,6 +1366,28 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             break
         endif
 
+        lAddFieldTmp:=(val(allTrim(oTFIni:GetPropertyValue(cTableImport,"addTmpField","0")))==1)
+        if (lAddFieldTmp)
+            cTmpFields:=allTrim(oTFIni:GetPropertyValue(cTableImport+"_addTmpField","TmpFields",""))
+            lAddFieldTmp:=(!Empty(cTmpFields))
+            if (lAddFieldTmp)
+                aTmpFields:=strToKArr2(cTmpFields,",")
+                nFields:=Len(aTmpFields)
+                if (nFields>0)
+                    aTmpStruct:=array(0)
+                    for nField:=1 to nFields
+                        cField:=aTmpFields[nField]
+                        aAdd(aTmpStruct,array(DBS_ALEN))
+                        aTmpStruct[nField][DBS_NAME]:=Upper(allTrim(oTFIni:GetPropertyValue(cField,"DBS_NAME","")))
+                        aTmpStruct[nField][DBS_TYPE]:=Upper(allTrim(oTFIni:GetPropertyValue(cField,"DBS_TYPE","")))
+                        aTmpStruct[nField][DBS_LEN]:=val(allTrim(oTFIni:GetPropertyValue(cField,"DBS_LEN","1")))
+                        aTmpStruct[nField][DBS_DEC]:=val(allTrim(oTFIni:GetPropertyValue(cField,"DBS_DEC","0")))
+                    next nField
+                endif
+                FWFreeArray(@aTmpFields)
+            endif
+        endif
+
         lMemoVirutal:=(allTrim(oTFIni:GetPropertyValue(cAlias,"MemoVirtual","0"))=="1")
         if (lMemoVirutal)
             oHMMemoVirutal:=THashMap():New()
@@ -1369,6 +1403,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 endif
             next nField
         endif
+
+        if (lAddFieldTmp)
+            aEval(aTmpStruct,{|e|aAdd(aTargetStruct,aClone(e))})
+        endif
+
         oHMTargetStruct:=aUtils():dbStructHM(@aTargetStruct)
 
         nFields:=Len(aTargetFieldsDef)
@@ -1409,7 +1448,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             ApMsgAlert("Could not get structure for table:  "+cTableImport,"Attention")
             break
         endif
-
+        
         oFWTemporaryTable:=FWTemporaryTable():New(@cTmpAlias,@aTargetStruct)
         oFWTemporaryTable:AddIndex("01",aAddIndex)
         oFWTemporaryTable:Create()
@@ -1506,7 +1545,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                     lAppend:=.T.
 
-                    if ((lChkFilial).or.(lEnableFilterBlock))
+                    if ((lChkFilial).or.(lEnableFilterBlock).or.(lAddFieldTmp))
 
                         for nField:=1 to nFields
                             nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
@@ -1514,7 +1553,17 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 loop
                             endif
                             cField:=aTargetFieldsDef[nField][1]
-                            if (((lChkFilial).and.(cField==cFieldFilial)).or.((lEnableFilterBlock).and.(cField$cFieldsFilterBlock)))
+                            if (;
+                                    (;
+                                        (lChkFilial).and.(cField==cFieldFilial);
+                                    ).or.;
+                                    (;
+                                        (lEnableFilterBlock).and.(cField$cFieldsFilterBlock);
+                                    ).or.;
+                                    (;
+                                        (lAddFieldTmp).and.(aScan(aAddIndex,{|e|(e==cField)})>0);
+                                    );   
+                                )
                                 lHasError:=.F.
                                 xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                                 if (lHasError)
@@ -1660,7 +1709,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     endif
                                     exit
                                 endif
-                                loop
+                                if (!lUpdateEmptyValue)
+                                    loop
+                                endif
                             endif
 
                             (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
@@ -1890,8 +1941,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             oFT:ft_fUse()
 
-            dfv():Default(@lPreLoadTable,.F.)
-
             if ((lEnd).or.(lPreLoadTable))
                 break
             endif
@@ -1958,6 +2007,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 endif
                                 cField:=aTargetFieldsDef[nField][1]
                                 if ((lFound).and.(cField$cIndexKey))
+                                    loop
+                                endif
+                                if ((lAddFieldTmp).and.(aScan(aTmpStruct,{|e|(e[DBS_NAME]==cField)})>0))
                                     loop
                                 endif
                                 xValue:=(cTmpAlias)->(FieldGet(nTargetFieldPos))
@@ -2048,6 +2100,21 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             oHMTargetReplicateFields:=FreeObj(oHMTargetReplicateFields)
         endif
     endif
+
+    FWFreeArray(@aLine)
+    FWFreeArray(@aField)
+
+    FWFreeArray(@aFieldsDef)
+    FWFreeArray(@aTmpFields)
+    FWFreeArray(@aTmpStruct)
+
+    FWFreeArray(@aTargetStruct)
+    FWFreeArray(@aTargetFieldsDef)
+    FWFreeArray(@aReplicateValues)
+    FWFreeArray(@aTargetFieldsDefReplicate)
+
+    FWFreeArray(@aUpdateTableFields)
+    FWFreeArray(@aUpdateTableSource)
 
     FWFreeArray(@aTargetStruct)
     FWFreeArray(@aFieldsDef)

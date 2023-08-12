@@ -1,0 +1,112 @@
+#include "totvs.ch"
+
+class ImportSPJ
+    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+    static method SPJORNTRAB(xGet as variant) as variant
+end class
+
+static method ImportData(oMsNewProcess,lEnd) class ImportSPJ
+
+    local aAddIndex as array
+
+    local cAlias:="SPJ" as character
+    local cIndexKey as character
+    local cTableImport:="SPJ" as character
+
+    local cTmpAlias as character
+
+    local cPreLoadAlias as character
+    local cPreLoadTableImport as character
+    local cPreLoadIndexKey as character
+    local aPreLoadAddIndex as array
+
+    local lImportSPJ as logical
+    local lPreLoadTable as logical
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTLogReport:=tLogReport():New() as object
+    local oFWTemporaryTable as object
+
+    cPreLoadAlias:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAlias",""))
+    cPreLoadTableImport:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadTableImport",""))
+    cPreLoadIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadIndexKey",""))
+    aPreLoadAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAddIndex","")),",")
+
+    lPreLoadTable:=(!empty(cPreLoadAlias))
+    lPreLoadTable:=((lPreLoadTable).and.(!empty(cPreLoadTableImport)))
+    lPreLoadTable:=((lPreLoadTable).and.(!empty(cPreLoadIndexKey)))
+    lPreLoadTable:=((lPreLoadTable).and.(!empty(aPreLoadAddIndex)))
+
+    if (lPreLoadTable)
+        lPreLoadTable:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cPreLoadAlias,@cPreLoadIndexKey,@cPreLoadTableImport,@aPreLoadAddIndex,@lPreLoadTable)
+    endif
+
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","PJ_FILIAL+PJ_TURNO+PJ_SEMANA+PJ_DIA"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","PJ_FILIAL,PJ_TURNO,PJ_SEMANA,PJ_DIA")),",")
+
+    lImportSPJ:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+
+    if (lPreLoadTable)
+        cTmpAlias:=cacheData():Get("datasul2totvsprotheus","import"+cPreLoadTableImport+"Alias")
+        if (select(cTmpAlias)>0)
+            (cTmpAlias)->(dbCloseArea())
+        endif
+        oFWTemporaryTable:=cacheData():Get("datasul2totvsprotheus","import"+cPreLoadTableImport+"FWTemporaryTable")
+        if (valType(oFWTemporaryTable)=="O")
+            oFWTemporaryTable:Delete()
+            oFWTemporaryTable:=FreeObj(oFWTemporaryTable)
+        endif
+    endif
+
+    if (lImportSPJ)
+        ApMsgInfo(cAlias+" Table Import Completed","Info")
+    else
+        ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
+    endif
+
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    oTLogReport:Clean()
+    oTLogReport:=FreeObj(oTLogReport)
+
+    FWFreeArray(@aAddIndex)
+
+    DelClassIntF()
+
+return(lImportSPJ)
+
+static method SPJORNTRAB(xGet) class ImportSPJ
+
+    local cKey as character
+
+    local cPJ_TPDIA as character
+    local cPJ_XJNTRAB as character
+
+    local cAliasSPJORNTRAB as character
+
+    local xRet as variant
+
+    begin sequence
+        
+        cAliasSPJORNTRAB:=cacheData():Get("datasul2totvsprotheus","importSPJORNTRABAlias")
+        if ((Empty(cAliasSPJORNTRAB)).or.(Select(cAliasSPJORNTRAB)==0))
+            break
+        endif
+        
+        cPJ_XJNTRAB:=cacheData():Get("datasul2totvsprotheus","PJ_XJNTRAB")
+        if ((valType(cPJ_XJNTRAB)!="C").or.(empty(cPJ_XJNTRAB)))
+            break
+        endif
+        
+        cPJ_TPDIA:=cacheData():Get("datasul2totvsprotheus","PJ_TPDIA")
+        if ((valType(cPJ_TPDIA)!="C").or.(empty(cPJ_TPDIA)))
+            break
+        endif
+        
+        cKey:=cPJ_XJNTRAB
+        cKey+=cPJ_TPDIA
+        
+        xRet:=Posicione(cAliasSPJORNTRAB,1,cKey,xGet)
+
+    end sequence
+
+return(xRet)
