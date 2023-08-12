@@ -1,8 +1,12 @@
 #include "totvs.ch"
 
 class ImportSPJ
+
     static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
+    static method getValue(xGet as variant,xDefault as variant) as variant
     static method SPJORNTRAB(xGet as variant) as variant
+    static method Time2NextDay(cTime) as character
+
 end class
 
 static method ImportData(oMsNewProcess,lEnd) class ImportSPJ
@@ -74,6 +78,9 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSPJ
 
 return(lImportSPJ)
 
+static method getValue(xGet,xDefault) class ImportSPJ
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
 static method SPJORNTRAB(xGet) class ImportSPJ
 
     local cKey as character
@@ -87,17 +94,17 @@ static method SPJORNTRAB(xGet) class ImportSPJ
 
     begin sequence
         
-        cAliasSPJORNTRAB:=cacheData():Get("datasul2totvsprotheus","importSPJORNTRABAlias")
+        cAliasSPJORNTRAB:=ImportSPJ():GetValue("importSPJORNTRABAlias")
         if ((Empty(cAliasSPJORNTRAB)).or.(Select(cAliasSPJORNTRAB)==0))
             break
         endif
         
-        cPJ_XJNTRAB:=cacheData():Get("datasul2totvsprotheus","PJ_XJNTRAB")
+        cPJ_XJNTRAB:=ImportSPJ():GetValue("PJ_XJNTRAB")
         if ((valType(cPJ_XJNTRAB)!="C").or.(empty(cPJ_XJNTRAB)))
             break
         endif
         
-        cPJ_TPDIA:=cacheData():Get("datasul2totvsprotheus","PJ_TPDIA")
+        cPJ_TPDIA:=ImportSPJ():GetValue("PJ_TPDIA")
         if ((valType(cPJ_TPDIA)!="C").or.(empty(cPJ_TPDIA)))
             break
         endif
@@ -110,3 +117,6 @@ static method SPJORNTRAB(xGet) class ImportSPJ
     end sequence
 
 return(xRet)
+
+static method Time2NextDay(cTime) class ImportSPJ
+return(timeCalc():Time2NextDay(cTime)[1])
