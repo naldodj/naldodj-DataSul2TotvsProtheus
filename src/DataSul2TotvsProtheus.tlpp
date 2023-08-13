@@ -1,11 +1,11 @@
 #define __NToS
 
-#DEFINE DTS_DBS_NAME 1
-#DEFINE DTS_DBS_TYPE 2
-#DEFINE DTS_DBS_FLG 3
+#DEFINE DTS_DBS_NAME   1
+#DEFINE DTS_DBS_TYPE   2
+#DEFINE DTS_DBS_FLG    3
 #DEFINE DTS_DBS_FORMAT 4
 
-#DEFINE DTS_DBS_ALEN 4
+#DEFINE DTS_DBS_ALEN   4
 
 #include "totvs.ch"
 #include "shell.ch"
@@ -399,10 +399,12 @@ static function readTableDefinition() as logical
             oFT:ft_fSkip()
         end while
 
+    end sequence
+
+    if (valType(oFT)=="O")
         oFT:ft_fUse()
         oFT:=FreeObj(oFT)
-
-    end sequence
+    endif
 
     FWFreeArray(@aFieldsDef)
 
@@ -1163,23 +1165,23 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     local cType as character
 
-    local cCHR128:=chr(128) as character
-    local cCHR135:=chr(135) as character
-    local cCHR144:=chr(144) as character
-    local cCHR162:=chr(162) as character
-    local cCHR163:=chr(163) as character
-    local cCHR182:=chr(182) as character
-    local cCHR194:=chr(194) as character
-    local cCHR195:=chr(195) as character
-    local cCHR198:=chr(198) as character
-    local cCHR199:=chr(199) as character
-    local cCHR201:=chr(201) as character
-    local cCHR205:=chr(205) as character
-    local cCHR214:=chr(214) as character
-    local cCHR227:=chr(227) as character
-    local cCHR231:=chr(231) as character
-    local cCHR243:=chr(243) as character
-    local cCHR250:=chr(250) as character
+    local cCHR128 as character
+    local cCHR135 as character
+    local cCHR144 as character
+    local cCHR162 as character
+    local cCHR163 as character
+    local cCHR182 as character
+    local cCHR194 as character
+    local cCHR195 as character
+    local cCHR198 as character
+    local cCHR199 as character
+    local cCHR201 as character
+    local cCHR205 as character
+    local cCHR214 as character
+    local cCHR227 as character
+    local cCHR231 as character
+    local cCHR243 as character
+    local cCHR250 as character
 
     local cLine as character
     local cRootPath as character
@@ -1467,6 +1469,25 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         FWFreeArray(@aTargetStruct)
 
         lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cAlias,"ChkEncode","0"))=="1")
+        if (lChkEncode)
+            cCHR128:=chr(128)
+            cCHR135:=chr(135)
+            cCHR144:=chr(144)
+            cCHR162:=chr(162)
+            cCHR163:=chr(163)
+            cCHR182:=chr(182)
+            cCHR194:=chr(194)
+            cCHR195:=chr(195)
+            cCHR198:=chr(198)
+            cCHR199:=chr(199)
+            cCHR201:=chr(201)
+            cCHR205:=chr(205)
+            cCHR214:=chr(214)
+            cCHR227:=chr(227)
+            cCHR231:=chr(231)
+            cCHR243:=chr(243)
+            cCHR250:=chr(250)
+        endif
 
         lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cAlias,"EnableFilterBlock","0"))=="1")
         if (lEnableFilterBlock)
@@ -1944,6 +1965,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             endif
 
             oFT:ft_fUse()
+            oFT:=FreeObj(oFT)
 
             if ((lEnd).or.(lPreLoadTable))
                 break
@@ -2102,7 +2124,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                         cError:=""
                     endif
                 endif
-            
+
             endif
 
         end sequence
@@ -2118,6 +2140,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     SetFilAnt(cSVFilAnt)
 
     CacheData():delSection("EvalBlock")
+
+    if (valType(oFT)=="O")
+        oFT:ft_fUse()
+        oFT:=FreeObj(oFT)
+    endif
 
     if (valtype(oHMSourceFieldsDef)=="O")
         oHMSourceFieldsDef:Clean()
