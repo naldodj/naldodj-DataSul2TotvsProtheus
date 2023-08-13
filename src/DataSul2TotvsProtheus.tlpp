@@ -23,21 +23,15 @@ end class
 
 static method Activate() class Protheus
 
-    local bSRJMsNewProcess as codeblock
-    local bSR6MsNewProcess as codeblock
-    local bSPJMsNewProcess as codeblock
-    local bSRVMsNewProcess as codeblock
-    local bRCEMsNewProcess as codeblock
-    local bSQBMsNewProcess as codeblock
+    local aSections as array
+    local aProperties as array
 
-    local bSRAMsNewProcess as codeblock
-    local bSRBMsNewProcess as codeblock
-    local bSRDMsNewProcess as codeblock
-    local bSRFMsNewProcess as codeblock
-    local bSRQMsNewProcess as codeblock
-    local bSR3MsNewProcess as codeblock
-    local bSR8MsNewProcess as codeblock
-    local bSP8MsNewProcess as codeblock
+    local bTMenuAction as codeblock
+
+    local cAlias as character
+    local cSection as character
+    local cProperty as character
+    local cTMenuAction as character
 
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
@@ -50,15 +44,20 @@ static method Activate() class Protheus
     local lSetCentury:=__SetCentury("ON") as logical
     local lSendDataToServer as logical
 
+    local nSection as numeric
+    local nSections as numeric
+    local nProperty as numeric
+    local nProperties as numeric
     local nGetFileOptions as numeric
 
-    local oDlg as object
-    local oMenu as object
-    local oFont as object
+    local oTDlg as object
+    local oTMenu as object
+    local oTFont as object
     local oFWDefSize as object
 
     local oTFIni as object
-
+    
+    local oTMenuItem as object
     local oMSNewProcess as object
 
     private st_oHMbTransform:=THashMap():New() as object
@@ -123,49 +122,96 @@ static method Activate() class Protheus
         nBottom:=oFWDefSize:aWindSize[3]
         nRight:=oFWDefSize:aWindSize[4]
 
-        oFont:=TFont():New("Courier New",nil,16,nil,.T.)
+        oTFont:=TFont():New("Courier New",nil,16,nil,.T.)
 
-        bSRJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRJ():ImportData(oMSNewProcess,@lEnd)}
-        bSR6MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR6():ImportData(oMSNewProcess,@lEnd)}
-        bSPJMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSPJ():ImportData(oMSNewProcess,@lEnd)}
-        bSRVMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRV():ImportData(oMSNewProcess,@lEnd)}
-        bRCEMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportRCE():ImportData(oMSNewProcess,@lEnd)}
-        bSQBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSQB():ImportData(oMSNewProcess,@lEnd)}
+        private oTMenuOptions:=tHash():New() as object
 
-        bSRAMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRA():ImportData(oMSNewProcess,@lEnd)}
-        bSRBMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRB():ImportData(oMSNewProcess,@lEnd)}
-        bSRDMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRD():ImportData(oMSNewProcess,@lEnd)}
-        bSRFMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRF():ImportData(oMSNewProcess,@lEnd)}
-        bSRQMsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRQ():ImportData(oMSNewProcess,@lEnd)}
-        bSR3MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR3():ImportData(oMSNewProcess,@lEnd)}
-        bSR8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR8():ImportData(oMSNewProcess,@lEnd)}
-        bSP8MsNewProcess:={|lEnd|ProcRedefine(oMSNewProcess,@oFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSP8():ImportData(oMSNewProcess,@lEnd)}
+        cSection:="Registers"
+        oTMenuOptions:SetPropertyValue(cSection,"ITEMS",tHash():New())
 
-        DEFINE MSDIALOG oDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("01","Alias","SRJ")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("01","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRJ():ImportData(oMSNewProcess,@lEnd)})
 
-            MENU oMenu IMAGE "" OF oDlg
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("02","Alias","SR6")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("02","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR6():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("03","Alias","SPJ")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("03","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSPJ():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("04","Alias","SRV")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("04","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRV():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("05","Alias","RCE")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("05","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportRCE():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("06","Alias","SQB")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("06","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSQB():ImportData(oMSNewProcess,@lEnd)})
+
+        cSection:="Employees"
+        oTMenuOptions:SetPropertyValue(cSection,"ITEMS",tHash():New())
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("01","Alias","SRJ")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("01","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRA():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("02","Alias","SRB")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("02","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRB():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("03","Alias","SRD")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("03","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRD():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("04","Alias","SRF")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("04","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRF():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("05","Alias","SRQ")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("05","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRQ():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("06","Alias","SR3")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("06","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR3():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("07","Alias","SR8")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("07","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR8():ImportData(oMSNewProcess,@lEnd)})
+
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("08","Alias","SP8")
+        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("08","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSP8():ImportData(oMSNewProcess,@lEnd)})
+
+        DEFINE MSDIALOG oTDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
+
+            MENU oTMenu IMAGE "" OF oTDlg
                 MENUITEM cCadastro
                 MENU
-                    MENUITEM "Registers"
-                    MENU
-                        MENUITEM "SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRJMsNewProcess,"Importing SRJ :: "+Upper(FWSX2Util():GetX2Name("SRJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR6MsNewProcess,"Importing SR6 :: "+Upper(FWSX2Util():GetX2Name("SR6",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SPJ :: "+Upper(FWSX2Util():GetX2Name("SPJ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSPJMsNewProcess,"Importing SPJ :: "+Upper(FWSX2Util():GetX2Name("SPJ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRVMsNewProcess,"Importing SRV :: "+Upper(FWSX2Util():GetX2Name("SRV",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "RCE :: "+Upper(FWSX2Util():GetX2Name("RCE",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bRCEMsNewProcess,"Importing RCE :: "+Upper(FWSX2Util():GetX2Name("RCE",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SQB :: "+Upper(FWSX2Util():GetX2Name("SQB",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSQBMsNewProcess,"Importing SQB :: "+Upper(FWSX2Util():GetX2Name("SQB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                    ENDMENU
-                    MENUITEM "Employees"
-                    MENU
-                        MENUITEM "SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRAMsNewProcess,"Importing SRA :: "+Upper(FWSX2Util():GetX2Name("SRA",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRQMsNewProcess,"Importing SRQ :: "+Upper(FWSX2Util():GetX2Name("SRQ",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRBMsNewProcess,"Importing SRB :: "+Upper(FWSX2Util():GetX2Name("SRB",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRFMsNewProcess,"Importing SRF :: "+Upper(FWSX2Util():GetX2Name("SRF",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR3MsNewProcess,"Importing SR3 :: "+Upper(FWSX2Util():GetX2Name("SR3",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSR8MsNewProcess,"Importing SR8 :: "+Upper(FWSX2Util():GetX2Name("SR8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SP8 :: "+Upper(FWSX2Util():GetX2Name("SP8",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSP8MsNewProcess,"Importing SP8 :: "+Upper(FWSX2Util():GetX2Name("SP8",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                        MENUITEM "SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.)) ACTION (oMSNewProcess:=MsNewProcess():New(bSRDMsNewProcess,"Importing SRD :: "+Upper(FWSX2Util():GetX2Name("SRD",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),oMSNewProcess:Activate())
-                    ENDMENU
+                    aSections:=aClone(oTMenuOptions:GetAllSections())
+                    nSections:=Len(aSections)
+                    for nSection:=1 to nSections
+                        cSection:=aSections[nSection]
+                        aProperties:=aClone(oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):GetAllSections())
+                        nProperties:=Len(aProperties)
+                        MENUITEM cSection
+                        MENU
+                            for nProperty:=1 to nProperties
+                                cProperty:=aProperties[nProperty]
+                                cAlias:=oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):GetPropertyValue(cProperty,"Alias")
+                                cTMenuAction:=""
+                                beginContent var cTMenuAction
+                                    {||(
+                                        oMSNewProcess:=MsNewProcess():New(
+                                            bTMenuAction,
+                                            "Importing "+"cAlias"+" :: "+Upper(FWSX2Util():GetX2Name("cAlias",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),
+                                            oMSNewProcess:Activate()
+                                        )
+                                    }
+                                endContent
+                                cTMenuAction:=cTools():StrReplace(cTMenuAction,{CRLF,""},{CHR(10),""},{CHR(13),""},{" ",""})
+                                cTMenuAction:=cTools():StrReplace(cTMenuAction,{"cAlias",cAlias})
+                                cTMenuAction:=cTools():StrReplace(cTMenuAction,{"bTMenuAction",'oTMenuOptions:GetPropertyValue("'+cSection+'","ITEMS"):GetPropertyValue("'+cProperty+'","CodeBlock")'})
+                                bTMenuAction:=&(cTMenuAction)
+                                cTMenuAction:=""
+                                MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.)) 
+                                oTMenuItem:bAction:=bTMenuAction
+                            next nProperty
+                        ENDMENU
+                        FWFreeArray(@aProperties)
+                    next nSection
+                    FWFreeArray(@aSections)
                 ENDMENU
                 MENUITEM "Tools"
                 MENU
@@ -173,20 +219,30 @@ static method Activate() class Protheus
                     MENUITEM "Settings" ACTION CFGFile()
                 ENDMENU
                 MENU
-                    MENUITEM "Exit" ACTION oDlg:End()
+                    MENUITEM "Exit" ACTION oTDlg:End()
                 ENDMENU
             ENDMENU
 
-            oMenu:align:=CONTROL_ALIGN_LEFT
-            oDlg:SetMenu(oMenu)
+            oTMenu:align:=CONTROL_ALIGN_LEFT
+            oTDlg:SetMenu(oTMenu)
 
-        ACTIVATE DIALOG oDlg CENTERED
+        ACTIVATE DIALOG oTDlg CENTERED
 
-        oFont:=FreeObj(oFont)
-        oMenu:=FreeObj(oMenu)
-        oDlg:=FreeObj(oDlg)
+        oTFIni:Clean()
         oTFIni:=FreeObj(oTFIni)
+        
+        oTMenuOptions:Clean()
+        oTMenuOptions:=FreeObj(oTMenuOptions)
+
         oMSNewProcess:=FreeObj(oMSNewProcess)
+
+        oTFont:=FreeObj(oTFont)
+        oTMenuItem:=FreeObj(oTMenuItem)
+        oTMenu:=FreeObj(oTMenu)
+        oTDlg:=FreeObj(oTDlg)
+
+        FWFreeArray(@aSections)
+        FWFreeArray(@aProperties)
 
     end sequence
 
@@ -605,9 +661,9 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
 
 return(xValue)
 
-static function ProcRedefine(oProcess as object,oFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,lODlgF as logical,lODlgW as logical,lPercentage as logical,lFastMode as logical) as logical
+static function ProcRedefine(oProcess as object,oTFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,loTDlgF as logical,loTDlgW as logical,lPercentage as logical,lFastMode as logical) as logical
     local lProcRedefine as logical
-    lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oFont,@nLeft,@nWidth,@nCTLFLeft,@lODlgF,@lODlgW,lPercentage,lFastMode)
+    lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oTFont,@nLeft,@nWidth,@nCTLFLeft,@loTDlgF,@loTDlgW,lPercentage,lFastMode)
     return(lProcRedefine)
 
 static function SetFilAnt(cFil)
@@ -684,10 +740,10 @@ static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logi
 
     local nDlgWidth as numeric
 
-    local oDlg as object
-    local oFont as object
-    local oPanel as object
-    local oMemoEdit as object
+    local oTDlg as object
+    local oTFont as object
+    local oTPanel as object
+    local oTMemoEdit as object
 
     dfv():Default(@cMemoEdit,"")
 
@@ -705,31 +761,31 @@ static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logi
         cTitle+=" :: "
         cTitle+=cINIFile
 
-        DEFINE FONT oFont NAME "Courier New" SIZE 0,-11 BOLD
-        DEFINE MSDIALOG oDlg TITLE cTitle FROM aAdvSize[7],0 TO aAdvSize[6],aAdvSize[5] OF GetWndDefault() STYLE DS_MODALFRAME STATUS PIXEL
+        DEFINE FONT oTFont NAME "Courier New" SIZE 0,-11 BOLD
+        DEFINE MSDIALOG oTDlg TITLE cTitle FROM aAdvSize[7],0 TO aAdvSize[6],aAdvSize[5] OF GetWndDefault() STYLE DS_MODALFRAME STATUS PIXEL
 
-            nDlgWidth:=__DlgWidth(oDlg)
+            nDlgWidth:=__DlgWidth(oTDlg)
 
-            oPanel:=tPanel():New(0,0,"",oDlg,nil,nil,nil,nil,nil,nDlgWidth,nDlgWidth)
+            oTPanel:=tPanel():New(0,0,"",oTDlg,nil,nil,nil,nil,nil,nDlgWidth,nDlgWidth)
 
-            @(aObjSize[1][1]+5),(aObjSize[1][2]+5) GET oMemoEdit VAR cMemoEdit MEMO SIZE ((aObjSize[1][4]/100)*99),((aObjSize[1][3]/100)*88) FONT oFont CENTERED DESIGN OF oPanel PIXEL WHEN (.T.)
+            @(aObjSize[1][1]+5),(aObjSize[1][2]+5) GET oTMemoEdit VAR cMemoEdit MEMO SIZE ((aObjSize[1][4]/100)*99),((aObjSize[1][3]/100)*88) FONT oTFont CENTERED DESIGN OF oTPanel PIXEL WHEN (.T.)
 
-            oMemoEdit:lReadOnly:=.F.
-            oMemoEdit:EnableVScroll(.T.)
-            oMemoEdit:EnableHScroll(.T.)
+            oTMemoEdit:lReadOnly:=.F.
+            oTMemoEdit:EnableVScroll(.T.)
+            oTMemoEdit:EnableHScroll(.T.)
 
-            oDlg:lEscClose:=.F.
+            oTDlg:lEscClose:=.F.
 
-            bSet15:={||lOk:=ChgCFGFile(@cINIFile,@cMemoEdit,@cSVMemoEdit),if(lOk,oDlg:End(),lOK)}
-            bSet24:={||lOK:=.F.,oDlg:End()}
+            bSet15:={||lOk:=ChgCFGFile(@cINIFile,@cMemoEdit,@cSVMemoEdit),if(lOk,oTDlg:End(),lOK)}
+            bSet24:={||lOK:=.F.,oTDlg:End()}
 
             aButtons:=array(0)
             bNotepadCFGFile:={||MsProcess():MsAguarde({||NotepadCFGFile(cINIFile)},"Abrindo no NotepadCFGFile","Aguarde...")}
             aAdd(aButtons,{"NotepadCFGFile",bNotepadCFGFile,OemToAnsi("Abir no NotepadCFGFile"),OemtoAnsi("Abir no NotepadCFGFile")})
-            bRestoreCFGFile:={||MsProcess():MsAguarde({||RestoreCFGFile(cINIFile,@cMemoEdit,@oMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
+            bRestoreCFGFile:={||MsProcess():MsAguarde({||RestoreCFGFile(cINIFile,@cMemoEdit,@oTMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
             aAdd(aButtons,{"RestoreCFGFile",bRestoreCFGFile,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
 
-        ACTIVATE MSDIALOG oDlg CENTERED ON INIT EnchoiceBar(oDlg,bSet15,bSet24,nil,@aButtons)
+        ACTIVATE MSDIALOG oTDlg CENTERED ON INIT EnchoiceBar(oTDlg,bSet15,bSet24,nil,@aButtons)
 
     end sequence
 
@@ -900,7 +956,7 @@ static procedure NotepadCFGFile(cINIFile as character)
 
     return
 
-static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oMemoEdit as object,cSVMemoEdit as character) as logical
+static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oTMemoEdit as object,cSVMemoEdit as character) as logical
 
     local cMask as character
     local cTitle as character
@@ -957,7 +1013,7 @@ static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oMem
 
         cSvMemoEdit:=cMemoEdit
 
-        oMemoEdit:Refresh()
+        oTMemoEdit:Refresh()
 
     end sequence
 
