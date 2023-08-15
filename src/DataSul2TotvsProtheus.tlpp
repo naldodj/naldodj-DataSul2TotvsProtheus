@@ -198,12 +198,12 @@ static method Activate() class Protheus
 
         ACTIVATE DIALOG oTDlg CENTERED
 
-        oTFIni:FreeObj()
+        MsAguarde({||oTFIni:FreeObj()},"Releasing temporary files and workspace memory")
         if (valType(oTFIni)=="O")
             oTFIni:=FreeObj(oTFIni)
         endif
-        
-        oTMenuOptions:FreeObj()
+
+        MsAguarde({||oTMenuOptions:FreeObj()},"Releasing temporary files and workspace memory")
         if (valType(oTMenuOptions)=="O")
             oTMenuOptions:=FreeObj(oTMenuOptions)
         endif
@@ -219,20 +219,23 @@ static method Activate() class Protheus
 
     __SetCentury(if(lSetCentury,"ON","OFF"))
 
-    cacheData():delSection("datasul2totvsprotheus")
+    MsAguarde({||cacheData():delSection("datasul2totvsprotheus")},"Releasing temporary files and workspace memory")
 
     if (findFunction("RstPosAlias"))
         RstPosAlias()
     endif
 
     if (valType(st_oHMbTransform)=="O")
-        st_oHMbTransform:Clean()
+        MsAguarde({||st_oHMbTransform:Clean()},"Releasing temporary files and workspace memory")
         st_oHMbTransform:=FreeObj(st_oHMbTransform)
     endif
 
     DelClassIntF()
 
 return(lActivate)
+
+static method ImportData(oMsNewProcess,lEnd,oTLogReport,cAlias,cIndexKey,cTableImport,aAddIndex,lPreLoadTable,bCustomUpdate) class Protheus
+return(ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,@lPreLoadTable,@bCustomUpdate))
 
 static function ProcImportData(cAlias as character,lPercentage as logical,lFastMode as logical) as logical
 
@@ -293,9 +296,6 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     DelClassIntF()
 
 return(lImportData)
-
-static method ImportData(oMsNewProcess,lEnd,oTLogReport,cAlias,cIndexKey,cTableImport,aAddIndex,lPreLoadTable,bCustomUpdate) class Protheus
-return(ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,@lPreLoadTable,@bCustomUpdate))
 
 static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport as object,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array,lPreLoadTable as logical,bCustomUpdate as codeblock) as logical
 
@@ -382,6 +382,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     local cFieldsFilterBlock as character
 
+    local lLock as logical
     local lFound as logical
     local lAddNew as logical
     local lAppend as logical
@@ -940,7 +941,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                             if (cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
 
-                                if ((lUpdateTableFields).and.(cSeekTable)->(recLock(cSeekTable,.F.)))
+                                if ((lUpdateTableFields).and.(softLock(cSeekTable)))
+
+                                    (cSeekTable)->(recLock(cSeekTable,.F.))
 
                                     for nField:=1 to nUpdateTableSource
 
@@ -1197,7 +1200,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                             endif
                         endif
                     else
-                        if ((cAlias)->(recLock(cAlias,lAddNew)))
+                        if (!lAddNew)
+                            lLock:=softLock(cAlias)
+                            if (lLock)
+                                lLock:=((cAlias)->(recLock(cAlias,lAddNew)))
+                            endif
+                        else
+                           lLock:=((cAlias)->(recLock(cAlias,lAddNew))) 
+                        endif
+                        if (lLock)
                             for nField:=1 to nFields
                                 nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
                                 if (nTargetFieldPos==0)
@@ -1272,6 +1283,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             end while
 
+            for nField:=1 to nFields
+                cField:=aTargetFieldsDef[nField][1]
+                cacheData():delProperty("datasul2totvsprotheus",cField)
+            next nField
+            
             if (lEnd)
                 break
             endif
@@ -1305,7 +1321,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     end sequence
 
     SetFilAnt(cSVFilAnt)
-
+    
     CacheData():delSection("EvalBlock")
 
     if (valType(oFT)=="O")
@@ -2279,3 +2295,25 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
     endif
 
 return(lSendDataToServer)
+
+static function softLock(cAlias as character) as logical
+    local lLock as logical
+    ForceAsBlind(.T.)
+    lLock:=(cAlias)->(RecLock(cAlias,.F.,.F.,.T.,.T.))
+    ForceAsBlind(.F.)
+    return(lLock)
+
+static function ForceAsBlind(lIsBlind as logical) as logical
+    if (valtype(lIsBlind)=="L")
+        if (!lIsBlind)
+            __cInternet:=nil
+            HelpInDark(.F.)
+        endif
+    else
+        lIsBlind:=IsBlind()
+        if (!lIsBlind)
+            __cInternet:="AUTOMATICO"
+            HelpInDark(.T.)
+        endif
+    endif
+return(lIsBlind)    
