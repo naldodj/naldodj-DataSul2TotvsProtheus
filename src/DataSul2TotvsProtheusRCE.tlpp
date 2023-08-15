@@ -6,11 +6,10 @@
 #include "jsonhash.ch"
 #include "jsonarray.ch"
 
-class ImportRCE
-    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
-end class
+#include "execin.th"
+EXECIN CLASS RCEImport
 
-static method ImportData(oMsNewProcess,lEnd) class ImportRCE
+static function RCEImportData(oMsNewProcess as object,lEnd as logical) as logical
 
     local aAddIndex as array
 
@@ -18,7 +17,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportRCE
     local cIndexKey as character
     local cTableImport:="RCE" as character
 
-    local lImportRCE as logical
+    local lRCEImport as logical
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
     local oTLogReport:=tLogReport():New() as object
@@ -26,9 +25,9 @@ static method ImportData(oMsNewProcess,lEnd) class ImportRCE
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RCE_FILIAL+RCE_CODIGO"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RCE_FILIAL,RCE_CODIGO")),",")
 
-    lImportRCE:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lRCEImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
-    if (lImportRCE)
+    if (lRCEImport)
         ApMsgInfo(cAlias+" Table Import Completed","Info")
     else
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
@@ -42,4 +41,4 @@ static method ImportData(oMsNewProcess,lEnd) class ImportRCE
 
     DelClassIntF()
 
-return(lImportRCE)
+return(lRCEImport)

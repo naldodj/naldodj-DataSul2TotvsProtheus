@@ -1,10 +1,9 @@
 #include "totvs.ch"
 
-class ImportSRV
-    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
-end class
+#include "execin.th"
+EXECIN CLASS SRVImport
 
-static method ImportData(oMsNewProcess,lEnd) class ImportSRV
+static function SRVImportData(oMsNewProcess as object,lEnd as logical) as logical
 
     local aAddIndex as array
 
@@ -14,7 +13,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRV
 
     local cAliasTMP:=getNextAlias() as character
 
-    local lImportSRV as logical
+    local lSRVImport as logical
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
     local oTLogReport:=tLogReport():New() as object
@@ -29,11 +28,11 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRV
                AND SRV.RV_CODFOL<>''
         endSQL
 
-        lImportSRV:=((cAliasTMP)->RVCODFOL!=1)
+        lSRVImport:=((cAliasTMP)->RVCODFOL!=1)
         
         (cAliasTMP)->(dbCloseArea())
 
-        if (!lImportSRV)
+        if (!lSRVImport)
             ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table. Already Exists RV_CODFOL","Info")
             break
         endif
@@ -41,9 +40,9 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRV
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RV_FILIAL+RV_COD"))
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RV_FILIAL,RV_COD")),",")
 
-        lImportSRV:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRVImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
-        if (lImportSRV)
+        if (lSRVImport)
             ApMsgInfo(cAlias+" Table Import Completed","Info")
         else
             ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
@@ -59,4 +58,4 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRV
 
     DelClassIntF()
 
-return(lImportSRV)
+return(lSRVImport)

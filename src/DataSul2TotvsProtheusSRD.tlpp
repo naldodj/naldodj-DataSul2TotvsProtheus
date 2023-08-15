@@ -1,10 +1,9 @@
 #include "totvs.ch"
 
-class ImportSRD
-    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
-end class
+#include "execin.th"
+EXECIN CLASS SRDImport
 
-static method ImportData(oMsNewProcess,lEnd) class ImportSRD
+static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logical
 
     local aAddIndex as array
 
@@ -18,7 +17,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRD
     local cCompetenciaDe as character
     local cCompetenciaAte as character
 
-    local lImportSRD as logical
+    local lSRDImport as logical
     local lEnableFilterBlock as logical
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
@@ -51,9 +50,9 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRD
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN"))
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RD_FILIAL,RD_MAT,RD_CC,RD_ITEM,RD_CLVL,RD_DATARQ,RD_PD,RD_SEQ,RD_PERIODO,RD_SEMANA,RD_ROTEIR,RD_DTREF,RD_CONVOC,RD_NRBEN")),",")
 
-        lImportSRD:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRDImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
-        if (lImportSRD)
+        if (lSRDImport)
             ApMsgInfo(cAlias+" Table Import Completed","Info")
         else
             ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
@@ -74,7 +73,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRD
 
     DelClassIntF()
 
-return(lImportSRD)
+return(lSRDImport)
 
 static function SRDPergunte(oSRDPergunte as object) as logical
 

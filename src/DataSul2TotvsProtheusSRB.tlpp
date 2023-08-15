@@ -1,10 +1,9 @@
 #include "totvs.ch"
 
-class ImportSRB
-    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
-end class
+#include "execin.th"
+EXECIN CLASS SRBImport
 
-static method ImportData(oMsNewProcess,lEnd) class ImportSRB
+static function SRBImportData(oMsNewProcess as object,lEnd as logical) as logical
 
     local aAddIndex as array
 
@@ -12,7 +11,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRB
     local cIndexKey as character
     local cTableImport:="SRB" as character
 
-    local lImportSRB as logical
+    local lSRBImport as logical
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
     local oTLogReport:=tLogReport():New() as object
@@ -20,9 +19,9 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRB
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RB_FILIAL+RB_MAT+RB_COD"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RB_FILIAL,RB_MAT,RB_COD")),",")
 
-    lImportSRB:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSRBImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
-    if (lImportSRB)
+    if (lSRBImport)
         ApMsgInfo(cAlias+" Table Import Completed","Info")
     else
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
@@ -36,4 +35,4 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSRB
 
     DelClassIntF()
 
-return(lImportSRB)
+return(lSRBImport)

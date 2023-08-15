@@ -1,10 +1,9 @@
 #include "totvs.ch"
 
-class ImportSR6
-    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
-end class
+#include "execin.th"
+EXECIN CLASS SR6Import
 
-static method ImportData(oMsNewProcess,lEnd) class ImportSR6
+static function SR6ImportData(oMsNewProcess as object,lEnd as logical) as logical
 
     local aAddIndex as array
 
@@ -12,7 +11,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSR6
     local cIndexKey as character
     local cTableImport:="SR6" as character
 
-    local lImportSR6 as logical
+    local lSR6Import as logical
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
     local oTLogReport:=tLogReport():New() as object
@@ -20,9 +19,9 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSR6
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","R6_FILIAL+R6_TURNO"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","R6_FILIAL,R6_TURNO")),",")
 
-    lImportSR6:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSR6Import:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
-    if (lImportSR6)
+    if (lSR6Import)
         ApMsgInfo(cAlias+" Table Import Completed","Info")
     else
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
@@ -36,4 +35,4 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSR6
 
     DelClassIntF()
 
-return(lImportSR6)
+return(lSR6Import)

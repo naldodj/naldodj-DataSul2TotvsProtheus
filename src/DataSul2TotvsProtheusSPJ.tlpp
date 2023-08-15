@@ -1,15 +1,9 @@
 #include "totvs.ch"
 
-class ImportSPJ
+#include "execin.th"
+EXECIN CLASS SPJImport
 
-    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
-    static method getValue(xGet as variant,xDefault as variant) as variant
-    static method SPJORNTRAB(xGet as variant) as variant
-    static method Time2NextDay(cTime) as character
-
-end class
-
-static method ImportData(oMsNewProcess,lEnd) class ImportSPJ
+static function SPJImportData(oMsNewProcess as object,lEnd as logical) as logical
 
     local aAddIndex as array
 
@@ -24,7 +18,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSPJ
     local cPreLoadIndexKey as character
     local aPreLoadAddIndex as array
 
-    local lImportSPJ as logical
+    local lSPJImport as logical
     local lPreLoadTable as logical
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
@@ -42,13 +36,13 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSPJ
     lPreLoadTable:=((lPreLoadTable).and.(!empty(aPreLoadAddIndex)))
 
     if (lPreLoadTable)
-        lPreLoadTable:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cPreLoadAlias,@cPreLoadIndexKey,@cPreLoadTableImport,@aPreLoadAddIndex,@lPreLoadTable)
+        lPreLoadTable:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cPreLoadAlias,@cPreLoadIndexKey,@cPreLoadTableImport,@aPreLoadAddIndex,@lPreLoadTable)
     endif
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","PJ_FILIAL+PJ_TURNO+PJ_SEMANA+PJ_DIA"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","PJ_FILIAL,PJ_TURNO,PJ_SEMANA,PJ_DIA")),",")
 
-    lImportSPJ:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSPJImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lPreLoadTable)
         cTmpAlias:=cacheData():Get("datasul2totvsprotheus","import"+cPreLoadTableImport+"Alias")
@@ -62,7 +56,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSPJ
         endif
     endif
 
-    if (lImportSPJ)
+    if (lSPJImport)
         ApMsgInfo(cAlias+" Table Import Completed","Info")
     else
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
@@ -76,12 +70,12 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSPJ
 
     DelClassIntF()
 
-return(lImportSPJ)
+return(lSPJImport)
 
-static method getValue(xGet,xDefault) class ImportSPJ
+static function getValue(xGet,xDefault)
 return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
-static method SPJORNTRAB(xGet) class ImportSPJ
+static function SPJORNTRAB(xGet)
 
     local cKey as character
 
@@ -94,17 +88,17 @@ static method SPJORNTRAB(xGet) class ImportSPJ
 
     begin sequence
         
-        cAliasSPJORNTRAB:=ImportSPJ():GetValue("importSPJORNTRABAlias")
+        cAliasSPJORNTRAB:=GetValue("SPJImportORNTRABAlias")
         if ((Empty(cAliasSPJORNTRAB)).or.(Select(cAliasSPJORNTRAB)==0))
             break
         endif
         
-        cPJ_XJNTRAB:=ImportSPJ():GetValue("PJ_XJNTRAB")
+        cPJ_XJNTRAB:=GetValue("PJ_XJNTRAB")
         if ((valType(cPJ_XJNTRAB)!="C").or.(empty(cPJ_XJNTRAB)))
             break
         endif
         
-        cPJ_TPDIA:=ImportSPJ():GetValue("PJ_TPDIA")
+        cPJ_TPDIA:=GetValue("PJ_TPDIA")
         if ((valType(cPJ_TPDIA)!="C").or.(empty(cPJ_TPDIA)))
             break
         endif
@@ -118,5 +112,5 @@ static method SPJORNTRAB(xGet) class ImportSPJ
 
 return(xRet)
 
-static method Time2NextDay(cTime) class ImportSPJ
+static function Time2NextDay(cTime)
 return(timeCalc():Time2NextDay(cTime)[1])

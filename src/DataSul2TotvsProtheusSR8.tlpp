@@ -1,11 +1,9 @@
 #include "totvs.ch"
 
-class ImportSR8
-    static method ImportData(oMsNewProcess as object,lEnd as logical) as logical
-    static method getR8Seq() as character
-end class
+#include "execin.th"
+EXECIN CLASS SR8Import
 
-static method ImportData(oMsNewProcess,lEnd) class ImportSR8
+static function SR8ImportData(oMsNewProcess as object,lEnd as logical) as logical
 
     local aAddIndex as array
 
@@ -13,7 +11,7 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSR8
     local cIndexKey as character
     local cTableImport:="SR8" as character
 
-    local lImportSR8 as logical
+    local lSR8Import as logical
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
     local oTLogReport:=tLogReport():New() as object
@@ -21,9 +19,9 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSR8
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","R8_FILIAL,R8_MAT,R8_DATAINI,R8_TIPO,R8_TIPOAFA")),",")
 
-    lImportSR8:=datasul2totvs.ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSR8Import:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
-    if (lImportSR8)
+    if (lSR8Import)
         ApMsgInfo(cAlias+" Table Import Completed","Info")
     else
         ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
@@ -42,9 +40,9 @@ static method ImportData(oMsNewProcess,lEnd) class ImportSR8
 
     DelClassIntF()
 
-return(lImportSR8)
+return(lSR8Import)
 
-static method getR8Seq() class ImportSR8
+static function getR8Seq()
 
     static c_stHMSR8SeqKey as character
 
@@ -66,7 +64,7 @@ static method getR8Seq() class ImportSR8
     begin sequence
 
         if (type("cPVTSR8Alias")!="C")
-            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvsprotheus","importSR8Alias","__NOALIAS__"),cStack)
+            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvsprotheus","SR8ImportAlias","__NOALIAS__"),cStack)
         endif
 
         cTmpAlias:=cPVTSR8Alias

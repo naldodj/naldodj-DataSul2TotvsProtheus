@@ -19,6 +19,7 @@ namespace datasul2totvs
 
 class Protheus
     static method Activate() as logical
+    static method ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport as object,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array,lPreLoadTable as logical,bCustomUpdate as codeblock) as logical
 end class
 
 static method Activate() class Protheus
@@ -32,7 +33,6 @@ static method Activate() class Protheus
     local cSection as character
     local cProperty as character
     local cTMenuAction as character
-
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
     local cGetFileTitle as character
@@ -52,13 +52,12 @@ static method Activate() class Protheus
 
     local oTDlg as object
     local oTMenu as object
-    local oTFont as object
     local oFWDefSize as object
 
     local oTFIni as object
     
     local oTMenuItem as object
-    local oMSNewProcess as object
+    local oTMenuOptions as object
 
     private st_oHMbTransform:=THashMap():New() as object
 
@@ -122,57 +121,29 @@ static method Activate() class Protheus
         nBottom:=oFWDefSize:aWindSize[3]
         nRight:=oFWDefSize:aWindSize[4]
 
-        oTFont:=TFont():New("Courier New",nil,16,nil,.T.)
-
-        private oTMenuOptions:=tHash():New() as object
+        oTMenuOptions:=Array(#)
 
         cSection:="Registers"
-        oTMenuOptions:SetPropertyValue(cSection,"ITEMS",tHash():New())
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("01","Alias","SRJ")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("01","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRJ():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("02","Alias","SR6")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("02","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR6():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("03","Alias","SPJ")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("03","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSPJ():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("04","Alias","SRV")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("04","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRV():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("05","Alias","RCE")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("05","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportRCE():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("06","Alias","SQB")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("06","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSQB():ImportData(oMSNewProcess,@lEnd)})
+        oTMenuOptions[#cSection]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"][#"01"]:="SRJ"
+        oTMenuOptions[#cSection][#"Alias"][#"02"]:="SR6"
+        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SPJ"
+        oTMenuOptions[#cSection][#"Alias"][#"04"]:="SRV"
+        oTMenuOptions[#cSection][#"Alias"][#"05"]:="RCE"
+        oTMenuOptions[#cSection][#"Alias"][#"06"]:="SQB"
 
         cSection:="Employees"
-        oTMenuOptions:SetPropertyValue(cSection,"ITEMS",tHash():New())
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("01","Alias","SRJ")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("01","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRA():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("02","Alias","SRB")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("02","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRB():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("03","Alias","SRD")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("03","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRD():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("04","Alias","SRF")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("04","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRF():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("05","Alias","SRQ")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("05","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSRQ():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("06","Alias","SR3")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("06","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR3():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("07","Alias","SR8")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("07","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSR8():ImportData(oMSNewProcess,@lEnd)})
-
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("08","Alias","SP8")
-        oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):SetPropertyValue("08","CodeBlock",{|lEnd|ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),ImportSP8():ImportData(oMSNewProcess,@lEnd)})
+        oTMenuOptions[#cSection]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"][#"01"]:="SRA"
+        oTMenuOptions[#cSection][#"Alias"][#"02"]:="SRB"
+        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SRD"
+        oTMenuOptions[#cSection][#"Alias"][#"04"]:="SRF"
+        oTMenuOptions[#cSection][#"Alias"][#"05"]:="SRQ"
+        oTMenuOptions[#cSection][#"Alias"][#"06"]:="SR3"
+        oTMenuOptions[#cSection][#"Alias"][#"07"]:="SR8"
+        oTMenuOptions[#cSection][#"Alias"][#"08"]:="SP8"
 
         DEFINE MSDIALOG oTDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
@@ -183,26 +154,25 @@ static method Activate() class Protheus
                     nSections:=Len(aSections)
                     for nSection:=1 to nSections
                         cSection:=aSections[nSection]
-                        aProperties:=aClone(oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):GetAllSections())
+                        aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
                         nProperties:=Len(aProperties)
                         MENUITEM cSection
                         MENU
                             for nProperty:=1 to nProperties
                                 cProperty:=aProperties[nProperty]
-                                cAlias:=oTMenuOptions:GetPropertyValue(cSection,"ITEMS"):GetPropertyValue(cProperty,"Alias")
-                                cTMenuAction:=""
+                                cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
                                 beginContent var cTMenuAction
-                                    {||(
-                                        oMSNewProcess:=MsNewProcess():New(
-                                            bTMenuAction,
-                                            "Importing "+"cAlias"+" :: "+Upper(FWSX2Util():GetX2Name("cAlias",.F.))+" :: ["+DToC(Date())+"]["+Time()+"]","Wait!",.T.),
-                                            oMSNewProcess:Activate()
-                                        )
-                                    }
+                                    {||datasul2totvs.ProcImportData("cAlias",lPercentage,lFastMode)}
                                 endContent
-                                cTMenuAction:=cTools():StrReplace(cTMenuAction,{CRLF,""},{CHR(10),""},{CHR(13),""},{" ",""})
-                                cTMenuAction:=cTools():StrReplace(cTMenuAction,{"cAlias",cAlias})
-                                cTMenuAction:=cTools():StrReplace(cTMenuAction,{"bTMenuAction",'oTMenuOptions:GetPropertyValue("'+cSection+'","ITEMS"):GetPropertyValue("'+cProperty+'","CodeBlock")'})
+                                cTMenuAction:=cTools():StrReplace(cTMenuAction,;
+                                    {CRLF,""},;
+                                    {CHR(10),""},;
+                                    {CHR(13),""},;
+                                    {" ",""},;
+                                    {"cAlias",cAlias},;
+                                    {"lPercentage",IF(lPercentage,".T.",".F.")},;
+                                    {"lFastMode",IF(lFastMode,".T.",".F.")};
+                                )
                                 bTMenuAction:=&(cTMenuAction)
                                 cTMenuAction:=""
                                 MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.)) 
@@ -228,15 +198,16 @@ static method Activate() class Protheus
 
         ACTIVATE DIALOG oTDlg CENTERED
 
-        oTFIni:Clean()
-        oTFIni:=FreeObj(oTFIni)
+        oTFIni:FreeObj()
+        if (valType(oTFIni)=="O")
+            oTFIni:=FreeObj(oTFIni)
+        endif
         
-        oTMenuOptions:Clean()
-        oTMenuOptions:=FreeObj(oTMenuOptions)
+        oTMenuOptions:FreeObj()
+        if (valType(oTMenuOptions)=="O")
+            oTMenuOptions:=FreeObj(oTMenuOptions)
+        endif
 
-        oMSNewProcess:=FreeObj(oMSNewProcess)
-
-        oTFont:=FreeObj(oTFont)
         oTMenuItem:=FreeObj(oTMenuItem)
         oTMenu:=FreeObj(oTMenu)
         oTDlg:=FreeObj(oTDlg)
@@ -263,928 +234,68 @@ static method Activate() class Protheus
 
 return(lActivate)
 
-static function readIniFile(cINIFile as character) as logical
+static function ProcImportData(cAlias as character,lPercentage as logical,lFastMode as logical) as logical
 
-    local cRootPath as character
+    local aByRef as array
 
-    local cSPPDrive as character
-    local cSPPPath as character
-    local cSPPFile as character
-    local cSPPExt as character
+    local bProcImportData as codeblock
 
-    local lreadIniFile:=.F. as logical
+    local cMsgProcImportData as character
 
-    local oTFIni as object
+    local lEnd as logical
+    local lEvalOK as logical
+    local lImportData as logical
 
-    begin sequence
+    local oTFont as object
+    local oParameters:=Array(#) as object
+    local oMSNewProcess as object
 
-        lreadIniFile:=(!empty(cINIFile).and.(File(cINIFile)))
-        if (!lreadIniFile)
-            ApMsgAlert("Configuration file invalid or not found","Attention")
-            break
-        endif
+    cMsgProcImportData:="Importing :: "
+    cMsgProcImportData+=cAlias
+    cMsgProcImportData+=" :: "
+    cMsgProcImportData+=Upper(FWSX2Util():GetX2Name(cAlias,.F.))
+    cMsgProcImportData+=" :: ["+DToC(Date())+"]["+Time()+"]"
 
-        SplitPath(cINIFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+    oTFont:=TFont():New("Courier New",nil,16,nil,.T.)
+    bProcImportData:={||datasul2totvs.ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),lImportData:=ExecIn():evalJSONArrayObject(@oParameters,@aByRef,@lEvalOK)}
+    oMSNewProcess:=MsNewProcess():New(bProcImportData,cMsgProcImportData,"Wait!",.T.)
 
-        cRootPath:=cSPPDrive
-        cRootPath+=cSPPPath
+    oParameters[#"ClassName"]:=cAlias+"Import"
+    oParameters[#"FunctionName"]:=cAlias+"ImportData"
+    oParameters[#"FunctionParameters"]:=Array(#)
+    oParameters[#"FunctionParameters"][#"oMSNewProcess"]:=oMSNewProcess
+    oParameters[#"FunctionParameters"][#"lEnd"]:=lEnd
 
-        cacheData():Set("datasul2totvsprotheus","cINIFile",cINIFile)
-        cacheData():Set("datasul2totvsprotheus","cRootPath",cRootPath)
+    oMSNewProcess:Activate()
 
-        oTFIni:=TFIni():New(cINIFile,"#")
-
-        cacheData():Set("datasul2totvsprotheus","readIniFile",oTFIni)
-
-    end sequence
-
-return(lreadIniFile)
-
-static function readTableDefinition() as logical
-
-    local aFieldDef as array
-    local aFieldDefTmp as array
-    local aFieldsDef:=array(0) as array
-    local aTablesImport as array
-
-    local cLine as character
-    local cLineUTF8 as character
-
-    local cTable as character
-    local cRootPath as character
-    local cTablesDefinition as character
-    local cFileTablesDefinition as character
-
-    local lTypeReplicate:=.F. as logical
-    local lSkipTable:=.F. as logical
-    local lreadTableDefinition:=.F. as logical
-
-    local nField as numeric
-    local nFields as numeric
-
-    local nft_fRecNo as numeric
-    local nft_fHandle as numeric
-
-    local nTypeReplicate as numeric
-
-    local oFT as object
-    local oTFIni as object
-    local oHMTablesImport as object
-
-    begin sequence
-
-        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
-
-        aTablesImport:=aClone(oTFIni:GetAllProperties("TablesImport"))
-        lreadTableDefinition:=(!empty(aTablesImport))
-        if (!lreadTableDefinition)
-            ApMsgAlert("Invalid import tables","Attention")
-            break
-        endif
-
-        cTablesDefinition:=allTrim(oTFIni:GetPropertyValue("Tables","TablesDefinition",""))
-        lreadTableDefinition:=(!empty(cTablesDefinition))
-        if (!lreadTableDefinition)
-            ApMsgAlert("Invalid TablesDefinition","Attention")
-            break
-        endif
-
-        cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
-        cFileTablesDefinition:=(cRootPath+".."+cTablesDefinition)
-        lreadTableDefinition:=file(cFileTablesDefinition)
-        if (!lreadTableDefinition)
-            ApMsgAlert("File ("+cFileTablesDefinition+") with the definitions of the tables not found","Attention")
-            break
-        endif
-
-        oFT:=uft():New()
-
-        nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)
-        lreadTableDefinition:=(nft_fHandle>=0)
-        if (!lreadTableDefinition)
-            oFT:ft_fUse()
-            oFT:=FreeObj(oFT)
-            ApMsgAlert("Could not open the file: "+cFileTablesDefinition,"Attention")
-            break
-        endif
-
-        oHMTablesImport:=aToHM(aTablesImport,2)
-
-        oFT:ft_fGoTop()
-
-        while (!oFT:ft_fEof())
-            cLine:=oFT:ft_fReadLN()
-            begin sequence
-                if (empty(cLine))
-                    break
-                endif
-                cTable:=""
-                if ("Table:"==Left(cLine,6))
-                    cTable:=strTran(cLine,"Table:","")
-                    cTable:=allTrim(cTable)
-                    lSkipTable:=(!oHMTablesImport:Get(cTable))
-                    if (lSkipTable)
-                        break
-                    else
-                        oFT:ft_fDelete()
-                        oFT:ft_fSkip()
-                    endif
-                    aSize(aFieldsDef,0)
-                    while (!oFT:ft_fEof())
-                        cLine:=oFT:ft_fReadLN()
-                        if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
-                            oFT:ft_fDelete()
-                            oFT:ft_fSkip()
-                            loop
-                        endif
-                        if ("Table:"==Left(cLine,6))
-                            cacheData():Set("datasul2totvsprotheus",cTable,aClone(aFieldsDef))
-                            aSize(aFieldsDef,0)
-                            nft_fRecNo:=oFT:ft_fRecNo()
-                            oFT:ft_fGoTo(nft_fRecNo-1)
-                            break
-                        endif
-                        cLine:=cTools():StrReplace(cLine,{"  "," "})
-                        cLineUTF8:=DecodeUTF8(cLine)
-                        if (empty(cLineUTF8))
-                            cLine:=OemToAnsi(cLine)
-                        else
-                            cLine:=cLineUTF8
-                        endif
-                        cLineUTF8:=""
-                        aFieldDef:=strTokArr2(cLine," ")
-                        cLine:=""
-                        if (len(aFieldDef)!=DTS_DBS_ALEN)
-                            aFieldDefTmp:=array(DTS_DBS_ALEN)
-                            aFieldDefTmp[DTS_DBS_NAME]:=aFieldDef[DTS_DBS_NAME]
-                            aFieldDefTmp[DTS_DBS_TYPE]:=aFieldDef[DTS_DBS_TYPE]
-                            aFieldDefTmp[DTS_DBS_FLG]:=""//DTS_DBS_FLG
-                            aFieldDefTmp[DTS_DBS_FORMAT]:=aFieldDef[DTS_DBS_FLG]
-                            aFieldDef:=aClone(aFieldDefTmp)
-                            FWFreeArray(@aFieldDefTmp)
-                        endif
-                        nTypeReplicate:=AT("[",aFieldDef[DTS_DBS_TYPE])
-                        lTypeReplicate:=(nTypeReplicate>0)
-                        if (lTypeReplicate)
-                            nFields:=val(subStr(aFieldDef[DTS_DBS_TYPE],(nTypeReplicate+1),(AT("]",aFieldDef[DTS_DBS_TYPE])-1)))
-                            aAdd(aFieldsDef,aClone(aFieldDef))
-                            if (nFields>1)
-                                aFieldDefTmp:=aClone(aFieldDef)
-                                cacheData():Set("datasul2totvsprotheus",cTable+"_TypeReplicate",lTypeReplicate)
-                                cacheData():Set("datasul2totvsprotheus",aFieldDef[DTS_DBS_NAME]+"_TypeReplicate",nFields)
-                                for nField:=2 to nFields
-                                    aFieldDef[DTS_DBS_NAME]:=(aFieldDefTmp[DTS_DBS_NAME]+cTools():NToS(nField))
-                                    aAdd(aFieldsDef,aClone(aFieldDef))
-                                next nField
-                                FWFreeArray(@aFieldDefTmp)
-                            endif
-                        else
-                            aAdd(aFieldsDef,aClone(aFieldDef))
-                        endif
-                        FWFreeArray(@aFieldDef)
-                        oFT:ft_fDelete()
-                        oFT:ft_fSkip()
-                    end while
-                    cacheData():Set("datasul2totvsprotheus",cTable,aClone(aFieldsDef))
-                    aSize(aFieldsDef,0)
-                elseif (lSkipTable)
-                    break
-                endif
-            end sequence
-            oFT:ft_fDelete()
-            oFT:ft_fSkip()
-        end while
-
-    end sequence
-
-    if (valType(oFT)=="O")
-        oFT:ft_fUse()
-        oFT:=FreeObj(oFT)
+    if (lEvalOK)
+        lEnd:=aByRef[2]
+    else
+        lImportData:=.F.
     endif
 
-    FWFreeArray(@aFieldsDef)
+    oParameters[#"ClassName"]:=nil
+    oParameters[#"FunctionName"]:=nil
+    oParameters[#"FunctionParameters"][#"oMSNewProcess"]:=nil
+    oParameters[#"FunctionParameters"][#"lEnd"]:=nil
+    oParameters[#"FunctionParameters"]:FreeObj()
 
-    if (valtype(oHMTablesImport)=="O")
-        oHMTablesImport:Clean()
-        oHMTablesImport:=FreeObj(oHMTablesImport)
+    oParameters:FreeObj()
+    if (valType(oParameters)=="O")
+        oParameters:=FreeObj(oParameters)
     endif
 
-    if (valtype(aTablesImport)=="A")
-        FWFreeArray(@aTablesImport)
-    endif
+    oTFont:=FreeObj(oTFont)
+    oMSNewProcess:=FreeObj(oMSNewProcess)
+
+    FWFreeArray(@aByRef)
 
     DelClassIntF()
 
-return(lreadTableDefinition)
+return(lImportData)
 
-static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array,oHMSourceFieldsDef as object,cType as character) as variant
-
-    local aValueField as array
-    local aSourceField as array
-
-    local bTransform as codeblock
-
-    local cTransform as character
-    local cSourceField as character
-
-    local lSourceTransform as logical
-
-    local nLineSize:=Len(aLine) as numeric
-    local nSourceField as numeric
-    local nSourceFields as numeric
-    local nSourceFieldAT as numeric
-
-    local xValue as variant
-
-    begin sequence
-
-        cSourceField:=aTargetField[2]
-        lSourceTransform:=("@"==Left(cSourceField,1))
-        if (lSourceTransform)
-            cSourceField:=subStr(cSourceField,2)
-        endif
-        aSourceField:=strToKArr2(cSourceField,"+")
-        nSourceFields:=len(aSourceField)
-        aValueField:=Array(nSourceFields,2)
-        for nSourceField:=1 to nSourceFields
-            cSourceField:=aSourceField[nSourceField]
-            if (!oHMSourceFieldsDef:Get(cSourceField,@cType))
-                loop
-            endif
-            if (!oHMSourceFieldsDef:Get(cSourceField+"_AT",@nSourceFieldAT))
-                loop
-            endif
-            lHasError:=(nSourceFieldAT>nLineSize)
-            if (lHasError)
-                break
-            endif
-            aValueField[nSourceField][1]:=NormalizeData(@lHasError,aLine[nSourceFieldAT],@cType,@cSourceField,@lSourceTransform,@st_oHMbTransform,@oTFIni)
-            if (lHasError)
-                break
-            endif
-            aValueField[nSourceField][2]:=cType
-            if (cType=="char")
-                xValue:=""
-            endif
-        next nSourceField
-
-        for nSourceField:=1 to nSourceFields
-            if (aValueField[nSourceField][2]=="char")
-                xValue+=aValueField[nSourceField][1]
-            else
-                xValue:=aValueField[nSourceField][1]
-            endif
-        next nSourceField
-
-        if (!st_oHMbTransform:Get(cTargetField,@bTransform))
-            cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,"Transform",""))
-            if (cTransform=="FindInTable")
-                cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,cTransform,""))
-                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
-            elseif (!empty(cTransform))
-                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
-            endif
-            st_oHMbTransform:Set(cTargetField,bTransform)
-        endif
-
-        if (valtype(bTransform)=="B")
-            lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,@oTFIni,@cType)},nil,.F.,nil,nil))
-        endif
-
-    end sequence
-
-    cacheData():Set("datasul2totvsprotheus",cTargetField,xValue)
-
-    FWFreeArray(@aValueField)
-    FwFreeArray(@aSourceField)
-
-return(xValue)
-
-static function NormalizeData(lHasError as logical,xValue as variant,cType as character,cSourceField as character,lSourceTransform as logical,st_oHMbTransform as object,oTFIni as object) as variant
-
-    local bTransform as codeblock
-
-    local cTransform as character
-
-    if (lSourceTransform)
-        if (!st_oHMbTransform:Get(cSourceField,@bTransform))
-            cTransform:=allTrim(oTFIni:GetPropertyValue(cSourceField,"Transform",""))
-            if (cTransform=="FindInTable")
-                cTransform:=allTrim(oTFIni:GetPropertyValue(cSourceField,cTransform,""))
-                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
-            elseif (!empty(cTransform))
-                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
-            endif
-            if (!lHasError)
-                st_oHMbTransform:Set(cSourceField,bTransform)
-            endif
-        endif
-        if (valtype(bTransform)=="B")
-            lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,oTFIni,@cType)},nil,.F.,nil,nil))
-            if (!lHasError)
-                xValue:=NormalizeData(@lHasError,xValue,@cType,nil,.F.,nil,nil)
-            endif
-        endif
-    else
-        if (valType(xValue)=="C")
-            if ("char"$cType)
-                xValue:=strTran(xValue,'"',"")
-            elseif ("inte"$cType)
-                xValue:=Int(val(xValue))
-            elseif ("deci"$cType)
-                if (","$xValue)
-                    xValue:=strTran(xValue,",",".")
-                endif
-                xValue:=val(xValue)
-            elseif ("date"$cType)
-                xValue:=CToD(xValue)
-            elseif ("logi"$cType)
-                xValue:=(Left(lower(xValue),1)$"sty1")
-            endif
-        endif
-    endif
-
-return(xValue)
-
-static function FindInTable(oTFIni as object,cTable as character,xValue as variant,lTableInFile as logical)
-
-    local cType as character
-
-    local cINIFile as character
-    local cRootPath as character
-
-    local oTFIniTable as object
-
-    local xTmp as variant
-
-    cType:=valType(xValue)
-    if (cType=="N")
-        xValue:=ctools():NToS(xValue)
-    elseif (cType!="C")
-        xValue:=cValToChar(xValue)
-    endif
-
-    if (oTFIni:ExistSection(cTable))
-        if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
-            dfv():Default(@lTableInFile,.F.)
-            if (lTableInFile)
-                oTFIniTable:=cacheData():Get("datasul2totvsprotheus",cTable,nil)
-                if (oTFIniTable==nil)
-                    cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
-                    cINIFile:=cRootPath
-                    cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
-                    oTFIniTable:=TFIni():New(cINIFile,"#")
-                    cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
-                endif
-                xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
-                if ((empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
-                    xTmp:=oTFIniTable:GetPropertyValue(cTable,"__DFV__","")
-                endif
-                xValue:=xTmp
-            else
-                oTFIniTable:=cacheData():Get("datasul2totvsprotheus",cTable,nil)
-                if (oTFIniTable==nil)
-                    cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
-                    cINIFile:=cRootPath
-                    cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
-                    oTFIniTable:=TFIni():New(cINIFile,"#")
-                    cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
-                endif
-                xValue:=FindInTable(oTFIniTable,cTable,xValue)
-            endif
-        elseif ((oTFIni:GetATProperty(cTable,xValue)>0))
-            xValue:=oTFIni:GetPropertyValue(cTable,xValue,"")
-        elseif ((oTFIni:GetATProperty(cTable,"__DFV__")>0))
-            xValue:=oTFIni:GetPropertyValue(cTable,"__DFV__","")
-        endif
-    endif
-
-return(xValue)
-
-static function ProcRedefine(oProcess as object,oTFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,loTDlgF as logical,loTDlgW as logical,lPercentage as logical,lFastMode as logical) as logical
-    local lProcRedefine as logical
-    lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oTFont,@nLeft,@nWidth,@nCTLFLeft,@loTDlgF,@loTDlgW,lPercentage,lFastMode)
-    return(lProcRedefine)
-
-static function SetFilAnt(cFil)
-    local cSvFilAnt:=&("cFilAnt") as character
-    if (valType("cFilAnt")=="C")
-        cSvFilAnt:=&("cFilAnt")
-        if (cFil!=cSvFilAnt)
-            &("cFilAnt"):=cFil
-            FWSM0Util():setSM0PositionBycFilAnt()
-        endif
-    endif
-return(cSvFilAnt)
-
-static procedure CFGFile()
-
-    local cINIFile as character
-    local cMemoEdit as character
-    local cGetFileRoot as character
-    local cGetFileMask as character
-    local cGetFileTitle as character
-
-    local lHasINIFile as logical
-
-    local nGetFileOptions as numeric
-
-    begin sequence
-
-        cGetFileRoot:=cacheData():Get("datasul2totvsprotheus","cRootPath")
-        cGetFileMask:="Arquivo de Configuração | *.ini"
-        cGetFileTitle:="Arquivo de Configuração *.ini"
-        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
-        cINIFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
-
-        lHasINIFile:=File(cINIFile)
-        if (!lHasINIFile)
-            break
-        endif
-
-        cMemoEdit:=ReadMemoCFGFile(cINIFile)
-
-        if (EdtCFGFile(@cINIFile,@cMemoEdit))
-            if (!("datasul2protheus.ini"$lower(cINIFile)))
-                cINIFile:=cacheData():Get("datasul2totvsprotheus","cINIFile")
-            endif
-            cacheData():delSection("datasul2totvsprotheus")
-            if (valType(st_oHMbTransform)=="O")
-                st_oHMbTransform:Clean()
-            endif
-            MsAguarde({||readIniFile(@cINIFile)},"Loading Settings","Wait")
-            MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
-        endif
-
-    end sequence
-
-    return
-
-static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logical
-
-    local aButtons as array
-    local aAdvSize as array
-    local aObjSize as array
-    local aObjCoords as array
-    local aInfoAdvSize as array
-
-    local bSet15 as codeblock
-    local bSet24 as codeblock
-    local bNotepadCFGFile as codeblock
-    local bRestoreCFGFile as codeblock
-
-    local cTitle as character
-    local cSVMemoEdit as character
-
-    local lOk as logical
-
-    local nDlgWidth as numeric
-
-    local oTDlg as object
-    local oTFont as object
-    local oTPanel as object
-    local oTMemoEdit as object
-
-    dfv():Default(@cMemoEdit,"")
-
-    cSVMemoEdit:=cMemoEdit
-
-    begin sequence
-
-        aAdvSize:=MsAdvSize()
-        aInfoAdvSize:={aAdvSize[1],aAdvSize[2],aAdvSize[3],aAdvSize[4],0,0}
-        aObjCoords:=array(0)
-        aAdd(aObjCoords,{0,0,.T.,.T.})
-        aObjSize:=MsObjSize(aInfoAdvSize,aObjCoords)
-
-        cTitle:="ARQUIVO CONFIGURACAO "
-        cTitle+=" :: "
-        cTitle+=cINIFile
-
-        DEFINE FONT oTFont NAME "Courier New" SIZE 0,-11 BOLD
-        DEFINE MSDIALOG oTDlg TITLE cTitle FROM aAdvSize[7],0 TO aAdvSize[6],aAdvSize[5] OF GetWndDefault() STYLE DS_MODALFRAME STATUS PIXEL
-
-            nDlgWidth:=__DlgWidth(oTDlg)
-
-            oTPanel:=tPanel():New(0,0,"",oTDlg,nil,nil,nil,nil,nil,nDlgWidth,nDlgWidth)
-
-            @(aObjSize[1][1]+5),(aObjSize[1][2]+5) GET oTMemoEdit VAR cMemoEdit MEMO SIZE ((aObjSize[1][4]/100)*99),((aObjSize[1][3]/100)*88) FONT oTFont CENTERED DESIGN OF oTPanel PIXEL WHEN (.T.)
-
-            oTMemoEdit:lReadOnly:=.F.
-            oTMemoEdit:EnableVScroll(.T.)
-            oTMemoEdit:EnableHScroll(.T.)
-
-            oTDlg:lEscClose:=.F.
-
-            bSet15:={||lOk:=ChgCFGFile(@cINIFile,@cMemoEdit,@cSVMemoEdit),if(lOk,oTDlg:End(),lOK)}
-            bSet24:={||lOK:=.F.,oTDlg:End()}
-
-            aButtons:=array(0)
-            bNotepadCFGFile:={||MsProcess():MsAguarde({||NotepadCFGFile(cINIFile)},"Abrindo no NotepadCFGFile","Aguarde...")}
-            aAdd(aButtons,{"NotepadCFGFile",bNotepadCFGFile,OemToAnsi("Abir no NotepadCFGFile"),OemtoAnsi("Abir no NotepadCFGFile")})
-            bRestoreCFGFile:={||MsProcess():MsAguarde({||RestoreCFGFile(cINIFile,@cMemoEdit,@oTMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
-            aAdd(aButtons,{"RestoreCFGFile",bRestoreCFGFile,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
-
-        ACTIVATE MSDIALOG oTDlg CENTERED ON INIT EnchoiceBar(oTDlg,bSet15,bSet24,nil,@aButtons)
-
-    end sequence
-
-    return(lOk)
-
-static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoEdit as character) as logical
-
-    local cMsg as character
-    local cTitle as character
-
-    local cSPDriver as character
-    local cSPPath as character
-    local cSPFileName as character
-    local cSPFileExt as character
-
-    local cFWWSBKP as character
-
-    local lFilial as logical
-    local lEmpresa as logical
-    local lChgCFGFile as logical
-
-    local nAttemps as numeric
-
-    lFilial:=(type("cFilAnt")=="C")
-    lEmpresa:=(type("cEmpAnt")=="C")
-
-    begin sequence
-
-        lChgCFGFile:=(cMemoEdit==cSVMemoEdit)
-        if (lChgCFGFile)
-            break
-        endif
-
-        cSPDriver:=""
-        cSPPath:=""
-        cSPFileName:=""
-        cSPFileExt:=""
-
-        SplitPath(cINIFile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
-
-        cMsg:="Deseja Gravar as Alteracoes?"
-
-        cTitle:="ARQUIVO CONFIGURACAO  :: "
-        cTitle+=cSPFileName
-
-        lChgCFGFile:=ApMsgYesNo(cMsg,cTitle)
-        if (!lChgCFGFile)
-            break
-        endif
-
-        cFWWSBKP:=cSPDriver
-        cFWWSBKP+=cSPPath
-        cFWWSBKP+=cSPFileName
-        cFWWSBKP+=cSPFileExt
-        cFWWSBKP+="-"
-        cFWWSBKP+=__cUserID
-        cFWWSBKP+="-"
-        cFWWSBKP+=DToS(Date())
-        cFWWSBKP+="-"
-        cFWWSBKP+=strTran(Time(),":","-")
-        cFWWSBKP+="-"
-        cFWWSBKP+=strZero(ranDomize(1,999),3)
-
-        nAttemps:=0
-
-        cMsg:="O arquivo "
-        cMsg+=cINIFile
-        cMsg+=" encontra-se em uso deseja tentar novamente?"
-
-        while (!LockByName(cSPFileName,lEmpresa,lFilial,.T.))
-            if (nAttemps++>10)
-                nAttemps:=0
-                if (!MsgYesNo(cMsg,cTitle))
-                    lChgCFGFile:=.F.
-                    cMsg:="O arquivo "
-                    cMsg+=cINIFile
-                    cMsg+=" encontra-se em uso e nao podera ser salvo."
-                    ApMsgAlert(cMsg,cTitle)
-                    break
-                endif
-            endif
-            sleep(300)
-        end while
-
-        nAttemps:=0
-
-        while (file(cINIFile))
-            if (fRename(cINIFile,cFWWSBKP))
-                exit
-            endif
-            if (nAttemps++>10)
-                nAttemps:=0
-                if (!MsgYesNo(cMsg,cTitle))
-                    UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
-                    lChgCFGFile:=.F.
-                    cMsg:="Problema na gravacao do arquivo : "
-                    cMsg+=cINIFile
-                    ApMsgAlert(cMsg,cTitle)
-                    break
-                endif
-            endif
-            sleep(300)
-        end while
-
-        nAttemps:=0
-
-        cMsg:="Problema na gravacao do arquivo : "
-        cMsg+=cINIFile
-        cMsg+=" Deseja tentar novamente?"
-
-        while (!(lChgCFGFile:=MemoWrite(cINIFile,cMemoEdit)))
-            if (nAttemps++>10)
-                nAttemps:=0
-                if (!MsgYesNo(cMsg,cTitle))
-                    exit
-                endif
-            endif
-            sleep(300)
-        end while
-
-        UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
-
-        if (!lChgCFGFile)
-            cMsg:="Problema na gravacao do arquivo : "
-            cMsg+=cINIFile
-            ApMsgAlert(cMsg,cTitle)
-            break
-        endif
-
-        cMsg:="Arquivo "
-        cMsg+=cINIFile
-        cMsg+=" salvo com sucesso."
-        ApMsgInfo(cMsg,cTitle)
-
-    end sequence
-
-    return(lChgCFGFile)
-
-static procedure NotepadCFGFile(cINIFile as character)
-
-    local cSPDriver as character
-    local cSPPath as character
-    local cSPFileName as character
-    local cSPFileExt as character
-
-    local cTempPath as character
-    local cTempFile as character
-
-    cSPDriver:=""
-    cSPPath:=""
-    cSPFileName:=""
-    cSPFileExt:=""
-
-    SplitPath(cINIFile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
-
-    cTempPath:=getTempPath()
-    if (!(right(cTempPath,1)=="\"))
-        cTempPath+="\"
-    endif
-
-    cTempFile:=cTempPath
-    cTempFile+=cSPFileName
-    cTempFile+=cSPFileExt
-
-    if (__CopyFile(cINIFile,cTempFile))
-        ShellExecute("open",cTempFile,"","",SW_SHOW)
-    endif
-
-    return
-
-static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oTMemoEdit as object,cSVMemoEdit as character) as logical
-
-    local cMask as character
-    local cTitle as character
-    local cFileRead as character
-    local cDirectory as character
-
-    local cSPDriver as character
-    local cSPPath as character
-    local cSPFileName as character
-    local cSPFileExt as character
-
-    local lRestoreCFGFile as logical
-
-    local nOptions as numeric
-
-    begin sequence
-
-        cSPDriver:=""
-        cSPPath:=""
-        cSPFileName:=""
-        cSPFileExt:=""
-
-        SplitPath(cINIFile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
-
-        cMask:="Arquivos de Configuracao|"+cSPFileName+"*"
-        cTitle:="Restaurar arquivo de Configuracao"
-        cDirectory:=cSPDriver
-        cDirectory+=cSPPath
-        cDirectory:=StrTran(cSPPath,"/","\")
-        nOptions:=GETF_NOCHANGEDIR
-
-        cFileRead:=cGetFile(cMask,cTitle,1,cDirectory,.F.,nOptions,/*[lArvore]*/,/*[lKeepCase]*/)
-
-        if (empty(cFileRead))
-            break
-        endif
-
-        cFileRead:=(cDirectory+cFileRead)
-        cFileRead:=StrTran(cFileRead,"\\","\")
-
-        if (!file(cFileRead))
-            break
-        endif
-
-        cSvMemoEdit:=cMemoEdit
-        cMemoEdit:=ReadMemoCFGFile(cFileRead)
-
-        lRestoreCFGFile:=ChgCFGFile(@cINIFile,@cMemoEdit,@cSVMemoEdit)
-
-        if (!lRestoreCFGFile)
-            cMemoEdit:=cSvMemoEdit
-            break
-        endif
-
-        cSvMemoEdit:=cMemoEdit
-
-        oTMemoEdit:Refresh()
-
-    end sequence
-
-    return(lRestoreCFGFile)
-
-static function ReadMemoCFGFile(cFile) as character
-    local cMemoRead as character
-    cMemoRead:=cTools():ReadMemo(cFile)
-    return(cMemoRead)
-
-static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logical) as logical
-
-    local aZipFiles:=array(0) as array
-
-    local aFiles as array
-    local aDirectories as array
-
-    local cFile as character
-    local cZipFile as character
-    local cINIFile as character
-    local cDirectory as character
-    local cGetFileMask:="" as character
-    local cGetFileTitle as character
-    local cZipFileServer as character
-    local cLowerDirectory as character
-    local cDirectoryClient as character
-    local cDirectoryServer as character
-
-    local cSPPDrive as character
-    local cSPPPath as character
-    local cSPPFile as character
-    local cSPPExt as character
-
-    local lSendDataToServer as logical
-
-    local nFile as numeric
-    local nFiles as numeric
-    local nDirectory as numeric
-    local nDirectories as numeric
-    local nGetFileOptions as numeric
-
-    begin sequence
-
-        lSendDataToServer:=(getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01")))
-        if (!lSendDataToServer)
-            break
-        endif
-
-        cGetFileTitle:="Diretorio de Configuração DataSul2Protheus.ini"
-        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE+GETF_RETDIRECTORY)
-        cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
-
-        lSendDataToServer:=((lIsDir(cDirectoryClient)).and.("datasul2protheus"$StrTran(lower(cDirectoryClient),"totvs","")))
-        if (!lSendDataToServer)
-            if (ApMsgYesNo("Invalid directory ["+cDirectoryClient+"]. Want to try again?"))
-                lSendDataToServer:=sendDataToServer(@cGetFileRoot)
-            elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
-                cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
-            endif
-            break
-        elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
-            cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
-        endif
-
-        cDirectoryServer:="\datasul2Protheus\"
-        DirTools():MakeFileDir(cDirectoryServer)
-        lSendDataToServer:=lIsDir(cDirectoryServer)
-        if (!lSendDataToServer)
-            ApMsgAlert("Invalid directory ["+cDirectoryServer+"]")
-            break
-        endif
-
-        aDirectories:=Directory(cDirectoryClient+"*.*","D")
-        nDirectories:=Len(aDirectories)
-
-        lSendDataToServer:=(nDirectories!=0)
-        if (!lSendDataToServer)
-            ApMsgAlert("No valid directory information found")
-            break
-        endif
-
-        for nDirectory:=1 to nDirectories
-            if (aDirectories[nDirectory][5]!="D")
-                loop
-            endif
-            cDirectory:=cDirectoryClient+aDirectories[nDirectory][1]
-            if (right(cDirectory,1)==".")
-                loop
-            endif
-            cLowerDirectory:=lower(cDirectory)
-            if (("7z"$cLowerDirectory).or.("src"$cLowerDirectory).or.(".gitignore"$cLowerDirectory).or.(".vscode"$cLowerDirectory))
-                loop
-            endif
-            if (Right(cDirectory,1)!="\")
-                cDirectory+="\"
-            endif
-            aFiles:=Directory(cDirectory+"*.*")
-            nFiles:=Len(aFiles)
-            for nFile:=1 To nFiles
-                MsProcTxt(aFiles[nFile][1])
-                cFile:=cDirectory+aFiles[nFile][1]
-                aAdd(aZipFiles,cFile)
-                cFile:=cDirectoryServer+aFiles[nFile][1]
-                if (file(cFile))
-                    fErase(cFile)
-                endif
-            next nFile
-        next nDirectory
-
-        cZipFile:=(getTempPath()+criatrab(nil,.F.)+".zip")
-        MsProcTxt("ZipFile. Wait...")
-        lSendDataToServer:=(FZip(cZipFile,aZipFiles,cDirectoryClient,/*,[cSenha]*/)==0)
-        if (!lSendDataToServer)
-            ApMsgAlert("Problem zipping ["+cZipFile+"] file")
-            break
-        endif
-
-        SplitPath(cZipFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
-
-        cZipFileServer:=cDirectoryServer
-        cZipFileServer+=cSPPFile
-        cZipFileServer+=cSPPExt
-
-        MsProcTxt("Wait...")
-        lSendDataToServer:=__CopyFile(cZipFile,cZipFileServer)
-        if (!lSendDataToServer)
-            ApMsgAlert("Problem copying ["+cZipFile+"] file to server")
-            break
-        endif
-
-        MsProcTxt("UnZipFile. Wait...")
-        lSendDataToServer:=(FUnzip(cZipFileServer,cDirectoryServer,/*[cSenha]*/)==0)
-        if (!lSendDataToServer)
-            ApMsgAlert("Problem unzipping the test ["+cZipFile+"] on the server")
-            break
-        endif
-
-        cGetFileRoot:="SERVIDOR"+cDirectoryServer
-
-        ApMsgInfo("Files uploaded to the server successfully. Directory ["+cGetFileRoot+"]")
-
-        cGetFileRoot+="ini\"
-
-    end sequence
-
-    FWFreeArray(@aFiles)
-    FWFreeArray(@aZipFiles)
-    FWFreeArray(@aDirectories)
-
-    if (!empty(cZipFile)).and.(file(cZipFile))
-        fErase(cZipFile)
-    endif
-
-    if ((!empty(cZipFileServer)).and.(file(cZipFileServer)))
-        fErase(cZipFileServer)
-    endif
-
-    if (lSendDataToServer)
-        dfv():Default(@lReloadConfig,.F.)
-        if (lReloadConfig)
-            cacheData():delSection("datasul2totvsprotheus")
-            if (valType(st_oHMbTransform)=="O")
-                st_oHMbTransform:Clean()
-            endif
-            cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
-            MsAguarde({||readIniFile(@cINIFile)},"Loading Settings","Wait")
-            MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
-        endif
-    endif
-
-return(lSendDataToServer)
+static method ImportData(oMsNewProcess,lEnd,oTLogReport,cAlias,cIndexKey,cTableImport,aAddIndex,lPreLoadTable,bCustomUpdate) class Protheus
+return(ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,@lPreLoadTable,@bCustomUpdate))
 
 static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport as object,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array,lPreLoadTable as logical,bCustomUpdate as codeblock) as logical
 
@@ -2245,3 +1356,926 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     DelClassIntF()
 
 return(lImportData)
+
+static function readIniFile(cINIFile as character) as logical
+
+    local cRootPath as character
+
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
+
+    local lreadIniFile:=.F. as logical
+
+    local oTFIni as object
+
+    begin sequence
+
+        lreadIniFile:=(!empty(cINIFile).and.(File(cINIFile)))
+        if (!lreadIniFile)
+            ApMsgAlert("Configuration file invalid or not found","Attention")
+            break
+        endif
+
+        SplitPath(cINIFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+
+        cRootPath:=cSPPDrive
+        cRootPath+=cSPPPath
+
+        cacheData():Set("datasul2totvsprotheus","cINIFile",cINIFile)
+        cacheData():Set("datasul2totvsprotheus","cRootPath",cRootPath)
+
+        oTFIni:=TFIni():New(cINIFile,"#")
+
+        cacheData():Set("datasul2totvsprotheus","readIniFile",oTFIni)
+
+    end sequence
+
+return(lreadIniFile)
+
+static function readTableDefinition() as logical
+
+    local aFieldDef as array
+    local aFieldDefTmp as array
+    local aFieldsDef:=array(0) as array
+    local aTablesImport as array
+
+    local cLine as character
+    local cLineUTF8 as character
+
+    local cTable as character
+    local cRootPath as character
+    local cTablesDefinition as character
+    local cFileTablesDefinition as character
+
+    local lTypeReplicate:=.F. as logical
+    local lSkipTable:=.F. as logical
+    local lreadTableDefinition:=.F. as logical
+
+    local nField as numeric
+    local nFields as numeric
+
+    local nft_fRecNo as numeric
+    local nft_fHandle as numeric
+
+    local nTypeReplicate as numeric
+
+    local oFT as object
+    local oTFIni as object
+    local oHMTablesImport as object
+
+    begin sequence
+
+        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+
+        aTablesImport:=aClone(oTFIni:GetAllProperties("TablesImport"))
+        lreadTableDefinition:=(!empty(aTablesImport))
+        if (!lreadTableDefinition)
+            ApMsgAlert("Invalid import tables","Attention")
+            break
+        endif
+
+        cTablesDefinition:=allTrim(oTFIni:GetPropertyValue("Tables","TablesDefinition",""))
+        lreadTableDefinition:=(!empty(cTablesDefinition))
+        if (!lreadTableDefinition)
+            ApMsgAlert("Invalid TablesDefinition","Attention")
+            break
+        endif
+
+        cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+        cFileTablesDefinition:=(cRootPath+".."+cTablesDefinition)
+        lreadTableDefinition:=file(cFileTablesDefinition)
+        if (!lreadTableDefinition)
+            ApMsgAlert("File ("+cFileTablesDefinition+") with the definitions of the tables not found","Attention")
+            break
+        endif
+
+        oFT:=uft():New()
+
+        nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)
+        lreadTableDefinition:=(nft_fHandle>=0)
+        if (!lreadTableDefinition)
+            oFT:ft_fUse()
+            oFT:=FreeObj(oFT)
+            ApMsgAlert("Could not open the file: "+cFileTablesDefinition,"Attention")
+            break
+        endif
+
+        oHMTablesImport:=aToHM(aTablesImport,2)
+
+        oFT:ft_fGoTop()
+
+        while (!oFT:ft_fEof())
+            cLine:=oFT:ft_fReadLN()
+            begin sequence
+                if (empty(cLine))
+                    break
+                endif
+                cTable:=""
+                if ("Table:"==Left(cLine,6))
+                    cTable:=strTran(cLine,"Table:","")
+                    cTable:=allTrim(cTable)
+                    lSkipTable:=(!oHMTablesImport:Get(cTable))
+                    if (lSkipTable)
+                        break
+                    else
+                        oFT:ft_fDelete()
+                        oFT:ft_fSkip()
+                    endif
+                    aSize(aFieldsDef,0)
+                    while (!oFT:ft_fEof())
+                        cLine:=oFT:ft_fReadLN()
+                        if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
+                            oFT:ft_fDelete()
+                            oFT:ft_fSkip()
+                            loop
+                        endif
+                        if ("Table:"==Left(cLine,6))
+                            cacheData():Set("datasul2totvsprotheus",cTable,aClone(aFieldsDef))
+                            aSize(aFieldsDef,0)
+                            nft_fRecNo:=oFT:ft_fRecNo()
+                            oFT:ft_fGoTo(nft_fRecNo-1)
+                            break
+                        endif
+                        cLine:=cTools():StrReplace(cLine,{"  "," "})
+                        cLineUTF8:=DecodeUTF8(cLine)
+                        if (empty(cLineUTF8))
+                            cLine:=OemToAnsi(cLine)
+                        else
+                            cLine:=cLineUTF8
+                        endif
+                        cLineUTF8:=""
+                        aFieldDef:=strTokArr2(cLine," ")
+                        cLine:=""
+                        if (len(aFieldDef)!=DTS_DBS_ALEN)
+                            aFieldDefTmp:=array(DTS_DBS_ALEN)
+                            aFieldDefTmp[DTS_DBS_NAME]:=aFieldDef[DTS_DBS_NAME]
+                            aFieldDefTmp[DTS_DBS_TYPE]:=aFieldDef[DTS_DBS_TYPE]
+                            aFieldDefTmp[DTS_DBS_FLG]:=""//DTS_DBS_FLG
+                            aFieldDefTmp[DTS_DBS_FORMAT]:=aFieldDef[DTS_DBS_FLG]
+                            aFieldDef:=aClone(aFieldDefTmp)
+                            FWFreeArray(@aFieldDefTmp)
+                        endif
+                        nTypeReplicate:=AT("[",aFieldDef[DTS_DBS_TYPE])
+                        lTypeReplicate:=(nTypeReplicate>0)
+                        if (lTypeReplicate)
+                            nFields:=val(subStr(aFieldDef[DTS_DBS_TYPE],(nTypeReplicate+1),(AT("]",aFieldDef[DTS_DBS_TYPE])-1)))
+                            aAdd(aFieldsDef,aClone(aFieldDef))
+                            if (nFields>1)
+                                aFieldDefTmp:=aClone(aFieldDef)
+                                cacheData():Set("datasul2totvsprotheus",cTable+"_TypeReplicate",lTypeReplicate)
+                                cacheData():Set("datasul2totvsprotheus",aFieldDef[DTS_DBS_NAME]+"_TypeReplicate",nFields)
+                                for nField:=2 to nFields
+                                    aFieldDef[DTS_DBS_NAME]:=(aFieldDefTmp[DTS_DBS_NAME]+cTools():NToS(nField))
+                                    aAdd(aFieldsDef,aClone(aFieldDef))
+                                next nField
+                                FWFreeArray(@aFieldDefTmp)
+                            endif
+                        else
+                            aAdd(aFieldsDef,aClone(aFieldDef))
+                        endif
+                        FWFreeArray(@aFieldDef)
+                        oFT:ft_fDelete()
+                        oFT:ft_fSkip()
+                    end while
+                    cacheData():Set("datasul2totvsprotheus",cTable,aClone(aFieldsDef))
+                    aSize(aFieldsDef,0)
+                elseif (lSkipTable)
+                    break
+                endif
+            end sequence
+            oFT:ft_fDelete()
+            oFT:ft_fSkip()
+        end while
+
+    end sequence
+
+    if (valType(oFT)=="O")
+        oFT:ft_fUse()
+        oFT:=FreeObj(oFT)
+    endif
+
+    FWFreeArray(@aFieldsDef)
+
+    if (valtype(oHMTablesImport)=="O")
+        oHMTablesImport:Clean()
+        oHMTablesImport:=FreeObj(oHMTablesImport)
+    endif
+
+    if (valtype(aTablesImport)=="A")
+        FWFreeArray(@aTablesImport)
+    endif
+
+    DelClassIntF()
+
+return(lreadTableDefinition)
+
+static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array,oHMSourceFieldsDef as object,cType as character) as variant
+
+    local aValueField as array
+    local aSourceField as array
+
+    local bTransform as codeblock
+
+    local cTransform as character
+    local cSourceField as character
+
+    local lSourceTransform as logical
+
+    local nLineSize:=Len(aLine) as numeric
+    local nSourceField as numeric
+    local nSourceFields as numeric
+    local nSourceFieldAT as numeric
+
+    local xValue as variant
+
+    begin sequence
+
+        cSourceField:=aTargetField[2]
+        lSourceTransform:=("@"==Left(cSourceField,1))
+        if (lSourceTransform)
+            cSourceField:=subStr(cSourceField,2)
+        endif
+        aSourceField:=strToKArr2(cSourceField,"+")
+        nSourceFields:=len(aSourceField)
+        aValueField:=Array(nSourceFields,2)
+        for nSourceField:=1 to nSourceFields
+            cSourceField:=aSourceField[nSourceField]
+            if (!oHMSourceFieldsDef:Get(cSourceField,@cType))
+                loop
+            endif
+            if (!oHMSourceFieldsDef:Get(cSourceField+"_AT",@nSourceFieldAT))
+                loop
+            endif
+            lHasError:=(nSourceFieldAT>nLineSize)
+            if (lHasError)
+                break
+            endif
+            aValueField[nSourceField][1]:=NormalizeData(@lHasError,aLine[nSourceFieldAT],@cType,@cSourceField,@lSourceTransform,@st_oHMbTransform,@oTFIni)
+            if (lHasError)
+                break
+            endif
+            aValueField[nSourceField][2]:=cType
+            if (cType=="char")
+                xValue:=""
+            endif
+        next nSourceField
+
+        for nSourceField:=1 to nSourceFields
+            if (aValueField[nSourceField][2]=="char")
+                xValue+=aValueField[nSourceField][1]
+            else
+                xValue:=aValueField[nSourceField][1]
+            endif
+        next nSourceField
+
+        if (!st_oHMbTransform:Get(cTargetField,@bTransform))
+            cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,"Transform",""))
+            if (cTransform=="FindInTable")
+                cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,cTransform,""))
+                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
+            elseif (!empty(cTransform))
+                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
+            endif
+            st_oHMbTransform:Set(cTargetField,bTransform)
+        endif
+
+        if (valtype(bTransform)=="B")
+            lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,@oTFIni,@cType)},nil,.F.,nil,nil))
+        endif
+
+    end sequence
+
+    cacheData():Set("datasul2totvsprotheus",cTargetField,xValue)
+
+    FWFreeArray(@aValueField)
+    FwFreeArray(@aSourceField)
+
+return(xValue)
+
+static function NormalizeData(lHasError as logical,xValue as variant,cType as character,cSourceField as character,lSourceTransform as logical,st_oHMbTransform as object,oTFIni as object) as variant
+
+    local bTransform as codeblock
+
+    local cTransform as character
+
+    if (lSourceTransform)
+        if (!st_oHMbTransform:Get(cSourceField,@bTransform))
+            cTransform:=allTrim(oTFIni:GetPropertyValue(cSourceField,"Transform",""))
+            if (cTransform=="FindInTable")
+                cTransform:=allTrim(oTFIni:GetPropertyValue(cSourceField,cTransform,""))
+                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
+            elseif (!empty(cTransform))
+                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
+            endif
+            if (!lHasError)
+                st_oHMbTransform:Set(cSourceField,bTransform)
+            endif
+        endif
+        if (valtype(bTransform)=="B")
+            lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,oTFIni,@cType)},nil,.F.,nil,nil))
+            if (!lHasError)
+                xValue:=NormalizeData(@lHasError,xValue,@cType,nil,.F.,nil,nil)
+            endif
+        endif
+    else
+        if (valType(xValue)=="C")
+            if ("char"$cType)
+                xValue:=strTran(xValue,'"',"")
+            elseif ("inte"$cType)
+                xValue:=Int(val(xValue))
+            elseif ("deci"$cType)
+                if (","$xValue)
+                    xValue:=strTran(xValue,",",".")
+                endif
+                xValue:=val(xValue)
+            elseif ("date"$cType)
+                xValue:=CToD(xValue)
+            elseif ("logi"$cType)
+                xValue:=(Left(lower(xValue),1)$"sty1")
+            endif
+        endif
+    endif
+
+return(xValue)
+
+static function FindInTable(oTFIni as object,cTable as character,xValue as variant,lTableInFile as logical)
+
+    local cType as character
+
+    local cINIFile as character
+    local cRootPath as character
+
+    local oTFIniTable as object
+
+    local xTmp as variant
+
+    cType:=valType(xValue)
+    if (cType=="N")
+        xValue:=ctools():NToS(xValue)
+    elseif (cType!="C")
+        xValue:=cValToChar(xValue)
+    endif
+
+    if (oTFIni:ExistSection(cTable))
+        if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
+            dfv():Default(@lTableInFile,.F.)
+            if (lTableInFile)
+                oTFIniTable:=cacheData():Get("datasul2totvsprotheus",cTable,nil)
+                if (oTFIniTable==nil)
+                    cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+                    cINIFile:=cRootPath
+                    cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
+                    oTFIniTable:=TFIni():New(cINIFile,"#")
+                    cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
+                endif
+                xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
+                if ((empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
+                    xTmp:=oTFIniTable:GetPropertyValue(cTable,"__DFV__","")
+                endif
+                xValue:=xTmp
+            else
+                oTFIniTable:=cacheData():Get("datasul2totvsprotheus",cTable,nil)
+                if (oTFIniTable==nil)
+                    cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+                    cINIFile:=cRootPath
+                    cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
+                    oTFIniTable:=TFIni():New(cINIFile,"#")
+                    cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
+                endif
+                xValue:=FindInTable(oTFIniTable,cTable,xValue)
+            endif
+        elseif ((oTFIni:GetATProperty(cTable,xValue)>0))
+            xValue:=oTFIni:GetPropertyValue(cTable,xValue,"")
+        elseif ((oTFIni:GetATProperty(cTable,"__DFV__")>0))
+            xValue:=oTFIni:GetPropertyValue(cTable,"__DFV__","")
+        endif
+    endif
+
+return(xValue)
+
+static function ProcRedefine(oProcess as object,oTFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,loTDlgF as logical,loTDlgW as logical,lPercentage as logical,lFastMode as logical) as logical
+    local lProcRedefine as logical
+    lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oTFont,@nLeft,@nWidth,@nCTLFLeft,@loTDlgF,@loTDlgW,lPercentage,lFastMode)
+    return(lProcRedefine)
+
+static function SetFilAnt(cFil)
+    local cSvFilAnt:=&("cFilAnt") as character
+    if (valType("cFilAnt")=="C")
+        cSvFilAnt:=&("cFilAnt")
+        if (cFil!=cSvFilAnt)
+            &("cFilAnt"):=cFil
+            FWSM0Util():setSM0PositionBycFilAnt()
+        endif
+    endif
+return(cSvFilAnt)
+
+static procedure CFGFile()
+
+    local cINIFile as character
+    local cMemoEdit as character
+    local cGetFileRoot as character
+    local cGetFileMask as character
+    local cGetFileTitle as character
+
+    local lHasINIFile as logical
+
+    local nGetFileOptions as numeric
+
+    begin sequence
+
+        cGetFileRoot:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+        cGetFileMask:="Arquivo de Configuração | *.ini"
+        cGetFileTitle:="Arquivo de Configuração *.ini"
+        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
+        cINIFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+
+        lHasINIFile:=File(cINIFile)
+        if (!lHasINIFile)
+            break
+        endif
+
+        cMemoEdit:=ReadMemoCFGFile(cINIFile)
+
+        if (EdtCFGFile(@cINIFile,@cMemoEdit))
+            if (!("datasul2protheus.ini"$lower(cINIFile)))
+                cINIFile:=cacheData():Get("datasul2totvsprotheus","cINIFile")
+            endif
+            cacheData():delSection("datasul2totvsprotheus")
+            if (valType(st_oHMbTransform)=="O")
+                st_oHMbTransform:Clean()
+            endif
+            MsAguarde({||readIniFile(@cINIFile)},"Loading Settings","Wait")
+            MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
+        endif
+
+    end sequence
+
+    return
+
+static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logical
+
+    local aButtons as array
+    local aAdvSize as array
+    local aObjSize as array
+    local aObjCoords as array
+    local aInfoAdvSize as array
+
+    local bSet15 as codeblock
+    local bSet24 as codeblock
+    local bNotepadCFGFile as codeblock
+    local bRestoreCFGFile as codeblock
+
+    local cTitle as character
+    local cSVMemoEdit as character
+
+    local lOk as logical
+
+    local nDlgWidth as numeric
+
+    local oTDlg as object
+    local oTFont as object
+    local oTPanel as object
+    local oTMemoEdit as object
+
+    dfv():Default(@cMemoEdit,"")
+
+    cSVMemoEdit:=cMemoEdit
+
+    begin sequence
+
+        aAdvSize:=MsAdvSize()
+        aInfoAdvSize:={aAdvSize[1],aAdvSize[2],aAdvSize[3],aAdvSize[4],0,0}
+        aObjCoords:=array(0)
+        aAdd(aObjCoords,{0,0,.T.,.T.})
+        aObjSize:=MsObjSize(aInfoAdvSize,aObjCoords)
+
+        cTitle:="ARQUIVO CONFIGURACAO "
+        cTitle+=" :: "
+        cTitle+=cINIFile
+
+        DEFINE FONT oTFont NAME "Courier New" SIZE 0,-11 BOLD
+        DEFINE MSDIALOG oTDlg TITLE cTitle FROM aAdvSize[7],0 TO aAdvSize[6],aAdvSize[5] OF GetWndDefault() STYLE DS_MODALFRAME STATUS PIXEL
+
+            nDlgWidth:=__DlgWidth(oTDlg)
+
+            oTPanel:=tPanel():New(0,0,"",oTDlg,nil,nil,nil,nil,nil,nDlgWidth,nDlgWidth)
+
+            @(aObjSize[1][1]+5),(aObjSize[1][2]+5) GET oTMemoEdit VAR cMemoEdit MEMO SIZE ((aObjSize[1][4]/100)*99),((aObjSize[1][3]/100)*88) FONT oTFont CENTERED DESIGN OF oTPanel PIXEL WHEN (.T.)
+
+            oTMemoEdit:lReadOnly:=.F.
+            oTMemoEdit:EnableVScroll(.T.)
+            oTMemoEdit:EnableHScroll(.T.)
+
+            oTDlg:lEscClose:=.F.
+
+            bSet15:={||lOk:=ChgCFGFile(@cINIFile,@cMemoEdit,@cSVMemoEdit),if(lOk,oTDlg:End(),lOK)}
+            bSet24:={||lOK:=.F.,oTDlg:End()}
+
+            aButtons:=array(0)
+            bNotepadCFGFile:={||MsProcess():MsAguarde({||NotepadCFGFile(cINIFile)},"Abrindo no NotepadCFGFile","Aguarde...")}
+            aAdd(aButtons,{"NotepadCFGFile",bNotepadCFGFile,OemToAnsi("Abir no NotepadCFGFile"),OemtoAnsi("Abir no NotepadCFGFile")})
+            bRestoreCFGFile:={||MsProcess():MsAguarde({||RestoreCFGFile(cINIFile,@cMemoEdit,@oTMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
+            aAdd(aButtons,{"RestoreCFGFile",bRestoreCFGFile,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
+
+        ACTIVATE MSDIALOG oTDlg CENTERED ON INIT EnchoiceBar(oTDlg,bSet15,bSet24,nil,@aButtons)
+
+    end sequence
+
+    return(lOk)
+
+static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoEdit as character) as logical
+
+    local cMsg as character
+    local cTitle as character
+
+    local cSPDriver as character
+    local cSPPath as character
+    local cSPFileName as character
+    local cSPFileExt as character
+
+    local cFWWSBKP as character
+
+    local lFilial as logical
+    local lEmpresa as logical
+    local lChgCFGFile as logical
+
+    local nAttemps as numeric
+
+    lFilial:=(type("cFilAnt")=="C")
+    lEmpresa:=(type("cEmpAnt")=="C")
+
+    begin sequence
+
+        lChgCFGFile:=(cMemoEdit==cSVMemoEdit)
+        if (lChgCFGFile)
+            break
+        endif
+
+        cSPDriver:=""
+        cSPPath:=""
+        cSPFileName:=""
+        cSPFileExt:=""
+
+        SplitPath(cINIFile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
+
+        cMsg:="Deseja Gravar as Alteracoes?"
+
+        cTitle:="ARQUIVO CONFIGURACAO  :: "
+        cTitle+=cSPFileName
+
+        lChgCFGFile:=ApMsgYesNo(cMsg,cTitle)
+        if (!lChgCFGFile)
+            break
+        endif
+
+        cFWWSBKP:=cSPDriver
+        cFWWSBKP+=cSPPath
+        cFWWSBKP+=cSPFileName
+        cFWWSBKP+=cSPFileExt
+        cFWWSBKP+="-"
+        cFWWSBKP+=__cUserID
+        cFWWSBKP+="-"
+        cFWWSBKP+=DToS(Date())
+        cFWWSBKP+="-"
+        cFWWSBKP+=strTran(Time(),":","-")
+        cFWWSBKP+="-"
+        cFWWSBKP+=strZero(ranDomize(1,999),3)
+
+        nAttemps:=0
+
+        cMsg:="O arquivo "
+        cMsg+=cINIFile
+        cMsg+=" encontra-se em uso deseja tentar novamente?"
+
+        while (!LockByName(cSPFileName,lEmpresa,lFilial,.T.))
+            if (nAttemps++>10)
+                nAttemps:=0
+                if (!MsgYesNo(cMsg,cTitle))
+                    lChgCFGFile:=.F.
+                    cMsg:="O arquivo "
+                    cMsg+=cINIFile
+                    cMsg+=" encontra-se em uso e nao podera ser salvo."
+                    ApMsgAlert(cMsg,cTitle)
+                    break
+                endif
+            endif
+            sleep(300)
+        end while
+
+        nAttemps:=0
+
+        while (file(cINIFile))
+            if (fRename(cINIFile,cFWWSBKP))
+                exit
+            endif
+            if (nAttemps++>10)
+                nAttemps:=0
+                if (!MsgYesNo(cMsg,cTitle))
+                    UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
+                    lChgCFGFile:=.F.
+                    cMsg:="Problema na gravacao do arquivo : "
+                    cMsg+=cINIFile
+                    ApMsgAlert(cMsg,cTitle)
+                    break
+                endif
+            endif
+            sleep(300)
+        end while
+
+        nAttemps:=0
+
+        cMsg:="Problema na gravacao do arquivo : "
+        cMsg+=cINIFile
+        cMsg+=" Deseja tentar novamente?"
+
+        while (!(lChgCFGFile:=MemoWrite(cINIFile,cMemoEdit)))
+            if (nAttemps++>10)
+                nAttemps:=0
+                if (!MsgYesNo(cMsg,cTitle))
+                    exit
+                endif
+            endif
+            sleep(300)
+        end while
+
+        UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
+
+        if (!lChgCFGFile)
+            cMsg:="Problema na gravacao do arquivo : "
+            cMsg+=cINIFile
+            ApMsgAlert(cMsg,cTitle)
+            break
+        endif
+
+        cMsg:="Arquivo "
+        cMsg+=cINIFile
+        cMsg+=" salvo com sucesso."
+        ApMsgInfo(cMsg,cTitle)
+
+    end sequence
+
+    return(lChgCFGFile)
+
+static procedure NotepadCFGFile(cINIFile as character)
+
+    local cSPDriver as character
+    local cSPPath as character
+    local cSPFileName as character
+    local cSPFileExt as character
+
+    local cTempPath as character
+    local cTempFile as character
+
+    cSPDriver:=""
+    cSPPath:=""
+    cSPFileName:=""
+    cSPFileExt:=""
+
+    SplitPath(cINIFile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
+
+    cTempPath:=getTempPath()
+    if (!(right(cTempPath,1)=="\"))
+        cTempPath+="\"
+    endif
+
+    cTempFile:=cTempPath
+    cTempFile+=cSPFileName
+    cTempFile+=cSPFileExt
+
+    if (__CopyFile(cINIFile,cTempFile))
+        ShellExecute("open",cTempFile,"","",SW_SHOW)
+    endif
+
+    return
+
+static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oTMemoEdit as object,cSVMemoEdit as character) as logical
+
+    local cMask as character
+    local cTitle as character
+    local cFileRead as character
+    local cDirectory as character
+
+    local cSPDriver as character
+    local cSPPath as character
+    local cSPFileName as character
+    local cSPFileExt as character
+
+    local lRestoreCFGFile as logical
+
+    local nOptions as numeric
+
+    begin sequence
+
+        cSPDriver:=""
+        cSPPath:=""
+        cSPFileName:=""
+        cSPFileExt:=""
+
+        SplitPath(cINIFile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
+
+        cMask:="Arquivos de Configuracao|"+cSPFileName+"*"
+        cTitle:="Restaurar arquivo de Configuracao"
+        cDirectory:=cSPDriver
+        cDirectory+=cSPPath
+        cDirectory:=StrTran(cSPPath,"/","\")
+        nOptions:=GETF_NOCHANGEDIR
+
+        cFileRead:=cGetFile(cMask,cTitle,1,cDirectory,.F.,nOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+
+        if (empty(cFileRead))
+            break
+        endif
+
+        cFileRead:=(cDirectory+cFileRead)
+        cFileRead:=StrTran(cFileRead,"\\","\")
+
+        if (!file(cFileRead))
+            break
+        endif
+
+        cSvMemoEdit:=cMemoEdit
+        cMemoEdit:=ReadMemoCFGFile(cFileRead)
+
+        lRestoreCFGFile:=ChgCFGFile(@cINIFile,@cMemoEdit,@cSVMemoEdit)
+
+        if (!lRestoreCFGFile)
+            cMemoEdit:=cSvMemoEdit
+            break
+        endif
+
+        cSvMemoEdit:=cMemoEdit
+
+        oTMemoEdit:Refresh()
+
+    end sequence
+
+    return(lRestoreCFGFile)
+
+static function ReadMemoCFGFile(cFile) as character
+    local cMemoRead as character
+    cMemoRead:=cTools():ReadMemo(cFile)
+    return(cMemoRead)
+
+static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logical) as logical
+
+    local aZipFiles:=array(0) as array
+
+    local aFiles as array
+    local aDirectories as array
+
+    local cFile as character
+    local cZipFile as character
+    local cINIFile as character
+    local cDirectory as character
+    local cGetFileMask:="" as character
+    local cGetFileTitle as character
+    local cZipFileServer as character
+    local cLowerDirectory as character
+    local cDirectoryClient as character
+    local cDirectoryServer as character
+
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
+
+    local lSendDataToServer as logical
+
+    local nFile as numeric
+    local nFiles as numeric
+    local nDirectory as numeric
+    local nDirectories as numeric
+    local nGetFileOptions as numeric
+
+    begin sequence
+
+        lSendDataToServer:=(getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01")))
+        if (!lSendDataToServer)
+            break
+        endif
+
+        cGetFileTitle:="Diretorio de Configuração DataSul2Protheus.ini"
+        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE+GETF_RETDIRECTORY)
+        cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+
+        lSendDataToServer:=((lIsDir(cDirectoryClient)).and.("datasul2protheus"$StrTran(lower(cDirectoryClient),"totvs","")))
+        if (!lSendDataToServer)
+            if (ApMsgYesNo("Invalid directory ["+cDirectoryClient+"]. Want to try again?"))
+                lSendDataToServer:=sendDataToServer(@cGetFileRoot)
+            elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
+                cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
+            endif
+            break
+        elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
+            cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
+        endif
+
+        cDirectoryServer:="\datasul2Protheus\"
+        DirTools():MakeFileDir(cDirectoryServer)
+        lSendDataToServer:=lIsDir(cDirectoryServer)
+        if (!lSendDataToServer)
+            ApMsgAlert("Invalid directory ["+cDirectoryServer+"]")
+            break
+        endif
+
+        aDirectories:=Directory(cDirectoryClient+"*.*","D")
+        nDirectories:=Len(aDirectories)
+
+        lSendDataToServer:=(nDirectories!=0)
+        if (!lSendDataToServer)
+            ApMsgAlert("No valid directory information found")
+            break
+        endif
+
+        for nDirectory:=1 to nDirectories
+            if (aDirectories[nDirectory][5]!="D")
+                loop
+            endif
+            cDirectory:=cDirectoryClient+aDirectories[nDirectory][1]
+            if (right(cDirectory,1)==".")
+                loop
+            endif
+            cLowerDirectory:=lower(cDirectory)
+            if (("7z"$cLowerDirectory).or.("src"$cLowerDirectory).or.(".gitignore"$cLowerDirectory).or.(".vscode"$cLowerDirectory))
+                loop
+            endif
+            if (Right(cDirectory,1)!="\")
+                cDirectory+="\"
+            endif
+            aFiles:=Directory(cDirectory+"*.*")
+            nFiles:=Len(aFiles)
+            for nFile:=1 To nFiles
+                MsProcTxt(aFiles[nFile][1])
+                cFile:=cDirectory+aFiles[nFile][1]
+                aAdd(aZipFiles,cFile)
+                cFile:=cDirectoryServer+aFiles[nFile][1]
+                if (file(cFile))
+                    fErase(cFile)
+                endif
+            next nFile
+        next nDirectory
+
+        cZipFile:=(getTempPath()+criatrab(nil,.F.)+".zip")
+        MsProcTxt("ZipFile. Wait...")
+        lSendDataToServer:=(FZip(cZipFile,aZipFiles,cDirectoryClient,/*,[cSenha]*/)==0)
+        if (!lSendDataToServer)
+            ApMsgAlert("Problem zipping ["+cZipFile+"] file")
+            break
+        endif
+
+        SplitPath(cZipFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+
+        cZipFileServer:=cDirectoryServer
+        cZipFileServer+=cSPPFile
+        cZipFileServer+=cSPPExt
+
+        MsProcTxt("Wait...")
+        lSendDataToServer:=__CopyFile(cZipFile,cZipFileServer)
+        if (!lSendDataToServer)
+            ApMsgAlert("Problem copying ["+cZipFile+"] file to server")
+            break
+        endif
+
+        MsProcTxt("UnZipFile. Wait...")
+        lSendDataToServer:=(FUnzip(cZipFileServer,cDirectoryServer,/*[cSenha]*/)==0)
+        if (!lSendDataToServer)
+            ApMsgAlert("Problem unzipping the test ["+cZipFile+"] on the server")
+            break
+        endif
+
+        cGetFileRoot:="SERVIDOR"+cDirectoryServer
+
+        ApMsgInfo("Files uploaded to the server successfully. Directory ["+cGetFileRoot+"]")
+
+        cGetFileRoot+="ini\"
+
+    end sequence
+
+    FWFreeArray(@aFiles)
+    FWFreeArray(@aZipFiles)
+    FWFreeArray(@aDirectories)
+
+    if (!empty(cZipFile)).and.(file(cZipFile))
+        fErase(cZipFile)
+    endif
+
+    if ((!empty(cZipFileServer)).and.(file(cZipFileServer)))
+        fErase(cZipFileServer)
+    endif
+
+    if (lSendDataToServer)
+        dfv():Default(@lReloadConfig,.F.)
+        if (lReloadConfig)
+            cacheData():delSection("datasul2totvsprotheus")
+            if (valType(st_oHMbTransform)=="O")
+                st_oHMbTransform:Clean()
+            endif
+            cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
+            MsAguarde({||readIniFile(@cINIFile)},"Loading Settings","Wait")
+            MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
+        endif
+    endif
+
+return(lSendDataToServer)
