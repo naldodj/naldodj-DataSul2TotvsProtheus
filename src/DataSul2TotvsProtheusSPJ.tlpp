@@ -72,7 +72,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical) as logica
 
 return(lSPJImport)
 
-static function getValue(xGet,xDefault)
+static function SPJGetValue(xGet,xDefault)
 return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
 static function SPJORNTRAB(xGet)
@@ -88,17 +88,17 @@ static function SPJORNTRAB(xGet)
 
     begin sequence
         
-        cAliasSPJORNTRAB:=GetValue("SPJImportORNTRABAlias")
+        cAliasSPJORNTRAB:=SPJGetValue("importSPJORNTRABAlias")
         if ((Empty(cAliasSPJORNTRAB)).or.(Select(cAliasSPJORNTRAB)==0))
             break
         endif
         
-        cPJ_XJNTRAB:=GetValue("PJ_XJNTRAB")
+        cPJ_XJNTRAB:=SPJGetValue("PJ_XJNTRAB")
         if ((valType(cPJ_XJNTRAB)!="C").or.(empty(cPJ_XJNTRAB)))
             break
         endif
         
-        cPJ_TPDIA:=GetValue("PJ_TPDIA")
+        cPJ_TPDIA:=SPJGetValue("PJ_TPDIA")
         if ((valType(cPJ_TPDIA)!="C").or.(empty(cPJ_TPDIA)))
             break
         endif

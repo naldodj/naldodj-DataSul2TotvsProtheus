@@ -1333,6 +1333,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         oFT:=FreeObj(oFT)
     endif
 
+    if (Type("oPVTHMSR8Seq")=="O")
+        oPVTHMSR8Seq:Clean()
+        oPVTHMSR8Seq:=FreeObj(oPVTHMSR8Seq)
+    endif
+
+    if (Type("oPVTHMSRDSeq")=="O")
+        oPVTHMSRDSeq:Clean()
+        oPVTHMSRDSeq:=FreeObj(oPVTHMSRDSeq)
+    endif
+
     if (valtype(oHMSourceFieldsDef)=="O")
         oHMSourceFieldsDef:Clean()
         oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)

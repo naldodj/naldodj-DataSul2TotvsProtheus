@@ -74,7 +74,12 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
     if (findFunction("RstPosAlias"))
         RstPosAlias()
     endif
-    
+
+    if (type("oPVTHMSRDSeq")=="O")
+        oPVTHMSRDSeq:Clean()
+        oPVTHMSRDSeq:=FreeObj(oPVTHMSRDSeq)
+    endif
+
     DelClassIntF()
 
 return(lSRDImport)
@@ -144,3 +149,65 @@ static function SRDPergunte(oSRDPergunte as object) as logical
     FWFreeArray(@aPBoxPrm)
 
 return(lParamBox)
+
+static function SRDGetValue(xGet,xDefault)
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SRDGetSEQ()
+
+    static c_stHMSRDSeqKey as character
+
+    local cStack:="IMPORTDATA" as character
+
+    local cRDSEQ:="" as character
+
+    local cHMSRDSeqKey:="" as character
+
+    local cTmpAlias as character
+
+    begin sequence
+
+        if (type("cPVTSRDAlias")!="C")
+            _SetNamedPRVT("cPVTSRDAlias",SRDGetValue("importSRDAlias","__NOALIAS__"),cStack)
+        endif
+
+        cTmpAlias:=cPVTSRDAlias
+        if (select(cTmpAlias)==0)
+            break
+        endif
+
+        cHMSRDSeqKey:=&("cEmpAnt")
+        cHMSRDSeqKey+=SRDGetValue("RD_FILIAL")
+        cHMSRDSeqKey+=SRDGetValue("RD_MAT")
+        cHMSRDSeqKey+=SRDGetValue("RD_DATARQ")
+        cHMSRDSeqKey+=SRDGetValue("RD_PD")
+        cHMSRDSeqKey+=SRDGetValue("RD_SEMANA")
+        cHMSRDSeqKey+=SRDGetValue("RD_ROTEIR")
+        cHMSRDSeqKey+=SRDGetValue("RD_CC")
+        cHMSRDSeqKey+=SRDGetValue("RD_PROCES")
+
+        if (type("oPVTHMSRDSeq")!="O")
+            _SetNamedPRVT("oPVTHMSRDSeq",THashMap():New(),cStack)
+        else
+            if (c_stHMSRDSeqKey!=cHMSRDSeqKey)
+                c_stHMSRDSeqKey:=cHMSRDSeqKey
+                oPVTHMSRDSeq:Clean()
+            endif
+        endif
+
+        if (!oPVTHMSRDSeq:Get(cHMSRDSeqKey,@cRDSEQ)).or.(Empty(cRDSEQ))
+            if (type("nPVTSRDSeq")!="N")
+                _SetNamedPRVT("nPVTSRDSeq",GetSx3Cache("RD_SEQ","X3_TAMANHO"),cStack)
+                cRDSEQ:=Replicate("0",nPVTSRDSeq)
+                _SetNamedPRVT("cPVTRDSEQ",cRDSEQ,cStack)
+            endif
+            cRDSEQ:=cPVTRDSEQ
+        endif
+
+        cRDSEQ:=__Soma1(cRDSEQ)
+
+        oPVTHMSRDSeq:Set(cHMSRDSeqKey,cRDSEQ)
+
+    end sequence
+
+return(cRDSEQ)

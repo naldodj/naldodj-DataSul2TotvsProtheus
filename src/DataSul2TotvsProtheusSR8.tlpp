@@ -42,7 +42,10 @@ static function SR8ImportData(oMsNewProcess as object,lEnd as logical) as logica
 
 return(lSR8Import)
 
-static function getR8Seq()
+static function SR8GetValue(xGet,xDefault)
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SR8GetSEQ()
 
     static c_stHMSR8SeqKey as character
 
@@ -64,7 +67,7 @@ static function getR8Seq()
     begin sequence
 
         if (type("cPVTSR8Alias")!="C")
-            _SetNamedPRVT("cPVTSR8Alias",cacheData():Get("datasul2totvsprotheus","SR8ImportAlias","__NOALIAS__"),cStack)
+            _SetNamedPRVT("cPVTSR8Alias",SR8GetValue("importSR8Alias","__NOALIAS__"),cStack)
         endif
 
         cTmpAlias:=cPVTSR8Alias
