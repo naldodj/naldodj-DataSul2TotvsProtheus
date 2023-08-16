@@ -198,12 +198,12 @@ static method Activate() class Protheus
 
         ACTIVATE DIALOG oTDlg CENTERED
 
-        MsAguarde({||oTFIni:FreeObj()},"Releasing temporary files and workspace memory")
+        MsAguarde({||oTFIni:FreeObj()},"Wait!","Releasing temporary files and workspace memory...")
         if (valType(oTFIni)=="O")
             oTFIni:=FreeObj(oTFIni)
         endif
 
-        MsAguarde({||oTMenuOptions:FreeObj()},"Releasing temporary files and workspace memory")
+        MsAguarde({||oTMenuOptions:FreeObj()},"Wait!","Releasing temporary files and workspace memory...")
         if (valType(oTMenuOptions)=="O")
             oTMenuOptions:=FreeObj(oTMenuOptions)
         endif
@@ -219,14 +219,14 @@ static method Activate() class Protheus
 
     __SetCentury(if(lSetCentury,"ON","OFF"))
 
-    MsAguarde({||cacheData():delSection("datasul2totvsprotheus")},"Releasing temporary files and workspace memory")
+    MsAguarde({||cacheData():delSection("datasul2totvsprotheus")},"Wait!","Releasing temporary files and workspace memory...")
 
     if (findFunction("RstPosAlias"))
         RstPosAlias()
     endif
 
     if (valType(st_oHMbTransform)=="O")
-        MsAguarde({||st_oHMbTransform:Clean()},"Releasing temporary files and workspace memory")
+        MsAguarde({||st_oHMbTransform:Clean()},"Releasing temporary files and workspace memory...")
         st_oHMbTransform:=FreeObj(st_oHMbTransform)
     endif
 
@@ -2238,7 +2238,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
         next nDirectory
 
         cZipFile:=(getTempPath()+criatrab(nil,.F.)+".zip")
-        MsProcTxt("ZipFile. Wait...")
+        MsProcTxt("ZipFile. Wait!")
         lSendDataToServer:=(FZip(cZipFile,aZipFiles,cDirectoryClient,/*,[cSenha]*/)==0)
         if (!lSendDataToServer)
             ApMsgAlert("Problem zipping ["+cZipFile+"] file")
@@ -2251,14 +2251,14 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
         cZipFileServer+=cSPPFile
         cZipFileServer+=cSPPExt
 
-        MsProcTxt("Wait...")
+        MsProcTxt("Wait!")
         lSendDataToServer:=__CopyFile(cZipFile,cZipFileServer)
         if (!lSendDataToServer)
             ApMsgAlert("Problem copying ["+cZipFile+"] file to server")
             break
         endif
 
-        MsProcTxt("UnZipFile. Wait...")
+        MsProcTxt("UnZipFile. Wait!")
         lSendDataToServer:=(FUnzip(cZipFileServer,cDirectoryServer,/*[cSenha]*/)==0)
         if (!lSendDataToServer)
             ApMsgAlert("Problem unzipping the test ["+cZipFile+"] on the server")

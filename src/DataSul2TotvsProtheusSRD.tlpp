@@ -71,6 +71,10 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
         oSRDPergunte:=FreeObj(oSRDPergunte)
     endif
 
+    if (findFunction("RstPosAlias"))
+        RstPosAlias()
+    endif
+    
     DelClassIntF()
 
 return(lSRDImport)

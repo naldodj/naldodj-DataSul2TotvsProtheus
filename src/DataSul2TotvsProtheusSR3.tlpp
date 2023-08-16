@@ -44,6 +44,10 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical) as logica
 
     FWFreeArray(@aAddIndex)
 
+    if (findFunction("RstPosAlias"))
+        RstPosAlias()
+    endif    
+
     DelClassIntF()
 
 return(lSR3Import)
