@@ -940,68 +940,72 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                         if (lSeekTable)
 
                             if (cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
+                                
+                                if ((lUpdateTableFields).and.(lLock:=softLock(cSeekTable)))
 
-                                if ((lUpdateTableFields).and.(softLock(cSeekTable)))
+                                    lLock:=(cSeekTable)->(recLock(cSeekTable,.F.))
 
-                                    (cSeekTable)->(recLock(cSeekTable,.F.))
+                                    if (lLock)
 
-                                    for nField:=1 to nUpdateTableSource
+                                        for nField:=1 to nUpdateTableSource
 
-                                        cField:=aUpdateTableSource[nField]
-                                        nTargetFieldPos:=aScan(aTargetFieldsDef,{|e|(e[1]==cField)})
+                                            cField:=aUpdateTableSource[nField]
+                                            nTargetFieldPos:=aScan(aTargetFieldsDef,{|e|(e[1]==cField)})
 
-                                        if (nTargetFieldPos>0)
+                                            if (nTargetFieldPos>0)
 
-                                            lHasError:=.F.
-                                            xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
+                                                lHasError:=.F.
+                                                xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
 
-                                            if (lHasError)
+                                                if (lHasError)
 
-                                                cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                                                cError+=CacheData():Get("EvalBlock","ErrorStack","")
-                                                CacheData():delSection("EvalBlock")
+                                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                                    CacheData():delSection("EvalBlock")
 
-                                                if (!empty(cError))
-                                                    cError:=cTools():StrReplace(cError,{CRLF," "})
-                                                    cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
-                                                    oTLogReport:AddGroup(cTLogReport)
-                                                    oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
-                                                    cError:=""
-                                                    lEnd:=oMsNewProcess:lEnd:=.T.
-                                                    break
+                                                    if (!empty(cError))
+                                                        cError:=cTools():StrReplace(cError,{CRLF," "})
+                                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                                        oTLogReport:AddGroup(cTLogReport)
+                                                        oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                                        cError:=""
+                                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        break
+                                                    endif
+
+                                                endif
+
+                                                cField:=aUpdateTableFields[nField]
+                                                xValue:=NormalizeData(@lHasError,xValue,cType,cField,.T.,@st_oHMbTransform,@oTFIni)
+
+                                                if (lHasError)
+
+                                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                                    CacheData():delSection("EvalBlock")
+
+                                                    if (!empty(cError))
+                                                        cError:=cTools():StrReplace(cError,{CRLF," "})
+                                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                                        oTLogReport:AddGroup(cTLogReport)
+                                                        oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                                        cError:=""
+                                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        (cSeekTable)->(MsUnLock())
+                                                        break
+                                                    endif
+
                                                 endif
 
                                             endif
 
-                                            cField:=aUpdateTableFields[nField]
-                                            xValue:=NormalizeData(@lHasError,xValue,cType,cField,.T.,@st_oHMbTransform,@oTFIni)
+                                            (cSeekTable)->(FieldPut(FieldPos(cField),xValue))
 
-                                            if (lHasError)
+                                        next nField
 
-                                                cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                                                cError+=CacheData():Get("EvalBlock","ErrorStack","")
-                                                CacheData():delSection("EvalBlock")
+                                        (cSeekTable)->(MsUnLock())
 
-                                                if (!empty(cError))
-                                                    cError:=cTools():StrReplace(cError,{CRLF," "})
-                                                    cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
-                                                    oTLogReport:AddGroup(cTLogReport)
-                                                    oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
-                                                    cError:=""
-                                                    lEnd:=oMsNewProcess:lEnd:=.T.
-                                                    (cSeekTable)->(MsUnLock())
-                                                    break
-                                                endif
-
-                                            endif
-
-                                        endif
-
-                                        (cSeekTable)->(FieldPut(FieldPos(cField),xValue))
-
-                                    next nField
-
-                                    (cSeekTable)->(MsUnLock())
+                                    endif
 
                                 endif
 
@@ -1287,7 +1291,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 cField:=aTargetFieldsDef[nField][1]
                 cacheData():delProperty("datasul2totvsprotheus",cField)
             next nField
-            
+
             if (lEnd)
                 break
             endif
