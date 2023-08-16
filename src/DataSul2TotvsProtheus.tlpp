@@ -1034,6 +1034,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                             while (((++nReplicate)<=nReplicates))
 
+                                lAppend:=.T.
+
                                 (cTmpAlias)->(dbAppend(.F.))
                                 ldbCommit:=(++nCommitBuffer>=1024)
 
@@ -1064,7 +1066,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         xValue:=aReplicateValues[nReplicateValuesAT]
 
                                     endif
-
+                                    
                                     if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
                                         lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))
                                         if (!lAppend)
@@ -1080,11 +1082,25 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                 next nField
 
-                                if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
-                                    (cTmpAlias)->(dbDelete())
-                                    cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
-                                    cDeleteIfEmpty+=","
-                                    nDeleteIfEmpty++
+                                if (lAppend)
+                                    if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
+                                        (cTmpAlias)->(dbDelete())
+                                        cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                                        cDeleteIfEmpty+=","
+                                        nDeleteIfEmpty++
+                                    endif
+                                endif
+
+                                if ((nDeleteIfEmpty>=1024).or.((ldbCommit).and.(nDeleteIfEmpty>0)))
+                                    if (!ldbCommit)
+                                        (cTmpAlias)->(dbCommitAll())
+                                    endif
+                                    if (right(cDeleteIfEmpty,1)==",")
+                                        cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
+                                    endif
+                                    nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
+                                    cDeleteIfEmpty:=""
+                                    nDeleteIfEmpty:=0
                                 endif
 
                             end while
@@ -1137,7 +1153,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     if (right(cDeleteIfEmpty,1)==",")
                         cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
                     endif
-                    TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
+                    nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                     cDeleteIfEmpty:=""
                     nDeleteIfEmpty:=0
                 endif
@@ -1159,7 +1175,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 if (right(cDeleteIfEmpty,1)==",")
                     cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
                 endif
-                TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
+                nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                 cDeleteIfEmpty:=""
                 nDeleteIfEmpty:=0
             endif
@@ -1171,7 +1187,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 break
             endif
 
-            nRecCount:=(cTmpAlias)->(recCount())
+            nAliasdbCount:=0
+            (cTmpAlias)->(dbGoTop())
+            MsAguarde({||(cTmpAlias)->(dbEval():Eval(cTmpAlias,{||++nAliasdbCount},{||!deleted()},{||.T.},nil,nil,.F.,{||dbGoTop()}))},"Wait...","Verifying record data for import")
+
+            nRecCount:=Min(nAliasdbCount,(cTmpAlias)->(recCount()))
             cRecCount:=cTools():NToS(nRecCount)
 
             if (nRecCount<=nIncProcStep)
