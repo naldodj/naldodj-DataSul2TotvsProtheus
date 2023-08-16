@@ -42,10 +42,10 @@ static function SR8ImportData(oMsNewProcess as object,lEnd as logical) as logica
 
 return(lSR8Import)
 
-static function SR8GetValue(xGet,xDefault)
+static function SR8GetValue(xGet,xDefault) as variant
 return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
-static function SR8GetSEQ()
+static function SR8GetSEQ() as character
 
     static c_stHMSR8SeqKey as character
 

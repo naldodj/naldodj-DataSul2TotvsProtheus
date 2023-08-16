@@ -37,7 +37,10 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
             bEnableFilterBlockMem:={|xValue,cField|;
                 IF((cField=="RD_DATARQ"),;
                     ((xValue>=cCompetenciaDe).and.(xValue<=cCompetenciaAte)),;
-                    .T.;
+                    IF((cField=="RD_PD"),;
+                        (!empty(xValue).and.(PosSRV(xValue,fFilFunc("SRA"),"RV_COD",1,.T.)==xValue)),;
+                        .T.;
+                    );
                 );
             }
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
@@ -49,6 +52,8 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
 
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN"))
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RD_FILIAL,RD_MAT,RD_CC,RD_ITEM,RD_CLVL,RD_DATARQ,RD_PD,RD_SEQ,RD_PERIODO,RD_SEMANA,RD_ROTEIR,RD_DTREF,RD_CONVOC,RD_NRBEN")),",")
+
+        cacheData():Set("datasul2totvsprotheus","SRDImportDataLogReport",oTLogReport)
 
         lSRDImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
@@ -62,9 +67,15 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
         oTLogReport:Clean()
         oTLogReport:=FreeObj(oTLogReport)
 
+        cacheData():DelProperty("datasul2totvsprotheus",cAlias+"LogReport")
+
         FWFreeArray(@aAddIndex)
 
     end sequence
+
+    if (findFunction("RstPosAlias"))
+        RstPosAlias()
+    endif
 
     if (valtype(oSRDPergunte)=="O")
         oSRDPergunte:Clear()
@@ -150,10 +161,10 @@ static function SRDPergunte(oSRDPergunte as object) as logical
 
 return(lParamBox)
 
-static function SRDGetValue(xGet,xDefault)
+static function SRDGetValue(xGet,xDefault) as variant
 return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
-static function SRDGetSEQ()
+static function SRDGetSEQ() as character
 
     static c_stHMSRDSeqKey as character
 
@@ -211,3 +222,60 @@ static function SRDGetSEQ()
     end sequence
 
 return(cRDSEQ)
+
+static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as character
+
+    local cRDPD as character
+    local cSRVFilial as character
+    local cSRVKeySeek as character
+
+    local cTReportGrp as character
+    local cTReportMsg as character
+
+    local lSRVFound as logical
+
+    local nSRDPD:=getSX3Cache("RD_PD","X3_TAMANHO")
+    local nSRVOrder as numeric
+
+    local oTLogReport as object 
+
+    cRDPD:=datasul2totvs.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.)
+    cRDPD:=Left(cRDPD,nSRDPD)
+
+    if (!Empty(cRDPD))
+
+        cSRVFilial:=fFilFunc("SRV")
+        
+        cSRVKeySeek:=cSRVFilial
+        cSRVKeySeek+=cRDPD
+        
+        nSRVOrder:=RetOrder("SRV","RV_FILIAL+RV_COD")
+
+        SRV->(dbSetOrder(nSRVOrder))
+        
+        lSRVFound:=SRV->(MsSeek(cSRVKeySeek,.F.))
+        
+        if (!lSRVFound)
+            oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
+            if (valType(oTLogReport)=="O")
+                cTReportGrp:="Verba Não Localizada"
+                cTReportMsg:="Verba ["+cRDPD+"] Não Localizada no SRV."
+                oTLogReport:AddGroup(cTReportGrp)
+                oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
+            endif
+            cRDPD:=Space(nSRDPD)
+        endif
+    
+    else
+
+        oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
+        if (valType(oTLogReport)=="O")
+            cTReportGrp:="["+cEventoDataSul+"] De/Para Não Localizado"
+            cTReportMsg:="Não Existe paridade de Verba Protheus para o Evento Datasul ["+cEventoDataSul+"]."
+            oTLogReport:AddGroup(cTReportGrp)
+            oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
+        endif
+
+    endif
+
+return(cRDPD)

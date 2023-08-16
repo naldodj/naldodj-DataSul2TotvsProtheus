@@ -107,6 +107,12 @@ static method Activate() class Protheus
 
         oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
 
+        lActivate:=(allTrim(oTFIni:GetPropertyValue("General","CompanyCode","@@"))==&("cEmpAnt"))
+        if (!lActivate)
+            ApMsgAlert("The import process cannot be performed for the Selected Company ["+&("cEmpAnt")+"]","Attention")
+            break
+        endif
+
         lFastMode:=(allTrim(oTFIni:GetPropertyValue("General","IncProcFastMode","0"))=="1")
         lPercentage:=(allTrim(oTFIni:GetPropertyValue("General","IncProcPercentage","0"))=="1")
 
@@ -198,11 +204,6 @@ static method Activate() class Protheus
 
         ACTIVATE DIALOG oTDlg CENTERED
 
-        MsAguarde({||oTFIni:FreeObj()},"Wait!","Releasing temporary files and workspace memory...")
-        if (valType(oTFIni)=="O")
-            oTFIni:=FreeObj(oTFIni)
-        endif
-
         MsAguarde({||oTMenuOptions:FreeObj()},"Wait!","Releasing temporary files and workspace memory...")
         if (valType(oTMenuOptions)=="O")
             oTMenuOptions:=FreeObj(oTMenuOptions)
@@ -216,6 +217,13 @@ static method Activate() class Protheus
         FWFreeArray(@aProperties)
 
     end sequence
+
+    if (valType(oTFIni)=="O")
+        MsAguarde({||oTFIni:FreeObj()},"Wait!","Releasing temporary files and workspace memory...")
+        if (valType(oTFIni)=="O")
+            oTFIni:=FreeObj(oTFIni)
+        endif
+    endif
 
     __SetCentury(if(lSetCentury,"ON","OFF"))
 
@@ -395,9 +403,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local lImportData as logical
     local lMemoVirutal as logical
     local lAddFieldTmp as logical
-    local lTablesEncodeUTF8 as logical
     local lCustomUpdate:=.F. as logical
     local lTypeReplicate:=.F. as logical
+    local lSeekTableFound as logical
+    local lTablesEncodeUTF8 as logical
     local lAfterUpdateRecNo:=.F. as logical
     local lAppendIfNotExist as logical
     local lUpdateEmptyValue:=.F. as logical
@@ -895,6 +904,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     oTLogReport:AddDetail(cTLogReport,"Estrutura da Linha diferente da estrutura de Dados")
                                     oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
                                     if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
+                                        (cTmpAlias)->(dbDelete())
                                         cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                                         cDeleteIfEmpty+=","
                                         nDeleteIfEmpty++
@@ -915,13 +925,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 endif
                                 if (empty(cTools():StrReplace(cAllSeekIndexKey,{"+",""})))
                                     cAllSeekIndexKey:=""
-                                    (cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
+                                    lSeekTableFound:=(cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
                                 endif
                             endif
 
                         next nField
 
                         if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
+                            (cTmpAlias)->(dbDelete())
                             cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                             cDeleteIfEmpty+=","
                             nDeleteIfEmpty++
@@ -930,6 +941,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                         if (lEnableFilterBlock)
                             if ((cTmpAlias)->(!Eval(bEnableFilterBlock,cTmpAlias)))
+                                (cTmpAlias)->(dbDelete())
                                 cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                                 cDeleteIfEmpty+=","
                                 nDeleteIfEmpty++
@@ -939,7 +951,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                         if (lSeekTable)
 
-                            if (cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
+                            lSeekTableFound:=(cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
+                            
+                            if (lSeekTableFound)
                                 
                                 if ((lUpdateTableFields).and.(lLock:=softLock(cSeekTable)))
 
@@ -1051,11 +1065,23 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                     endif
 
+                                    if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
+                                        lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))
+                                        if (!lAppend)
+                                            (cTmpAlias)->(dbDelete())
+                                            cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                                            cDeleteIfEmpty+=","
+                                            nDeleteIfEmpty++
+                                            exit
+                                        endif
+                                    endif
+
                                     (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
 
                                 next nField
 
                                 if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
+                                    (cTmpAlias)->(dbDelete())
                                     cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                                     cDeleteIfEmpty+=","
                                     nDeleteIfEmpty++
