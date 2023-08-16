@@ -1187,10 +1187,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 break
             endif
 
-            nAliasdbCount:=0
-            (cTmpAlias)->(dbGoTop())
-            MsAguarde({||(cTmpAlias)->(dbEval():Eval(cTmpAlias,{||++nAliasdbCount},{||!deleted()},{||.T.},nil,nil,.F.,{||dbGoTop()}))},"Wait...","Verifying record data for import")
-
+            MsAguarde({||nAliasdbCount:=GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
+            
             nRecCount:=Min(nAliasdbCount,(cTmpAlias)->(recCount()))
             cRecCount:=cTools():NToS(nRecCount)
 
@@ -2377,3 +2375,37 @@ static function ForceAsBlind(lIsBlind as logical) as logical
         endif
     endif
 return(lIsBlind)    
+
+static function GetRecCount(cTable as character, cWhere as character) as numeric
+
+    local aArea:=FWGetArea() as array
+
+    local cAlias:=getNextAlias() as numeric
+    local cQuery as character
+
+    local nRecCount:=0 as numeric
+
+    if (empty(cWhere))
+        cWhere:="(1=1)"
+    endif
+
+    beginContent var cQuery
+        SELECT COUNT(*) QRYLASTREC 
+          FROM cTable
+         WHERE cWhere
+    endContent
+
+    cQuery:=cTools():StrReplace(cQuery,;
+        {"cTable",cTable},;
+        {"cWhere",cWhere};
+    )
+
+    cQuery:=ChangeQuery(cQuery)
+    if (MsOpenDbf(.T.,"TOPCONN",TcGenQry(nil,nil,cQuery),cAlias,.T.,.T.,.F.,.F.))
+        nRecCount:=(cAlias)->QRYLASTREC
+        (cAlias)->(dbCloseArea())
+    endif
+
+    FWRestArea(aArea)
+
+return(nRecCount)
