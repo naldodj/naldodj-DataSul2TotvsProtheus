@@ -955,9 +955,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                             
                             if (lSeekTableFound)
                                 
-                                if ((lUpdateTableFields).and.(lLock:=softLock(cSeekTable)))
+                                if ((lUpdateTableFields).and.(lLock:=MySoftLock(cSeekTable)))
 
-                                    lLock:=(cSeekTable)->(recLock(cSeekTable,.F.))
+                                    lLock:=(cSeekTable)->(MyRecLock(cSeekTable,.F.))
 
                                     if (lLock)
 
@@ -1249,12 +1249,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                         endif
                     else
                         if (!lAddNew)
-                            lLock:=softLock(cAlias)
+                            lLock:=MySoftLock(cAlias)
                             if (lLock)
-                                lLock:=((cAlias)->(recLock(cAlias,lAddNew)))
+                                lLock:=((cAlias)->(MyRecLock(cAlias,lAddNew)))
                             endif
                         else
-                           lLock:=((cAlias)->(recLock(cAlias,lAddNew))) 
+                           lLock:=((cAlias)->(MyRecLock(cAlias,lAddNew))) 
                         endif
                         if (lLock)
                             for nField:=1 to nFields
@@ -2354,12 +2354,20 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
 
 return(lSendDataToServer)
 
-static function softLock(cAlias as character) as logical
+static function MySoftLock(cAlias as character) as logical
+    local lLock as logical
+    lLock:=(cAlias)->(MyRecLock(cAlias,.F.,.F.,.T.,.T.))
+    return(lLock)
+
+static function MyRecLock(cAlias,lAdd,lDelete,lSoft,lInJob)
     local lLock as logical
     ForceAsBlind(.T.)
-    lLock:=(cAlias)->(RecLock(cAlias,.F.,.F.,.T.,.T.))
+        dfv():DefaultEmpty(@lDelete,.F.)
+        dfv():DefaultEmpty(@lSoft,.F.)
+        dfv():DefaultEmpty(@lInJob:=.T.)
+        lLock:=(cAlias)->(RecLock(cAlias,lAdd,lDelete,lSoft,lInJob))
     ForceAsBlind(.F.)
-    return(lLock)
+return(lLock)
 
 static function ForceAsBlind(lIsBlind as logical) as logical
     if (valtype(lIsBlind)=="L")
