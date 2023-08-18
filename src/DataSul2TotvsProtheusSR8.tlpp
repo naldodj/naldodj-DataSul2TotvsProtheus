@@ -49,7 +49,7 @@ static function SR8GetSEQ() as character
 
     static c_stHMSR8SeqKey as character
 
-    local cStack:="IMPORTDATA" as character
+    local cStack:="SR8IMPORTDATA" as character
 
     local cR8MAT as character
     local cR8SEQ:="" as character

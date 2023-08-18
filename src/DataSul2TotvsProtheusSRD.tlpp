@@ -38,7 +38,7 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
                 IF((cField=="RD_DATARQ"),;
                     ((xValue>=cCompetenciaDe).and.(xValue<=cCompetenciaAte)),;
                     IF((cField=="RD_PD"),;
-                        (!empty(xValue).and.(PosSRV(xValue,fFilFunc("SRA"),"RV_COD",1,.T.)==xValue)),;
+                        (!empty(xValue).and.(SRDFindSRVPD(xValue))),;
                         .T.;
                     );
                 );
@@ -89,6 +89,11 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
     if (type("oPVTHMSRDSeq")=="O")
         oPVTHMSRDSeq:Clean()
         oPVTHMSRDSeq:=FreeObj(oPVTHMSRDSeq)
+    endif
+
+    if (type("oPVTHMFindSRVPD")=="O")
+        oPVTHMFindSRVPD:Clean()
+        oPVTHMFindSRVPD:=FreeObj(oPVTHMFindSRVPD)
     endif
 
     DelClassIntF()
@@ -168,7 +173,7 @@ static function SRDGetSEQ() as character
 
     static c_stHMSRDSeqKey as character
 
-    local cStack:="IMPORTDATA" as character
+    local cStack:="SRDIMPORTDATA" as character
 
     local cRDSEQ:="" as character
 
@@ -223,11 +228,62 @@ static function SRDGetSEQ() as character
 
 return(cRDSEQ)
 
+static function SRDFindSRVPD(cRDPD) as logical
+
+    static c_stHMFindSRVPDKey as character
+
+    local cSRVFilial as character
+    local cSRVKeySeek as character
+
+    local cStack:="SRDIMPORTDATA" as character
+    local cHMFindSRVPDKey as character
+
+    local lSRVFound as logical
+
+    local nSRVOrder as numeric
+    local nSRVRecNo as numeric
+
+    cSRVFilial:=fFilFunc("SRV")
+    
+    cSRVKeySeek:=cSRVFilial
+    cSRVKeySeek+=cRDPD
+
+    cHMFindSRVPDKey:=&("cEmpAnt")
+    cHMFindSRVPDKey+=cSRVFilial
+
+    if (type("oPVTHMFindSRVPD")!="O")
+        _SetNamedPRVT("oPVTHMFindSRVPD",THashMap():New(),cStack)
+    else
+        if (c_stHMFindSRVPDKey!=cHMFindSRVPDKey)
+            c_stHMFindSRVPDKey:=cHMFindSRVPDKey
+            oPVTHMFindSRVPD:Clean()
+        endif
+    endif
+
+    if (!oPVTHMFindSRVPD:Get(cSRVKeySeek,@nSRVRecNo))
+        nSRVOrder:=RetOrder("SRV","RV_FILIAL+RV_COD")
+        SRV->(dbSetOrder(nSRVOrder))
+        lSRVFound:=SRV->(MsSeek(cSRVKeySeek,.F.))
+        if (lSRVFound)
+            nSRVRecNo:=SRV->(RecNo())
+        else
+            nSRVRecNo:=0
+        endif
+        oPVTHMFindSRVPD:Set(cSRVKeySeek,nSRVRecNo)
+    else
+        lSRVFound:=(nSRVRecNo>0)
+        if (lSRVFound)
+            SRV->(MsGoTo(nSRVRecNo))
+        else
+            PutfileInEof("SRV")
+        endif
+    endif
+
+return(lSRVFound)
+
 static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as character
 
     local cRDPD as character
-    local cSRVFilial as character
-    local cSRVKeySeek as character
 
     local cTReportGrp as character
     local cTReportMsg as character
@@ -235,7 +291,6 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
     local lSRVFound as logical
 
     local nSRDPD:=getSX3Cache("RD_PD","X3_TAMANHO")
-    local nSRVOrder as numeric
 
     local oTLogReport as object 
 
@@ -244,17 +299,8 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
     if (!Empty(cRDPD))
 
-        cSRVFilial:=fFilFunc("SRV")
-        
-        cSRVKeySeek:=cSRVFilial
-        cSRVKeySeek+=cRDPD
-        
-        nSRVOrder:=RetOrder("SRV","RV_FILIAL+RV_COD")
+        lSRVFound:=SRDFindSRVPD(cRDPD)
 
-        SRV->(dbSetOrder(nSRVOrder))
-        
-        lSRVFound:=SRV->(MsSeek(cSRVKeySeek,.F.))
-        
         if (!lSRVFound)
             oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
             if (valType(oTLogReport)=="O")
