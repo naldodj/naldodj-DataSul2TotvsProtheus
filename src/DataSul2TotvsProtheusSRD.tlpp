@@ -14,11 +14,19 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
     local cIndexKey as character
     local cTableImport:="SRD" as character
 
+    local cFilDe as character
+    local cFilAte as character
+
+    local cMatDe as character
+    local cMatAte as character
+
     local cCompetenciaDe as character
     local cCompetenciaAte as character
 
     local lSRDImport as logical
     local lEnableFilterBlock as logical
+
+    local nStartLine as numeric
 
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
     local oTLogReport:=tLogReport():New() as object
@@ -33,16 +41,39 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
             endif
             cCompetenciaDe:=oSRDPergunte:Get("Competencia.De")
             cCompetenciaAte:=oSRDPergunte:Get("Competencia.Ate")
-            bEnableFilterBlock:={|cAlias|(cAlias)->((RD_DATARQ>=cCompetenciaDe).and.(RD_DATARQ<=cCompetenciaAte))}
+            cFilDe:=oSRDPergunte:Get("Filial.De")
+            cFilAte:=oSRDPergunte:Get("Filial.Ate")
+            cMatDe:=oSRDPergunte:Get("Matricula.De")
+            cMatAte:=oSRDPergunte:Get("Matricula.Ate")
+            nStartLine:=oSRDPergunte:Get("Linha.Inicial")
+            bEnableFilterBlock:={|cAlias|;
+                (cAlias)->(;
+                    (RD_DATARQ>=cCompetenciaDe).and.;
+                    (RD_DATARQ<=cCompetenciaAte).and.;
+                    (RD_FILIAL>=cFilDe).and.;
+                    (RD_FILIAL<=cFilAte).and.;
+                    (RD_MAT>=cMatDe).and.;
+                    (RD_MAT<=cMatAte);
+                );
+            }
             bEnableFilterBlockMem:={|xValue,cField|;
                 IF((cField=="RD_DATARQ"),;
                     ((xValue>=cCompetenciaDe).and.(xValue<=cCompetenciaAte)),;
                     IF((cField=="RD_PD"),;
                         (!empty(xValue).and.(SRDFindSRVPD(xValue))),;
-                        .T.;
+                        IF(;
+                            (cField=="RD_MAT"),;
+                            ((xValue>=cMatDe).and.(xValue<=cMatAte)),;
+                            IF(;
+                                (cField=="RD_FILIAL"),;
+                                ((xValue>=cFilDe).and.(xValue<=cFilAte)),;
+                                .T.;
+                            );
+                        );
                     );
                 );
             }
+            cacheData():Set("datasul2totvsprotheus",cAlias+"StartLine",nStartLine)
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
             cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
         else
@@ -108,16 +139,31 @@ static function SRDPergunte(oSRDPergunte as object) as logical
     local cPBoxTit:=OemToAnsi("Informe os parametros") as character
 
     local cDatArq as character
+    local cFilDe as character
+    local cFilAte as character
+
+    local cMatDe as character
+    local cMatAte as character
 
     local lParamBox:=.F. as logical
 
     local nPBox as numeric
+    local nRDMat as numeric
     local nDatArq as numeric
+    local nRDFilial as numeric
 
     saveInter()
 
         nDatArq:=GetSx3Cache("RD_DATARQ","X3_TAMANHO")
         cDatArq:=Space(nDatArq)
+
+        nRDFilial:=GetSx3Cache("RD_FILIAL","X3_TAMANHO")
+        cFilDe:=Space(nRDFilial)
+        cFilAte:=cFilDe
+        
+        nRDMat:=GetSx3Cache("RD_MAT","X3_TAMANHO")
+        cMatDe:=Space(nRDMat)
+        cMatAte:=cMatDe
 
         aAdd(aPBoxPrm,Array(9))
         nPBox:=Len(aPBoxPrm)
@@ -134,7 +180,7 @@ static function SRDPergunte(oSRDPergunte as object) as logical
 
         aAdd(aPBoxPrm,Array(9))
         nPBox:=Len(aPBoxPrm)
-        //01----------------------------------------------------------------------------------------------
+        //02----------------------------------------------------------------------------------------------
         aPBoxPrm[nPBox][1]:=1                //[1]:1 - MsGet
         aPBoxPrm[nPBox][2]:="Competencia.Ate"//[2]:Descricao
         aPBoxPrm[nPBox][3]:=cDatArq   //[3]:String contendo o inicializador do campo
@@ -144,6 +190,71 @@ static function SRDPergunte(oSRDPergunte as object) as logical
         aPBoxPrm[nPBox][7]:="AllWaysTrue()"  //[7]:String contendo a validacao When
         aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nDatArq,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2])  //[8]:Tamanho do MsGet
         aPBoxPrm[nPBox][9]:=.T.              //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //03----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Filial.De"     //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cFilDe          //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@!"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="AllWaysTrue()" //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="XM0"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nRDFilial,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.F.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //04----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Filial.Ate"    //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cFilAte         //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@!"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="XM0"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nRDFilial,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //05----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Matricula.De"  //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cMatDe          //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@!"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="AllWaysTrue()" //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="SRA"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nRDMat,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.F.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //06----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Matricula.Ate" //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=cMatAte         //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="@!"            //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="NaoVazio()"    //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="SRA"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nRDMat,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //07----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1               //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Linha.Inicial" //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=1               //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="9999999999"    //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="AllWaysTrue()" //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:="SRA"           //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.F.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
         while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,NIL,NIL,.T.,NIL,NIL,NIL,NIL,.T.,.T.)))
             lParamBox:=MsgYesNo("Deseja Abortar a Importacao?","Atencao!")
@@ -181,6 +292,8 @@ static function SRDGetSEQ() as character
 
     local cTmpAlias as character
 
+    local lSoma1:=.T. as logical
+
     begin sequence
 
         if (type("cPVTSRDAlias")!="C")
@@ -204,11 +317,11 @@ static function SRDGetSEQ() as character
 
         if (type("oPVTHMSRDSeq")!="O")
             _SetNamedPRVT("oPVTHMSRDSeq",THashMap():New(),cStack)
-        else
-            if (c_stHMSRDSeqKey!=cHMSRDSeqKey)
-                c_stHMSRDSeqKey:=cHMSRDSeqKey
-                oPVTHMSRDSeq:Clean()
-            endif
+        endif
+        
+        if (c_stHMSRDSeqKey!=cHMSRDSeqKey)
+            c_stHMSRDSeqKey:=cHMSRDSeqKey
+            oPVTHMSRDSeq:Clean()
         endif
 
         if (!oPVTHMSRDSeq:Get(cHMSRDSeqKey,@cRDSEQ)).or.(Empty(cRDSEQ))
@@ -218,9 +331,12 @@ static function SRDGetSEQ() as character
                 _SetNamedPRVT("cPVTRDSEQ",cRDSEQ,cStack)
             endif
             cRDSEQ:=cPVTRDSEQ
+            lSoma1:=(strTran(cRDSEQ,"0","")!="")
         endif
 
-        cRDSEQ:=__Soma1(cRDSEQ)
+        if (lSoma1)
+            cRDSEQ:=__Soma1(cRDSEQ)
+        endif
 
         oPVTHMSRDSeq:Set(cHMSRDSeqKey,cRDSEQ)
 
@@ -253,11 +369,11 @@ static function SRDFindSRVPD(cRDPD) as logical
 
     if (type("oPVTHMFindSRVPD")!="O")
         _SetNamedPRVT("oPVTHMFindSRVPD",THashMap():New(),cStack)
-    else
-        if (c_stHMFindSRVPDKey!=cHMFindSRVPDKey)
-            c_stHMFindSRVPDKey:=cHMFindSRVPDKey
-            oPVTHMFindSRVPD:Clean()
-        endif
+    endif
+
+    if (c_stHMFindSRVPDKey!=cHMFindSRVPDKey)
+        c_stHMFindSRVPDKey:=cHMFindSRVPDKey
+        oPVTHMFindSRVPD:Clean()
     endif
 
     if (!oPVTHMFindSRVPD:Get(cSRVKeySeek,@nSRVRecNo))
@@ -284,6 +400,7 @@ return(lSRVFound)
 static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as character
 
     local cRDPD as character
+    local cFindInTable as character
 
     local cTReportGrp as character
     local cTReportMsg as character
@@ -294,8 +411,9 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
     local oTLogReport as object 
 
-    cRDPD:=datasul2totvs.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.)
-    cRDPD:=Left(cRDPD,nSRDPD)
+    cFindInTable:=datasul2totvs.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.)
+    
+    cRDPD:=Left(cFindInTable,nSRDPD)
 
     if (!Empty(cRDPD))
 
@@ -305,9 +423,10 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
             oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
             if (valType(oTLogReport)=="O")
                 cTReportGrp:="Verba Não Localizada"
-                cTReportMsg:="Verba ["+cRDPD+"] Não Localizada no SRV."
                 oTLogReport:AddGroup(cTReportGrp)
+                cTReportMsg:="Verba ["+cRDPD+"] Não Localizada no SRV."
                 oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
+                cTReportMsg:="Evento ["+cFindInTable+"]."
             endif
             cRDPD:=Space(nSRDPD)
         endif
@@ -317,7 +436,7 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
         oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
         if (valType(oTLogReport)=="O")
             cTReportGrp:="["+cEventoDataSul+"] De/Para Não Localizado"
-            cTReportMsg:="Não Existe paridade de Verba Protheus para o Evento Datasul ["+cEventoDataSul+"]."
+            cTReportMsg:="Não Existe paridade de Verba Protheus para o Evento Datasul ["+cFindInTable+"]."
             oTLogReport:AddGroup(cTReportGrp)
             oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
         endif

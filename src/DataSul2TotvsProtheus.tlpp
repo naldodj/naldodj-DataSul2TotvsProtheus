@@ -317,6 +317,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local aTargetStruct:=(cAlias)->(dbStruct()) as array
     local aTargetFieldsDef as array
     local aReplicateValues as array
+    local aNoReplicateValues as array
     local aTargetReplicateFields as array
     local aTargetReplicateFieldsPos as array
     local aTargetFieldsDefReplicate as array
@@ -363,6 +364,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local cDataPath as character
     local cSourceFile as character
     local cSourceTable as character
+
+    local cNoReplicateValues as character
 
     local cDeleteIfEmpty:="" as character
 
@@ -596,6 +599,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         nFields:=Len(aTargetFieldsDef)
 
         if (lTypeReplicate)
+            cNoReplicateValues:=allTrim(oTFIni:GetPropertyValue(cAlias,"NoReplicateValues",""))
+            aNoReplicateValues:=strToKArr2(cNoReplicateValues,",")
             aTargetReplicateFields:=array(0)
             oHMTargetReplicateFields:=THashMap():New()
         endif
@@ -1063,7 +1068,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                             loop
                                         endif
 
-                                        xValue:=aReplicateValues[nReplicateValuesAT]
+                                        if (aScan(aNoReplicateValues,{|x|(x==cField)})==0)
+                                            xValue:=aReplicateValues[nReplicateValuesAT]
+                                        else
+                                            xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
+                                        endif
 
                                     endif
                                     
@@ -1387,6 +1396,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         oPVTHMSRDSeq:=FreeObj(oPVTHMSRDSeq)
     endif
 
+    if (type("oPVTHMFindSRVPD")=="O")
+        oPVTHMFindSRVPD:Clean()
+        oPVTHMFindSRVPD:=FreeObj(oPVTHMFindSRVPD)
+    endif
+
     if (valtype(oHMSourceFieldsDef)=="O")
         oHMSourceFieldsDef:Clean()
         oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
@@ -1418,6 +1432,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     FWFreeArray(@aTargetStruct)
     FWFreeArray(@aTargetFieldsDef)
     FWFreeArray(@aReplicateValues)
+    FWFreeArray(@aNoReplicateValues)
     FWFreeArray(@aTargetFieldsDefReplicate)
 
     FWFreeArray(@aUpdateTableFields)

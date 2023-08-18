@@ -89,11 +89,11 @@ static function SR8GetSEQ() as character
 
         if (type("oPVTHMSR8Seq")!="O")
             _SetNamedPRVT("oPVTHMSR8Seq",THashMap():New(),cStack)
-        else
-            if (c_stHMSR8SeqKey!=cHMSR8SeqKey)
-                c_stHMSR8SeqKey:=cHMSR8SeqKey
-                oPVTHMSR8Seq:Clean()
-            endif
+        endif
+        
+        if (c_stHMSR8SeqKey!=cHMSR8SeqKey)
+            c_stHMSR8SeqKey:=cHMSR8SeqKey
+            oPVTHMSR8Seq:Clean()
         endif
 
         cHMSR8SeqKey+=cR8DATAINI
