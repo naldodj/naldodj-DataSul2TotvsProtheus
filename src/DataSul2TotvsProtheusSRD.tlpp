@@ -289,6 +289,7 @@ static function SRDGetSEQ() as character
     local cRDSEQ:="" as character
 
     local cHMSRDSeqKey:="" as character
+    local cHMSRDKeepKey:="" as character
 
     local cTmpAlias as character
 
@@ -305,24 +306,31 @@ static function SRDGetSEQ() as character
             break
         endif
 
-        cHMSRDSeqKey:=&("cEmpAnt")
-        cHMSRDSeqKey+=SRDGetValue("RD_FILIAL")
-        cHMSRDSeqKey+=SRDGetValue("RD_MAT")
-        cHMSRDSeqKey+=SRDGetValue("RD_DATARQ")
-        cHMSRDSeqKey+=SRDGetValue("RD_PD")
-        cHMSRDSeqKey+=SRDGetValue("RD_SEMANA")
-        cHMSRDSeqKey+=SRDGetValue("RD_ROTEIR")
-        cHMSRDSeqKey+=SRDGetValue("RD_CC")
-        cHMSRDSeqKey+=SRDGetValue("RD_PROCES")
+        cHMSRDKeepKey:=&("cEmpAnt")
+        cHMSRDKeepKey+=SRDGetValue("RD_FILIAL")
+        cHMSRDKeepKey+=SRDGetValue("RD_MAT")
+        cHMSRDKeepKey+=SRDGetValue("RD_DATARQ")
+        cHMSRDKeepKey+=SRDGetValue("RD_ROTEIR")
+        cHMSRDKeepKey+=SRDGetValue("RD_PROCES")
 
         if (type("oPVTHMSRDSeq")!="O")
             _SetNamedPRVT("oPVTHMSRDSeq",THashMap():New(),cStack)
         endif
         
-        if (c_stHMSRDSeqKey!=cHMSRDSeqKey)
-            c_stHMSRDSeqKey:=cHMSRDSeqKey
+        if (c_stHMSRDSeqKey!=cHMSRDKeepKey)
+            c_stHMSRDSeqKey:=cHMSRDKeepKey
             oPVTHMSRDSeq:Clean()
         endif
+
+        cHMSRDSeqKey:=&("cEmpAnt")
+        cHMSRDSeqKey+=SRDGetValue("RD_DATARQ")
+        cHMSRDSeqKey+=SRDGetValue("RD_FILIAL")
+        cHMSRDSeqKey+=SRDGetValue("RD_MAT")
+        cHMSRDSeqKey+=SRDGetValue("RD_CC")
+        cHMSRDSeqKey+=SRDGetValue("RD_PROCES")
+        cHMSRDSeqKey+=SRDGetValue("RD_ROTEIR")
+        cHMSRDSeqKey+=SRDGetValue("RD_SEMANA")
+        cHMSRDSeqKey+=SRDGetValue("RD_PD")
 
         if (!oPVTHMSRDSeq:Get(cHMSRDSeqKey,@cRDSEQ)).or.(Empty(cRDSEQ))
             if (type("nPVTSRDSeq")!="N")
@@ -422,7 +430,7 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
         if (!lSRVFound)
             oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
             if (valType(oTLogReport)=="O")
-                cTReportGrp:="Verba Não Localizada"
+                cTReportGrp:="[Verba Não Localizada]"
                 oTLogReport:AddGroup(cTReportGrp)
                 cTReportMsg:="Verba ["+cRDPD+"] Não Localizada no SRV."
                 oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
@@ -435,8 +443,8 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
         oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
         if (valType(oTLogReport)=="O")
-            cTReportGrp:="["+cEventoDataSul+"] De/Para Não Localizado"
-            cTReportMsg:="Não Existe paridade de Verba Protheus para o Evento Datasul ["+cFindInTable+"]."
+            cTReportGrp:="[De/Para Não Localizado]"
+            cTReportMsg:="Não Existe paridade de Verba Protheus para o Evento Datasul ["+if(Empty(cFindInTable),cEventoDataSul,cFindInTable)+"]."
             oTLogReport:AddGroup(cTReportGrp)
             oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
         endif
