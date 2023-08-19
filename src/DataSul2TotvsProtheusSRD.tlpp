@@ -446,7 +446,9 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
             cTReportGrp:="[De/Para Não Localizado]"
             cTReportMsg:="Não Existe paridade de Verba Protheus para o Evento Datasul ["+if(Empty(cFindInTable),cEventoDataSul,cFindInTable)+"]."
             oTLogReport:AddGroup(cTReportGrp)
-            oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
+            if (oTLogReport:FindDetail(cTReportGrp,cTReportMsg)==0)
+               oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
+            endif
         endif
 
     endif
