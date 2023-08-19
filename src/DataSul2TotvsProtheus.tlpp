@@ -1789,7 +1789,7 @@ static function NormalizeData(lHasError as logical,xValue as variant,cType as ch
 
 return(xValue)
 
-static function FindInTable(oTFIni as object,cTable as character,xValue as variant,lTableInFile as logical)
+static function FindInTable(oTFIni as object,cTable as character,xValue as variant,lTableInFile as logical,lUseDFV as logical)
 
     local cType as character
 
@@ -1808,6 +1808,7 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
     endif
 
     if (oTFIni:ExistSection(cTable))
+        dfv():Default(@lUseDFV,.T.)
         if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
             dfv():Default(@lTableInFile,.F.)
             if (lTableInFile)
@@ -1820,7 +1821,7 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
                     cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
                 endif
                 xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
-                if ((empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
+                if ((lUseDFV).and.(empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
                     xTmp:=oTFIniTable:GetPropertyValue(cTable,"__DFV__","")
                 endif
                 xValue:=xTmp
@@ -1833,11 +1834,11 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
                     oTFIniTable:=TFIni():New(cINIFile,"#")
                     cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
                 endif
-                xValue:=FindInTable(oTFIniTable,cTable,xValue)
+                xValue:=FindInTable(oTFIniTable,cTable,xValue,lTableInFile,lUseDFV)
             endif
         elseif ((oTFIni:GetATProperty(cTable,xValue)>0))
             xValue:=oTFIni:GetPropertyValue(cTable,xValue,"")
-        elseif ((oTFIni:GetATProperty(cTable,"__DFV__")>0))
+        elseif ((lUseDFV).and.(oTFIni:GetATProperty(cTable,"__DFV__")>0))
             xValue:=oTFIni:GetPropertyValue(cTable,"__DFV__","")
         endif
     endif

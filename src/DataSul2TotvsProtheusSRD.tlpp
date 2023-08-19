@@ -280,6 +280,21 @@ return(lParamBox)
 static function SRDGetValue(xGet,xDefault) as variant
 return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
+static function SRDGetRVTipo(cRDPD) as character
+    local cRVTipo as character
+    if (empty(cRDPD))
+        cRDPD:=SRDGetValue("RD_PD")
+    endif
+    if (SRDFindSRVPD(cRDPD))
+        cRVTipo:=SRV->RV_TIPO
+    endif
+    if (empty(cRVTipo))
+        cRVTipo:="V"
+    elseif ((cRVTipo$"H|D").and.(empty(SRDGetValue("RD_HORAS"))))
+        cRVTipo:="V"
+    endif
+return(cRVTipo)
+
 static function SRDGetSEQ() as character
 
     static c_stHMSRDSeqKey as character
@@ -419,7 +434,7 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
     local oTLogReport as object 
 
-    cFindInTable:=datasul2totvs.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.)
+    cFindInTable:=datasul2totvs.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.,.T.)
     
     cRDPD:=Left(cFindInTable,nSRDPD)
 
@@ -430,11 +445,12 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
         if (!lSRVFound)
             oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
             if (valType(oTLogReport)=="O")
-                cTReportGrp:="[Verba Não Localizada]"
+                cTReportGrp:="[Verba Não Localizada na tabela SRV]"
+                cTReportMsg:="Verba ["+cRDPD+"]. Evento ["+cFindInTable+"]."
                 oTLogReport:AddGroup(cTReportGrp)
-                cTReportMsg:="Verba ["+cRDPD+"] Não Localizada no SRV."
-                oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
-                cTReportMsg:="Evento ["+cFindInTable+"]."
+                if (oTLogReport:FindDetail(cTReportGrp,cTReportMsg)==0)
+                    oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
+                endif
             endif
             cRDPD:=Space(nSRDPD)
         endif
