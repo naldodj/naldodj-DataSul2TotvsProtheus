@@ -42,3 +42,9 @@ static function RCEImportData(oMsNewProcess as object,lEnd as logical) as logica
     DelClassIntF()
 
 return(lRCEImport)
+
+static function RCEGetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function RCESetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))

@@ -60,3 +60,9 @@ static function SRAImportData(oMsNewProcess as object,lEnd as logical) as logica
     DelClassIntF()
 
 return(lSRAImport)
+
+static function SRAGetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SRASetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))

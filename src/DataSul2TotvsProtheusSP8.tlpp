@@ -319,7 +319,7 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
 
 return(lParamBox)
 
-static procedure SP8CustomUpdate(cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef)
+static procedure SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFound as logical,lAddNew as logical,cIndexKey as character,cIndexID as character,nFields as numeric,aTargetFieldsDef as array)
 
     local aMarcacoes:=array(0) as array
 
@@ -386,3 +386,9 @@ static procedure SP8CustomUpdate(cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cInde
     FWFreeArray(@aMarcacoes)
 
 return
+
+static function SP8GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SP8SetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))

@@ -39,9 +39,11 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical) as logica
         lPreLoadTable:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cPreLoadAlias,@cPreLoadIndexKey,@cPreLoadTableImport,@aPreLoadAddIndex,@lPreLoadTable)
     endif
 
-    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RQ_FILIAL+RQ_MAT+RQ_ORDEM+RQ_SEQUENC"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RQ_FILIAL,RQ_MAT,RQ_ORDEM,RQ_SEQUENC")),",")
+    cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RQ_FILIAL+RQ_MAT+RQ_ORQEM+RQ_SEQUENC"))
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RQ_FILIAL,RQ_MAT,RQ_ORQEM,RQ_SEQUENC")),",")
 
+    cacheData():Set("datasul2totvsprotheus","SRQImportDataLogReport",oTLogReport)
+    
     lSRQImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lPreLoadTable)
@@ -68,6 +70,150 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical) as logica
 
     FWFreeArray(@aAddIndex)
 
+    if (type("oPVTHMFindSRVPD")=="O")
+        oPVTHMFindSRVPD:Clean()
+        oPVTHMFindSRVPD:=FreeObj(oPVTHMFindSRVPD)
+    endif
+
     DelClassIntF()
 
 return(lSRQImport)
+
+static function SRQGetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SRQSetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function SRQFindSRVPD(cRQPD as character) as logical
+
+    static c_stHMFindSRVPDKey as character
+
+    local cStack:="SRQIMPORTDATA"
+    
+    local cSRVFilial as character
+    local cSRVKeySeek as character
+
+    local cHMFindSRVPDKey as character
+
+    local lSRVFound as logical
+
+    local nSRVOrder as numeric
+    local nSRVRecNo as numeric
+
+    cSRVFilial:=fFilFunc("SRV")
+    
+    cSRVKeySeek:=cSRVFilial
+    cSRVKeySeek+=cRQPD
+
+    cHMFindSRVPDKey:=&("cEmpAnt")
+    cHMFindSRVPDKey+=cSRVFilial
+
+    if (type("oPVTHMFindSRVPD")!="O")
+        _SetNamedPRVT("oPVTHMFindSRVPD",THashMap():New(),cStack)
+    endif
+
+    if (c_stHMFindSRVPDKey!=cHMFindSRVPDKey)
+        c_stHMFindSRVPDKey:=cHMFindSRVPDKey
+        oPVTHMFindSRVPD:Clean()
+    endif
+
+    if (!oPVTHMFindSRVPD:Get(cSRVKeySeek,@nSRVRecNo))
+        nSRVOrder:=RetOrder("SRV","RV_FILIAL+RV_COD")
+        SRV->(dbSetOrder(nSRVOrder))
+        lSRVFound:=SRV->(MsSeek(cSRVKeySeek,.F.))
+        if (lSRVFound)
+            nSRVRecNo:=SRV->(RecNo())
+        else
+            nSRVRecNo:=0
+        endif
+        oPVTHMFindSRVPD:Set(cSRVKeySeek,nSRVRecNo)
+    else
+        lSRVFound:=(nSRVRecNo>0)
+        if (lSRVFound)
+            SRV->(MsGoTo(nSRVRecNo))
+        else
+            PutfileInEof("SRV")
+        endif
+    endif
+
+return(lSRVFound)
+
+static function SRQGetSRVPD(cEventoDataSul as character,oTFIni as object) as character
+
+    local cRQPD as character
+    local cFindInTable as character
+
+    local cTReportGrp as character
+    local cTReportMsg as character
+
+    local lSRVFound as logical
+
+    local nSRVCod:=getSX3Cache("RV_COD","X3_TAMANHO") as numeric
+
+    local oTLogReport as object 
+
+    cFindInTable:=datasul2totvs.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.,.T.)
+    
+    cRQPD:=Left(cFindInTable,nSRVCod)
+
+    if (!Empty(cRQPD))
+
+        lSRVFound:=SRQFindSRVPD(cRQPD)
+
+        if (!lSRVFound)
+            oTLogReport:=SRQGetValue("SRQImportDataLogReport",nil)
+            if (valType(oTLogReport)=="O")
+                cTReportGrp:="[Verba Não Localizada na tabela SRV]"
+                cTReportMsg:="Verba ["+cRQPD+"]. Evento ["+cFindInTable+"]."
+                oTLogReport:AddGroup(cTReportGrp)
+                if (oTLogReport:FindDetail(cTReportGrp,cTReportMsg)==0)
+                    oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
+                endif
+            endif
+            cRQPD:=Space(nSRVCod)
+        endif
+    
+    elseif (!empty(cEventoDataSul))
+
+        oTLogReport:=SRQGetValue("SRQImportDataLogReport",nil)
+        if (valType(oTLogReport)=="O")
+            cTReportGrp:="[De/Para Não Localizado]"
+            cTReportMsg:="Não Existe paridade de Verba Protheus para o Evento Datasul ["+if(Empty(cFindInTable),cEventoDataSul,cFindInTable)+"]."
+            oTLogReport:AddGroup(cTReportGrp)
+            if (oTLogReport:FindDetail(cTReportGrp,cTReportMsg)==0)
+               oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
+            endif
+        endif
+
+    endif
+
+return(cRQPD)
+
+static function SRQGetRQVerbas(cVarPD as character) as character
+    local aPDS as array
+    local aVarPD as array
+    local cPD as character
+    local cRQVerbas:="" as character
+    local nPD as numeric
+    local nPDs as numeric
+    local nVar as numeric
+    local nVars as numeric
+    aVarPD:=StrTokArr2(cVarPD,",")
+    nVars:=Len(aVarPD)
+    for nVar:=1 to nVars
+        cPD:=allTrim(SRQGetValue(aVarPD[nVar],""))
+        aPDS:=StrTokArr2(cPD,",")
+        nPDs:=Len(aPDS)
+        for nPD:=1 to nPDs
+            cPD:=aPDS[nPD]
+            if (!Empty(cPD)).and.(!(cPD$cRQVerbas))
+                cRQVerbas+=cPD+","
+            endif
+        next nPD
+        FWFreeArray(@aPDS)
+        SRQSetValue(aVarPD[nVar],"")
+    next nVar
+    FWFreeArray(@aVarPD)
+return(cRQVerbas)
+

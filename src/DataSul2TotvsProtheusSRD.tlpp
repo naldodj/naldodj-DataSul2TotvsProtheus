@@ -277,8 +277,11 @@ static function SRDPergunte(oSRDPergunte as object) as logical
 
 return(lParamBox)
 
-static function SRDGetValue(xGet,xDefault) as variant
+static function SRDGetValue(xGet as variant,xDefault as variant) as variant
 return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SRDSetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
 static function SRDGetRVTipo(cRDPD) as character
     local cRVTipo as character
@@ -367,14 +370,15 @@ static function SRDGetSEQ() as character
 
 return(cRDSEQ)
 
-static function SRDFindSRVPD(cRDPD) as logical
+static function SRDFindSRVPD(cRDPD as character) as logical
 
     static c_stHMFindSRVPDKey as character
 
+    local cStack:="SRDIMPORTDATA"
+    
     local cSRVFilial as character
     local cSRVKeySeek as character
 
-    local cStack:="SRDIMPORTDATA" as character
     local cHMFindSRVPDKey as character
 
     local lSRVFound as logical
@@ -455,7 +459,7 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
             cRDPD:=Space(nSRDPD)
         endif
     
-    else
+    elseif (!empty(cEventoDataSul))
 
         oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
         if (valType(oTLogReport)=="O")

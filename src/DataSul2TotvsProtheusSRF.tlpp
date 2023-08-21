@@ -36,3 +36,9 @@ static function SRFImportData(oMsNewProcess as object,lEnd as logical) as logica
     DelClassIntF()
 
 return(lSRFImport)
+
+static function SRFGetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SRFSetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))

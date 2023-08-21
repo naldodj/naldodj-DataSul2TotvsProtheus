@@ -72,10 +72,13 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical) as logica
 
 return(lSPJImport)
 
-static function SPJGetValue(xGet,xDefault) as variant
+static function SPJGetValue(xGet as variant,xDefault as variant) as variant
 return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
-static function SPJORNTRAB(xGet) as variant
+static function SPJSetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function SPJORNTRAB(xGet as variant) as variant
 
     local cKey as character
 
@@ -112,5 +115,5 @@ static function SPJORNTRAB(xGet) as variant
 
 return(xRet)
 
-static function Time2NextDay(cTime) as character 
+static function Time2NextDay(cTime as character) as character 
 return(timeCalc():Time2NextDay(cTime)[1])

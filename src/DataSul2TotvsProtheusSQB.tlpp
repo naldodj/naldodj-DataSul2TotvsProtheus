@@ -42,3 +42,9 @@ static function SQBImportData(oMsNewProcess as object,lEnd as logical) as logica
     DelClassIntF()
 
 return(lSQBImport)
+
+static function SQBGetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SQBSetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
