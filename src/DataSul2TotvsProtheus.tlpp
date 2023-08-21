@@ -869,20 +869,29 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                             else
 
-                                lHasError:=.F.
                                 if ((nReplicates>0).and.(!lTypeReplicateRow).and.(cacheData():Get("datasul2totvsprotheus",aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0))
 
-                                    nReplicate:=1
+                                    nReplicate:=0
 
                                     while (((++nReplicate)<=nReplicates))
                                         
-                                        aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
-                                        aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
+                                        lHasError:=.F.
+
+                                        if (nReplicate==1)
                                         
-                                        xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
+                                            xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+
+                                        else
                                         
-                                        FWFreeArray(@aTargetFieldsDefReplicate)
+                                            aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
+                                            aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
+                                            
+                                            xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
+                                            
+                                            FWFreeArray(@aTargetFieldsDefReplicate)
                                         
+                                        endif
+
                                         if (lHasError)
 
                                             cError:=CacheData():Get("EvalBlock","ErrorDescription","")
@@ -906,12 +915,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         if (nTargetFieldPos==0)
                                             loop
                                         endif
+                                    
                                         (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                    
                                     end while
 
-                                    xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+                                    loop
 
                                 else
+
+                                    lHasError:=.F.
 
                                     xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
 
