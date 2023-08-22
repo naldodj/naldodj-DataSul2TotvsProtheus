@@ -423,6 +423,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nReplicate as numeric
     local nReplicates:=0 as numeric
 
+    local nEndLine as numeric
     local nStartLine as numeric
 
     local nRecProc:=0 as numeric
@@ -717,6 +718,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             endif
 
             nRecCount:=oFT:ft_fLastRec()
+
+            nEndLine:=cacheData():Get("datasul2totvsprotheus",cTableImport+"EndLine",nRecCount)
+            if (nEndLine>=nRecCount)
+                nEndLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"EndLine",cTools():NToS(nRecCount))))
+            endif
+            nRecCount:=Min(nRecCount,nEndLine)
 
             if (nStartLine>1)
                 nRecCount:=((nRecCount-nStartLine)+1)
@@ -1227,6 +1234,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                 if (ldbCommit)
                     ldbCommit:=.F.
+                endif
+
+                if (nRecProc>=nRecCount)
+                    exit
                 endif
 
                 oFT:ft_fDelete()
