@@ -160,7 +160,7 @@ static function SRDPergunte(oSRDPergunte as object) as logical
         nRDFilial:=GetSx3Cache("RD_FILIAL","X3_TAMANHO")
         cFilDe:=Space(nRDFilial)
         cFilAte:=cFilDe
-        
+
         nRDMat:=GetSx3Cache("RD_MAT","X3_TAMANHO")
         cMatDe:=Space(nRDMat)
         cMatAte:=cMatDe
@@ -285,16 +285,22 @@ return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
 static function SRDGetRVTipo(cRDPD) as character
     local cRVTipo as character
+    local nRDHoras as numeric
     if (empty(cRDPD))
-        cRDPD:=SRDGetValue("RD_PD")
+        cRDPD:=SRDGetValue("RD_PD","")
     endif
     if (SRDFindSRVPD(cRDPD))
         cRVTipo:=SRV->RV_TIPO
     endif
     if (empty(cRVTipo))
         cRVTipo:="V"
-    elseif ((cRVTipo$"H|D").and.(empty(SRDGetValue("RD_HORAS"))))
-        cRVTipo:="V"
+    else
+        nRDHoras:=SRDGetValue("RD_HORAS",0)
+        if ((cRVTipo$"H|D").and.(empty(nRDHoras)))
+            cRVTipo:="V"
+        elseif (cRVTipo=="D").and.((nRDHoras-Int(nRDHoras))>0)
+            cRVTipo:="H"
+        endif
     endif
 return(cRVTipo)
 
@@ -334,7 +340,7 @@ static function SRDGetSEQ() as character
         if (type("oPVTHMSRDSeq")!="O")
             _SetNamedPRVT("oPVTHMSRDSeq",THashMap():New(),cStack)
         endif
-        
+
         if (c_stHMSRDSeqKey!=cHMSRDKeepKey)
             c_stHMSRDSeqKey:=cHMSRDKeepKey
             oPVTHMSRDSeq:Clean()
@@ -375,7 +381,7 @@ static function SRDFindSRVPD(cRDPD as character) as logical
     static c_stHMFindSRVPDKey as character
 
     local cStack:="SRDIMPORTDATA"
-    
+
     local cSRVFilial as character
     local cSRVKeySeek as character
 
@@ -387,7 +393,7 @@ static function SRDFindSRVPD(cRDPD as character) as logical
     local nSRVRecNo as numeric
 
     cSRVFilial:=fFilFunc("SRV")
-    
+
     cSRVKeySeek:=cSRVFilial
     cSRVKeySeek+=cRDPD
 
@@ -436,10 +442,10 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
     local nSRDPD:=getSX3Cache("RD_PD","X3_TAMANHO")
 
-    local oTLogReport as object 
+    local oTLogReport as object
 
     cFindInTable:=datasul2totvs.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.,.T.)
-    
+
     cRDPD:=Left(cFindInTable,nSRDPD)
 
     if (!Empty(cRDPD))
@@ -458,7 +464,7 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
             endif
             cRDPD:=Space(nSRDPD)
         endif
-    
+
     elseif (!empty(cEventoDataSul))
 
         oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
