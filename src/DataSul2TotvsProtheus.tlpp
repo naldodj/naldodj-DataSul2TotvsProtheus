@@ -326,6 +326,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local aUpdateTableFields as array
     local aUpdateTableSource as array
 
+    local bAddTLogReport as codeblock
     local bDeleteIfEmpty as codeblock
     local bAfterUpdateRecNo as codeblock
     local bAfterUpdateTable as codeblock
@@ -407,8 +408,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local lImportData as logical
     local lMemoVirutal as logical
     local lAddFieldTmp as logical
+    local lFilterBlock as logical
     local lCustomUpdate:=.F. as logical
     local lTypeReplicate:=.F. as logical
+    local lDeleteIfEmpty as logical
     local lSeekTableFound as logical
     local lTypeReplicateRow as logical
     local lTablesEncodeUTF8 as logical
@@ -484,10 +487,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         cFieldFilial:=PrefixoCpo(cAlias)
         cFieldFilial+="_FILIAL"
 
-        lChkFilial:=(allTrim(oTFIni:GetPropertyValue(cAlias,"ChkFilial","1"))=="1")
+        lChkFilial:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkFilial","1"))=="1")
         cAliasxFilial:=xFilial(cAlias)
 
-        lAskUpdate:=(allTrim(oTFIni:GetPropertyValue(cAlias,"AskUpdate","1"))=="1")
+        lAskUpdate:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"AskUpdate","1"))=="1")
         if ((lAskUpdate).and.(cAlias==cTableImport))
             if (lChkFilial)
                 nFieldFilial:=(cAlias)->(FieldPos(cFieldFilial))
@@ -577,7 +580,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             endif
         endif
 
-        lMemoVirutal:=(allTrim(oTFIni:GetPropertyValue(cAlias,"MemoVirtual","0"))=="1")
+        lMemoVirutal:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"MemoVirtual","0"))=="1")
         if (lMemoVirutal)
             oHMMemoVirutal:=THashMap():New()
         endif
@@ -602,7 +605,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         nFields:=Len(aTargetFieldsDef)
 
         if (lTypeReplicate)
-            cNoReplicateValues:=allTrim(oTFIni:GetPropertyValue(cAlias,"NoReplicateValues",""))
+            cNoReplicateValues:=allTrim(oTFIni:GetPropertyValue(cTableImport,"NoReplicateValues",""))
             aNoReplicateValues:=strToKArr2(cNoReplicateValues,",")
             aTargetReplicateFields:=array(0)
             oHMTargetReplicateFields:=THashMap():New()
@@ -653,7 +656,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         FWFreeArray(@aField)
         FWFreeArray(@aTargetStruct)
 
-        lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cAlias,"ChkEncode","0"))=="1")
+        lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkEncode","0"))=="1")
         if (lChkEncode)
             cCHR128:=chr(128)
             cCHR135:=chr(135)
@@ -674,28 +677,29 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             cCHR250:=chr(250)
         endif
 
-        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cAlias,"EnableFilterBlock","0"))=="1")
+        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"EnableFilterBlock","0"))=="1")
         if (lEnableFilterBlock)
-            bEnableFilterBlock:=cacheData():Get("datasul2totvsprotheus",cAlias+"EnableFilterBlock",{||.T.})
-            cFieldsFilterBlock:=allTrim(oTFIni:GetPropertyValue(cAlias,"FieldsFilterBlock",""))
-            bEnableFilterBlockMem:=cacheData():get("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",{||.T.})
+            bEnableFilterBlock:=cacheData():Get("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",{||.T.})
+            cFieldsFilterBlock:=allTrim(oTFIni:GetPropertyValue(cTableImport,"FieldsFilterBlock",""))
+            bEnableFilterBlockMem:=cacheData():get("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",{||.T.})
         endif
 
-        bDeleteIfEmpty:=&(allTrim(oTFIni:GetPropertyValue(cAlias,"bDeleteIfEmpty","{|cAlias|.F.}")))
+        bAddTLogReport:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAddTLogReport","{|cAlias,cTableImport,oTLogReport|.F.}")))
+        bDeleteIfEmpty:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bDeleteIfEmpty","{|cAlias|.F.}")))
 
-        lSeekTable:=(!empty(cSeekTable:=allTrim(oTFIni:GetPropertyValue(cAlias,"seekTable",""))))
+        lSeekTable:=(!empty(cSeekTable:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekTable",""))))
         if (lSeekTable)
             lSeekTable:=chkFile(cSeekTable)
             if (lSeekTable)
-                cSeekIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"seekIndexKey",""))
-                cSeekTableIndex:=allTrim(oTFIni:GetPropertyValue(cAlias,"seekTableIndex",""))
+                cSeekIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekIndexKey",""))
+                cSeekTableIndex:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekTableIndex",""))
                 nSeekTableIndex:=retOrder(cSeekTable,cSeekTableIndex,.T.)
                 lSeekTable:=(nSeekTableIndex>0)
                 if (lSeekTable)
                     (cSeekTable)->(dbSetOrder(nSeekTableIndex))
-                    cUpdateTableFields:=allTrim(oTFIni:GetPropertyValue(cAlias,"updateTableFields",""))
+                    cUpdateTableFields:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableFields",""))
                     aUpdateTableFields:=strToKArr2(cUpdateTableFields,",")
-                    cUpdateTableSource:=allTrim(oTFIni:GetPropertyValue(cAlias,"updateTableSource",""))
+                    cUpdateTableSource:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableSource",""))
                     aUpdateTableSource:=strToKArr2(cUpdateTableSource,",")
                     nUpdateTableSource:=len(aUpdateTableFields)
                     lUpdateTableFields:=((nUpdateTableSource>0).and.(nUpdateTableSource==len(aUpdateTableSource)))
@@ -703,7 +707,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             endif
         endif
 
-        nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue(cAlias,"IncProcStep","0"))))
+        nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue(cTableImport,"IncProcStep","0"))))
         if (empty(nIncProcStep))
             nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","1"))))
         endif
@@ -808,7 +812,19 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 SetFilAnt(xValue)
                             endif
                             if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
-                                lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))
+                                lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
+                                if (lHasError)
+                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
+                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                    CacheData():delSection("EvalBlock")
+                                    if (!empty(cError))
+                                        cError:=cTools():StrReplace(cError,{CRLF," "})
+                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                        oTLogReport:AddGroup(cTLogReport)
+                                        oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                        cError:=""
+                                    endif
+                                endif
                                 if (!lAppend)
                                     exit
                                 endif
@@ -965,7 +981,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     oTLogReport:AddGroup(cTLogReport)
                                     oTLogReport:AddDetail(cTLogReport,"Estrutura da Linha diferente da estrutura de Dados")
                                     oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
-                                    if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
+                                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))},nil,.F.,nil,nil))
+                                    if (lDeleteIfEmpty)
                                         (cTmpAlias)->(dbDelete())
                                         cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                                         cDeleteIfEmpty+=","
@@ -999,7 +1016,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                         next nField
 
-                        if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
+                        lHasError:=(!EvalBlock():EvalBlock({||(cTmpAlias)->(Eval(bAddTLogReport,cTmpAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
+
+                        lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))},nil,.F.,nil,nil))
+                        if (lDeleteIfEmpty)
                             (cTmpAlias)->(dbDelete())
                             cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                             cDeleteIfEmpty+=","
@@ -1008,7 +1028,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                         endif
 
                         if (lEnableFilterBlock)
-                            if ((cTmpAlias)->(!Eval(bEnableFilterBlock,cTmpAlias)))
+                            lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cTmpAlias)->(!Eval(bEnableFilterBlock,cTmpAlias))},nil,.F.,nil,nil))
+                            if ((!lHasError).and.(lFilterBlock))
                                 (cTmpAlias)->(dbDelete())
                                 cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                                 cDeleteIfEmpty+=","
@@ -1138,8 +1159,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     endif
                                     
                                     if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
-                                        lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))
-                                        if (!lAppend)
+                                        lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
+                                        if ((!lHasError).and.(!lAppend))
                                             (cTmpAlias)->(dbDelete())
                                             cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                                             cDeleteIfEmpty+=","
@@ -1158,7 +1179,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 next nField
 
                                 if (lAppend)
-                                    if ((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))
+                                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))},nil,.F.,nil,nil))
+                                    if (lDeleteIfEmpty)
                                         (cTmpAlias)->(dbDelete())
                                         cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
                                         cDeleteIfEmpty+=","
