@@ -57714,3 +57714,20 @@ cod_usuar_ult_atualiz       char       m   x(12)
 dat_ult_atualiz             date       m   99/99/9999
 hra_ult_atualiz             char       m   99:99:99
 log_permis_desligto         logi           Sim/Não
+
+Table: benef_seg_vida_func
+
+Field Name                  Data Type  Flg Format
+--------------------------- ---------- --- --------------------------------
+cdn_empresa                 char           99.999.999/9999-99
+cdn_estab                   char       im  x(5)
+cdn_funcionario             inte       im  zzzzzzz9
+nom_benef_seg_vida_func     char       m   x(100)
+dat_admis_func              date           99/99/9999
+des_cargo_basic             char       m   x(30)
+cod_unid_lotac              char       im  x(20)
+cod_rh_ccusto               char       im  x(20)
+des_rh_ccusto               char       m   x(40)
+cod_id_feder                char           x(20)
+dat_nascimento              date       m   99/99/9999
+val_seg_vida_empresa        deci-4         zzz,zzz,zz9.9999

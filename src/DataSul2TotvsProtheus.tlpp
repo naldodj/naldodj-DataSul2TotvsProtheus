@@ -150,6 +150,7 @@ static method Activate() class Protheus
         oTMenuOptions[#cSection][#"Alias"][#"06"]:="SR3"
         oTMenuOptions[#cSection][#"Alias"][#"07"]:="SR8"
         oTMenuOptions[#cSection][#"Alias"][#"08"]:="SP8"
+        oTMenuOptions[#cSection][#"Alias"][#"09"]:="RI1"
 
         DEFINE MSDIALOG oTDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
