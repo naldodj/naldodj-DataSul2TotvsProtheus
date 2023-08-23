@@ -34,7 +34,7 @@ static function RCEImportData(oMsNewProcess as object,lEnd as logical) as logica
     endif
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    oTLogReport:Clean()
+    MsAguarde({||oTLogReport:Clean()},"Releasing temporary files and workspace memory...","Wait...")
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)
