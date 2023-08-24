@@ -1,0 +1,263 @@
+#define __NToS
+
+#include "totvs.ch"
+
+#include "execin.th"
+EXECIN CLASS RI1Import
+
+static function RI1ImportData(oMsNewProcess as object,lEnd as logical) as logical
+
+    local aItems as array
+    local aAddIndex as array
+
+    local bR1Import as codeblock
+
+    local cCRLF:=CRLF as character
+    local cMsg:="" as character
+    local cItem:="00" as character
+    local cAlias as character
+    local cIndexKey:="RI1_FILIAL+RI1_MAT+RI1_BENEF+RI1_TABELA+DTOS(RI1_DINIPG)+DTOS(RI1_DFIMPG)" as character
+    local cAddIndex:="RI1_FILIAL,RI1_MAT,RI1_BENEF,RI1_TABELA,RI1_DINIPG,RI1_DFIMPG" as character
+    local cTableImport as character
+
+    local lRI1Import:=.T. as logical
+    local lItemImport as logical
+
+    local nItem as numeric
+    local nItems as numeric
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oRI1Import:=Array(#) as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cItem:=__Soma1(cItem)
+    oRI1Import[#cItem]:=Array(#)
+    oRI1Import[#cItem][#"cAlias"]:="RI1"
+    oRI1Import[#cItem][#"cTableImport"]:="RI1_SEGVDA"
+    oRI1Import[#cItem][#"cIndexKey"]:=cIndexKey
+    oRI1Import[#cItem][#"AddIndex"]:=cAddIndex
+    oRI1Import[#cItem][#"lRI1Import"]:=.F.
+    oRI1Import[#cItem][#"bR1Import"]:={||lRI1Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
+
+    cItem:=__Soma1(cItem)
+    oRI1Import[#cItem]:=Array(#)
+    oRI1Import[#cItem][#"cAlias"]:="RI1"
+    oRI1Import[#cItem][#"cTableImport"]:="RI1_CSTBAS"
+    oRI1Import[#cItem][#"cIndexKey"]:=cIndexKey
+    oRI1Import[#cItem][#"AddIndex"]:=cAddIndex
+    oRI1Import[#cItem][#"lRI1Import"]:=.F.
+    oRI1Import[#cItem][#"bR1Import"]:={||lRI1Import:=RI1CestaBasica(@oMsNewProcess,@lEnd,@oTLogReport,@cIndexKey)}
+
+    aItems:=aClone(oRI1Import:GetAllSections())
+    nItems:=Len(aItems)
+    for nItem:=1 to nItems
+        cItem:=aItems[nItem]
+        cAlias:=oRI1Import[#cItem][#"cAlias"]    
+        cTableImport:=oRI1Import[#cItem][#"cTableImport"]
+        cIndexKey:=oRI1Import[#cItem][#"cIndexKey"]
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
+        cAddIndex:=oRI1Import[#cItem][#"AddIndex"]
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
+        bR1Import:=oRI1Import[#cItem][#"bR1Import"]
+        oMsNewProcess:SetRegua1(0)
+        oMsNewProcess:IncRegua1("Wait!")
+        oMsNewProcess:SetRegua2(0)
+        oMsNewProcess:IncRegua2("...")
+        Eval(bR1Import)
+        FWFreeArray(@aAddIndex)
+        oRI1Import[#cItem][#"lRI1Import"]:=lRI1Import
+        if (lEnd)
+            exit
+        endif
+    next nItem
+
+    if (!lEnd)
+        for nItem:=1 to nItems
+            cItem:=aItems[nItem]
+            cAlias:=oRI1Import[#cItem][#"cAlias"]    
+            cTableImport:=oRI1Import[#cItem][#"cTableImport"]
+            lItemImport:=oRI1Import[#cItem][#"lRI1Import"]
+            lRI1Import:=((lRI1Import).and.(lItemImport))
+            if (lItemImport)
+                cMsg+=cAlias+"/"+cTableImport+" Table Import Completed"
+            else
+                cMsg+="Problems were encountered while processing the "+cAlias+"/"+cTableImport+" table"
+            endif
+            cMsg+=cCRLF
+        next nItem
+        ApMsgInfo(cMsg,"Info")
+        cMsg:=""
+    else
+        lRI1Import:=.F.
+    endif
+
+    FWFreeArray(@aItems)
+    FWFreeArray(@aAddIndex)
+
+    MsAguarde({||oRI1Import:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+    oRI1Import:=FreeObj(oRI1Import)
+
+    dfv():Default(@cAlias,"RI1")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    MsAguarde({||oTLogReport:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+    oTLogReport:=FreeObj(oTLogReport)
+
+    DelClassIntF()
+
+return(lRI1Import)
+
+static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogReport as object,cIndexKey as character) as logical
+
+    local aRDSGetAdvFVal as array
+    local aRDSRetAdvFVal as array
+    
+    local cRI1BENEF:="81" as character
+    local cRI1TABELA as character
+    local cRI1KeySeek as character
+
+    local cRISFilial as character
+    local cRISKeySeek as character
+
+    local cSVFilAnt:=SetFilAnt()
+
+    local cIncProc as character
+    local cRecCount as character
+    local cTimeRemaining as character
+
+    local cError as character
+    local cTLogReport as character
+
+    local lFound as logical
+    local lAddNew as logical
+    local lRI1Import:=.T. as logical
+
+    local nRI1Order:=RetOrder("RI1",cIndexKey) as numeric
+    
+    local nRecProc:=0 as numeric
+    local nRecCount:=SRA->(recCount()) as numeric
+
+    local oProgress:=txtProgress():New() as object
+    local oRI1TABELA:=Array(#) as object
+    local oTimeRemaining as object
+
+    oRI1TABELA:Set("0203","05")
+    oRI1TABELA:Set("0205","01")
+    oRI1TABELA:Set("0210","02")
+    oRI1TABELA:Set("0207","03")
+    oRI1TABELA:Set("0211","04")
+    oRI1TABELA:Set("0212","05")
+
+    cRecCount:=cTools():NToS(nRecCount)
+    oMsNewProcess:SetRegua1(nRecCount)
+    oTimeRemaining:=timeRemaining():New(nRecCount)
+
+    //RI1_FILIAL+RI1_MAT+RI1_BENEF+RI1_TABELA+DTOS(RI1_DINIPG)+DTOS(RI1_DFIMPG)
+    RI1->(dbSetOrder(nRI1Order))
+
+    cTLogReport:="Não foi possível obter exclusividade no(s) Registro(s) da Tabela RI1"
+
+    aRDSGetAdvFVal:=array(0)
+    
+    aAdd(aRDSGetAdvFVal,"RIS_PD")
+    aAdd(aRDSGetAdvFVal,"RIS_PD1")
+    aAdd(aRDSGetAdvFVal,"RIS_PD2")
+    aAdd(aRDSGetAdvFVal,"RIS_PAGFAL")
+    aAdd(aRDSGetAdvFVal,"RIS_PROPOR")
+
+    SRA->(dbGoTop())
+    while SRA->(!eof())
+        nRecProc++
+        cRI1TABELA:=oRI1TABELA:Get(SRA->RA_FILIAL,"")
+        if (!empty(cRI1TABELA))
+            SetFilAnt(SRA->RA_FILIAL)
+            cRISFilial:=fFilFunc("RIS")
+            cRI1KeySeek:=SRA->RA_FILIAL
+            cRI1KeySeek+=SRA->RA_MAT
+            cRI1KeySeek+=cRI1BENEF
+            cRI1KeySeek+=cRI1TABELA
+            cRI1KeySeek+=DTOS(SRA->RA_ADMISSA)
+            lFound:=RI1->(dbSeek(cRI1KeySeek,.F.))
+            lAddNew:=(!lFound)
+            lLock:=MyRecLock("RI1",lAddNew,.F.,.F.,.T.)
+            if (lLock)
+                cRISKeySeek:=cRISFilial
+                cRISKeySeek+=cRI1BENEF
+                cRISKeySeek+=cRI1TABELA
+                if (lAddNew)
+                    RI1->RI1_FILIAL=SRA->RA_FILIAL
+                    RI1->RI1_MAT=SRA->RA_MAT
+                    RI1->RI1_TABELA=cRI1TABELA
+                    RI1->RI1_BENEF=cRI1BENEF
+                    RI1->RI1_COD="CBA"
+                    RI1->RI1_DINIPG=SRA->RA_ADMISSA
+                endif
+                aRDSRetAdvFVal:=GetAdvFVal("RIS",aRDSGetAdvFVal,cRISKeySeek,1)
+                RI1->RI1_PD=aRDSRetAdvFVal[1]
+                RI1->RI1_PD1=aRDSRetAdvFVal[2]
+                RI1->RI1_PD2=aRDSRetAdvFVal[3]
+                RI1->RI1_PAGFAL=aRDSRetAdvFVal[4]
+                RI1->RI1_PROPOR:=aRDSRetAdvFVal[5]
+                RI1->RI1_DFIMPG=SRA->RA_DEMISSA
+                RI1->RI1_TPCALC=RI1_TPCALC:="1"
+                RI1->(MsUnLock())
+                FWFreeArray(@aRDSRetAdvFVal)
+            else
+                cError:="Fil: ["+SRA->RA_FILIAL+"] "
+                cError:="Mat: ["+SRA->RA_MAT+"] "
+                cError:="Nome: ["+SRA->RA_NOME+"] "
+                cError:="RI1 RecNo: ["+cTools():NToS(RI1->(recNo()))+"] "
+                oTLogReport:AddDetail(cTLogReport,cError)
+            endif
+        endif
+        oTimeRemaining:Calcule(.F.)
+        cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+        cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+        cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+        cIncProc:="["+oProgress:Eval()+"] "
+        cIncProc+="Processing Record: "
+        cIncProc+=cTools():NToS(nRecProc)
+        cIncProc+="/"
+        cIncProc+=cRecCount
+        cIncProc+=cTimeRemaining
+        cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
+        oMsNewProcess:IncRegua1(cIncProc)
+        lEnd:=oMsNewProcess:lEnd
+        if (lEnd)
+            exit
+        endif
+        SRA->(dbSkip())
+    end while
+
+    SetFilAnt(cSVFilAnt)
+
+    MsAguarde({||oRI1TABELA:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
+    if (valType(oRI1TABELA)=="O")
+        oRI1TABELA:=FreeObj(oRI1TABELA)
+    endif
+
+    oProgress:=FreeObj(oProgress)
+    oTimeRemaining:=FreeObj(oTimeRemaining)
+
+    FWFreeArray(@aRDSGetAdvFVal)
+    FWFreeArray(@aRDSRetAdvFVal)
+
+    DelClassIntF()
+
+return(lRI1Import)
+
+static function RI1GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function RI1SetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function SetFilAnt(cFil as character)
+return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.SetFilAnt",@cFil))
+
+static function MySoftLock(cAlias as character) as logical
+    local lLock as logical
+    lLock:=(cAlias)->(MyRecLock(cAlias,.F.,.F.,.T.,.T.))
+    return(lLock)
+
+static function MyRecLock(cAlias,lAdd,lDelete,lSoft,lInJob)
+return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.MyRecLock",@cAlias,@lAdd,@lDelete,@lSoft,@lInJob))
