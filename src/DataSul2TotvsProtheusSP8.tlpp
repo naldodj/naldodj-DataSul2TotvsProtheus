@@ -150,7 +150,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical) as logica
             SP8CustomUpdate(@cTmpAlias,@cAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef);
         }
 
-        lSP8Import:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,/*lPreLoadTable*/,bCustomUpdate)
+        lSP8Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,/*lPreLoadTable*/,bCustomUpdate)
 
         if (lSP8Import)
             ApMsgInfo(cAlias+" Table Import Completed","Info")

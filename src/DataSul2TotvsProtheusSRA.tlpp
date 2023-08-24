@@ -19,7 +19,7 @@ static function SRAImportData(oMsNewProcess as object,lEnd as logical) as logica
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RA_FILIAL+RA_MAT"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RA_FILIAL,RA_MAT")),",")
 
-    lSRAImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSRAImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if ((lSRAImport).and.(!lEnd))
         oMsNewProcess:SetRegua1(0)
@@ -30,7 +30,7 @@ static function SRAImportData(oMsNewProcess as object,lEnd as logical) as logica
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_MATMIG"))
         FWFreeArray(@aAddIndex)
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_MATMIG")),",")
-        lSRAImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRAImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
         if ((lSRAImport).and.(!lEnd))
             oMsNewProcess:SetRegua1(0)
             oMsNewProcess:IncRegua1("Wait!")
@@ -40,7 +40,7 @@ static function SRAImportData(oMsNewProcess as object,lEnd as logical) as logica
             cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_FILIAL+RA_MAT"))
             FWFreeArray(@aAddIndex)
             aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_FILIAL,RA_MAT")),",")
-            lSRAImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+            lSRAImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
             if ((lSRAImport).and.(!lEnd))
                 ApMsgInfo(cAlias+" Table Import Completed","Info")
             elseif (!lEnd)

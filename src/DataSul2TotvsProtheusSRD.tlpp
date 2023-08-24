@@ -89,7 +89,7 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
 
         cacheData():Set("datasul2totvsprotheus","SRDImportDataLogReport",oTLogReport)
 
-        lSRDImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRDImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
         if (lSRDImport)
             ApMsgInfo(cAlias+" Table Import Completed","Info")

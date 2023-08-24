@@ -19,7 +19,7 @@ static function SR8ImportData(oMsNewProcess as object,lEnd as logical) as logica
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","R8_FILIAL,R8_MAT,R8_DATAINI,R8_TIPO,R8_TIPOAFA")),",")
 
-    lSR8Import:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSR8Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lSR8Import)
         ApMsgInfo(cAlias+" Table Import Completed","Info")

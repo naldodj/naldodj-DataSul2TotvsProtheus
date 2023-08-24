@@ -40,7 +40,7 @@ static function SRVImportData(oMsNewProcess as object,lEnd as logical) as logica
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RV_FILIAL+RV_COD"))
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RV_FILIAL,RV_COD")),",")
 
-        lSRVImport:=datasul2totvs.Protheus():ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRVImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
         if (lSRVImport)
             ApMsgInfo(cAlias+" Table Import Completed","Info")

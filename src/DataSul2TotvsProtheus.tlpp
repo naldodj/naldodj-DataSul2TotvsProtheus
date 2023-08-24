@@ -17,9 +17,11 @@
 
 namespace datasul2totvs
 
+#include "execin.th"
+EXECIN CLASS datasul2totvs
+
 class Protheus
     static method Activate() as logical
-    static method ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport as object,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array,lPreLoadTable as logical,bCustomUpdate as codeblock) as logical
 end class
 
 static method Activate() class Protheus
@@ -242,9 +244,6 @@ static method Activate() class Protheus
     DelClassIntF()
 
 return(lActivate)
-
-static method ImportData(oMsNewProcess,lEnd,oTLogReport,cAlias,cIndexKey,cTableImport,aAddIndex,lPreLoadTable,bCustomUpdate) class Protheus
-return(ImportData(@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,@lPreLoadTable,@bCustomUpdate))
 
 static function ProcImportData(cAlias as character,lPercentage as logical,lFastMode as logical) as logical
 
@@ -1476,6 +1475,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     
     CacheData():delSection("EvalBlock")
 
+    oProgress:=FreeObj(oProgress)
+    oTimeRemaining:=FreeObj(oTimeRemaining)
+
     if (valType(oFT)=="O")
         oFT:ft_fUse()
         oFT:FreeObj()
@@ -1947,7 +1949,7 @@ static function ProcRedefine(oProcess as object,oTFont as object,nLeft as numeri
     lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oTFont,@nLeft,@nWidth,@nCTLFLeft,@loTDlgF,@loTDlgW,lPercentage,lFastMode)
     return(lProcRedefine)
 
-static function SetFilAnt(cFil)
+static function SetFilAnt(cFil as character)
     local cSvFilAnt:=&("cFilAnt") as character
     if (valType("cFilAnt")=="C")
         cSvFilAnt:=&("cFilAnt")
