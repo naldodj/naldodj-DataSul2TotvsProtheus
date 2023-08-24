@@ -209,7 +209,7 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
                 oTLogReport:AddDetail(cTLogReport,cError)
             endif
         endif
-        oTimeRemaining:Calcule(.F.)
+        oTimeRemaining:Calcule(.T.)
         cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
         cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
         cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"

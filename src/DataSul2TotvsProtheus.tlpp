@@ -131,28 +131,40 @@ static method Activate() class Protheus
 
         oTMenuOptions:=Array(#)
 
-        cSection:="Registers"
+        cSection:="Register"
         oTMenuOptions[#cSection]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"][#"01"]:="SRJ"
         oTMenuOptions[#cSection][#"Alias"][#"02"]:="SR6"
         oTMenuOptions[#cSection][#"Alias"][#"03"]:="SPJ"
-        oTMenuOptions[#cSection][#"Alias"][#"04"]:="SRV"
-        oTMenuOptions[#cSection][#"Alias"][#"05"]:="RCE"
-        oTMenuOptions[#cSection][#"Alias"][#"06"]:="SQB"
+        oTMenuOptions[#cSection][#"Alias"][#"04"]:="RCE"
+        oTMenuOptions[#cSection][#"Alias"][#"05"]:="SQB"
+        oTMenuOptions[#cSection][#"Alias"][#"06"]:="SRV"
 
-        cSection:="Employees"
+        cSection:="Employee"
         oTMenuOptions[#cSection]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"][#"01"]:="SRA"
         oTMenuOptions[#cSection][#"Alias"][#"02"]:="SRB"
-        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SRD"
-        oTMenuOptions[#cSection][#"Alias"][#"04"]:="SRF"
-        oTMenuOptions[#cSection][#"Alias"][#"05"]:="SRQ"
-        oTMenuOptions[#cSection][#"Alias"][#"06"]:="SR3"
-        oTMenuOptions[#cSection][#"Alias"][#"07"]:="SR8"
-        oTMenuOptions[#cSection][#"Alias"][#"08"]:="SP8"
-        oTMenuOptions[#cSection][#"Alias"][#"09"]:="RI1"
+        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SRQ"
+
+        cSection:="Employee Transaction History"
+        oTMenuOptions[#cSection]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"][#"01"]:="SR3"
+        oTMenuOptions[#cSection][#"Alias"][#"02"]:="SRF"
+        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SR8"
+        oTMenuOptions[#cSection][#"Alias"][#"04"]:="SRD"
+
+        cSection:="Employee Benefits"
+        oTMenuOptions[#cSection]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"][#"01"]:="RI1"
+
+        cSection:="Employee Punch Marking"
+        oTMenuOptions[#cSection]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"][#"01"]:="SP8"
 
         DEFINE MSDIALOG oTDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
