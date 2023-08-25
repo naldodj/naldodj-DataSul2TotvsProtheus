@@ -123,18 +123,18 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical) as logica
                     );
                 );
             }
-            cacheData():Set("datasul2totvsprotheus",cAlias+"EndLine",nEndLine)
-            cacheData():Set("datasul2totvsprotheus",cAlias+"StartLine",nStartLine)
-            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
-            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
+            cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
+            cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
+            cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",bEnableFilterBlock)
+            cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",bEnableFilterBlockMem)
         else
-            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"StartLine")
-            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"EnableFilterBlock")
-            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem")
+            cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"StartLine")
+            cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"EnableFilterBlock")
+            cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem")
         endif
 
-        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","P8_FILIAL+P8_MAT+P8_ORDEM+Dtos(P8_DATA)+Str(P8_HORA,5,2)"))
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","P8_FILIAL,P8_MAT,P8_ORDEM,P8_DATA,P8_HORA")),",")
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","P8_FILIAL+P8_MAT+P8_ORDEM+Dtos(P8_DATA)+Str(P8_HORA,5,2)"))
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","P8_FILIAL,P8_MAT,P8_ORDEM,P8_DATA,P8_HORA")),",")
 
         bCustomUpdate:={;
             |;

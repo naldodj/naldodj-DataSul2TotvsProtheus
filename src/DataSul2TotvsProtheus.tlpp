@@ -160,6 +160,7 @@ static method Activate() class Protheus
         oTMenuOptions[#cSection]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"][#"01"]:="RI1"
+        oTMenuOptions[#cSection][#"Alias"][#"02"]:="SM7"
 
         cSection:="Employee Punch Marking"
         oTMenuOptions[#cSection]:=Array(#)
@@ -524,7 +525,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         cSourceTable:=allTrim(oTFIni:GetPropertyValue("TablesImport",cTableImport,""))
         lImportData:=(!empty(cSourceTable))
         if (!lImportData)
-            ApMsgAlert("There is no setting for the SRA table","Attention")
+            ApMsgAlert("There is no setting for the "+cSourceTable+" table","Attention")
             break
         endif
 

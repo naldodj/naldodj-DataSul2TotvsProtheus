@@ -1,0 +1,127 @@
+#define __NToS
+
+#include "totvs.ch"
+
+#include "execin.th"
+EXECIN CLASS SM7Import
+
+static function SM7ImportData(oMsNewProcess as object,lEnd as logical) as logical
+
+    local aItems as array
+    local aAddIndex as array
+
+    local bSM7Import as codeblock
+    local bEnableFilterBlock as codeblock
+    local bEnableFilterBlockMem as codeblock
+
+    local cCRLF:=CRLF as character
+    local cMsg:="" as character
+    local cItem:="00" as character
+    local cAlias as character
+    local cIndexKey:="M7_FILIAL+M7_MAT+M7_TPVALE+M7_CODIGO" as character
+    local cAddIndex:="M7_FILIAL,M7_MAT,M7_TPVALE,M7_CODIGO" as character
+    local cTableImport as character
+
+    local lSM7Import:=.T. as logical
+    local lItemImport as logical
+    local lEnableFilterBlock as logical
+
+    local nItem as numeric
+    local nItems as numeric
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oSM7Import:=Array(#) as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cItem:=__Soma1(cItem)
+    oSM7Import[#cItem]:=Array(#)
+    oSM7Import[#cItem][#"cAlias"]:="SM7"
+    oSM7Import[#cItem][#"cTableImport"]:="SM7"
+    oSM7Import[#cItem][#"cIndexKey"]:=cIndexKey
+    oSM7Import[#cItem][#"AddIndex"]:=cAddIndex
+    oSM7Import[#cItem][#"lSM7Import"]:=.F.
+    oSM7Import[#cItem][#"bSM7Import"]:={||lSM7Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
+    lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(oSM7Import[#cItem][#"cTableImport"],"EnableFilterBlock","0"))=="1")
+    if (lEnableFilterBlock)
+        bEnableFilterBlock:={|cAlias|;
+            (cAlias)->(;
+                !Empty(M7_TPVALE);
+            );
+        }
+        oSM7Import[#cItem][#"bEnableFilterBlock"]:=bEnableFilterBlock
+        bEnableFilterBlockMem:={|xValue,cField|;
+            IF((cField=="M7_TPVALE"),;
+                !Empty(xValue),;
+                .T.;
+            );
+        }
+        oSM7Import[#cItem][#"bEnableFilterBlockMem"]:=bEnableFilterBlockMem
+    endif
+
+    aItems:=aClone(oSM7Import:GetAllSections())
+    nItems:=Len(aItems)
+    for nItem:=1 to nItems
+        cItem:=aItems[nItem]
+        cAlias:=oSM7Import[#cItem][#"cAlias"]    
+        cTableImport:=oSM7Import[#cItem][#"cTableImport"]
+        cIndexKey:=oSM7Import[#cItem][#"cIndexKey"]
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
+        cAddIndex:=oSM7Import[#cItem][#"AddIndex"]
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
+        bSM7Import:=oSM7Import[#cItem][#"bSM7Import"]
+        bEnableFilterBlock:=oSM7Import[#cItem][#"bEnableFilterBlock"]
+        bEnableFilterBlockMem:=oSM7Import[#cItem][#"bEnableFilterBlockMem"]
+        cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",bEnableFilterBlock)
+        cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",bEnableFilterBlockMem)
+        oMsNewProcess:SetRegua1(0)
+        oMsNewProcess:IncRegua1("Wait!")
+        oMsNewProcess:SetRegua2(0)
+        oMsNewProcess:IncRegua2("...")
+        Eval(bSM7Import)
+        FWFreeArray(@aAddIndex)
+        oSM7Import[#cItem][#"lSM7Import"]:=lSM7Import
+        if (lEnd)
+            exit
+        endif
+    next nItem
+
+    if (!lEnd)
+        for nItem:=1 to nItems
+            cItem:=aItems[nItem]
+            cAlias:=oSM7Import[#cItem][#"cAlias"]    
+            cTableImport:=oSM7Import[#cItem][#"cTableImport"]
+            lItemImport:=oSM7Import[#cItem][#"lSM7Import"]
+            lSM7Import:=((lSM7Import).and.(lItemImport))
+            if (lItemImport)
+                cMsg+=cAlias+"/"+cTableImport+" Table Import Completed"
+            else
+                cMsg+="Problems were encountered while processing the "+cAlias+"/"+cTableImport+" table"
+            endif
+            cMsg+=cCRLF
+        next nItem
+        ApMsgInfo(cMsg,"Info")
+        cMsg:=""
+    else
+        lSM7Import:=.F.
+    endif
+
+    FWFreeArray(@aItems)
+    FWFreeArray(@aAddIndex)
+
+    MsAguarde({||oSM7Import:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+    oSM7Import:=FreeObj(oSM7Import)
+
+    dfv():Default(@cAlias,"SM7")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    MsAguarde({||oTLogReport:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+    oTLogReport:=FreeObj(oTLogReport)
+
+    DelClassIntF()
+
+return(lSM7Import)
+
+static function SM7GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SM7SetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))

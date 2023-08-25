@@ -10,7 +10,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical) as logica
     local aItems as array
     local aAddIndex as array
 
-    local bR1Import as codeblock
+    local bRI1Import as codeblock
 
     local cCRLF:=CRLF as character
     local cMsg:="" as character
@@ -37,7 +37,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical) as logica
     oRI1Import[#cItem][#"cIndexKey"]:=cIndexKey
     oRI1Import[#cItem][#"AddIndex"]:=cAddIndex
     oRI1Import[#cItem][#"lRI1Import"]:=.F.
-    oRI1Import[#cItem][#"bR1Import"]:={||lRI1Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
+    oRI1Import[#cItem][#"bRI1Import"]:={||lRI1Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
 
     cItem:=__Soma1(cItem)
     oRI1Import[#cItem]:=Array(#)
@@ -46,7 +46,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical) as logica
     oRI1Import[#cItem][#"cIndexKey"]:=cIndexKey
     oRI1Import[#cItem][#"AddIndex"]:=cAddIndex
     oRI1Import[#cItem][#"lRI1Import"]:=.F.
-    oRI1Import[#cItem][#"bR1Import"]:={||lRI1Import:=RI1CestaBasica(@oMsNewProcess,@lEnd,@oTLogReport,@cIndexKey)}
+    oRI1Import[#cItem][#"bRI1Import"]:={||lRI1Import:=RI1CestaBasica(@oMsNewProcess,@lEnd,@oTLogReport,@cIndexKey)}
 
     aItems:=aClone(oRI1Import:GetAllSections())
     nItems:=Len(aItems)
@@ -58,12 +58,12 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical) as logica
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
         cAddIndex:=oRI1Import[#cItem][#"AddIndex"]
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
-        bR1Import:=oRI1Import[#cItem][#"bR1Import"]
+        bRI1Import:=oRI1Import[#cItem][#"bRI1Import"]
         oMsNewProcess:SetRegua1(0)
         oMsNewProcess:IncRegua1("Wait!")
         oMsNewProcess:SetRegua2(0)
         oMsNewProcess:IncRegua2("...")
-        Eval(bR1Import)
+        Eval(bRI1Import)
         FWFreeArray(@aAddIndex)
         oRI1Import[#cItem][#"lRI1Import"]:=lRI1Import
         if (lEnd)

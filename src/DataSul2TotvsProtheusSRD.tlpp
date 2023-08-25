@@ -35,7 +35,7 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
 
     begin sequence
 
-        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cAlias,"EnableFilterBlock","0"))=="1")
+        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"EnableFilterBlock","0"))=="1")
         if (lEnableFilterBlock)
             if (!SRDPergunte(@oSRDPergunte))
                 break
@@ -75,17 +75,17 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
                     );
                 );
             }
-            cacheData():Set("datasul2totvsprotheus",cAlias+"EndLine",nEndLine)
-            cacheData():Set("datasul2totvsprotheus",cAlias+"StartLine",nStartLine)
-            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlock",bEnableFilterBlock)
-            cacheData():Set("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem",bEnableFilterBlockMem)
+            cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
+            cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
+            cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",bEnableFilterBlock)
+            cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",bEnableFilterBlockMem)
         else
-            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"EnableFilterBlock")
-            cacheData():DelProperty("datasul2totvsprotheus",cAlias+"EnableFilterBlockMem")
+            cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"EnableFilterBlock")
+            cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem")
         endif
 
-        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"IndexKey","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN"))
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"AddIndex","RD_FILIAL,RD_MAT,RD_CC,RD_ITEM,RD_CLVL,RD_DATARQ,RD_PD,RD_SEQ,RD_PERIODO,RD_SEMANA,RD_ROTEIR,RD_DTREF,RD_CONVOC,RD_NRBEN")),",")
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RD_FILIAL+RD_MAT+RD_CC+RD_ITEM+RD_CLVL+RD_DATARQ+RD_PD+RD_SEQ+RD_PERIODO+RD_SEMANA+RD_ROTEIR+DTOS(RD_DTREF)+RD_CONVOC+RD_NRBEN"))
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RD_FILIAL,RD_MAT,RD_CC,RD_ITEM,RD_CLVL,RD_DATARQ,RD_PD,RD_SEQ,RD_PERIODO,RD_SEMANA,RD_ROTEIR,RD_DTREF,RD_CONVOC,RD_NRBEN")),",")
 
         cacheData():Set("datasul2totvsprotheus","SRDImportDataLogReport",oTLogReport)
 
