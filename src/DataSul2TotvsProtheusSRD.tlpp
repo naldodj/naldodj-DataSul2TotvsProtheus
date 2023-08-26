@@ -21,6 +21,8 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
     local cMatDe as character
     local cMatAte as character
 
+    local cAnoDe as character
+    local cAnoAte as character
     local cCompetenciaDe as character
     local cCompetenciaAte as character
 
@@ -79,7 +81,9 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
                 );
             }
             nSizeMat:=getSX3Cache("RA_MAT","X3_TAMANHO")
-            bSourceSetFilter:={|cLine|SRDSourceFilter(cLine,cCompetenciaDe,cCompetenciaAte,cMatDe,cMatAte,nSizeMat)}
+            cAnoDe:=Left(cCompetenciaDe,4)
+            cAnoAte:=Left(cCompetenciaAte,4)
+            bSourceSetFilter:={|cLine|SRDSourceFilter(cLine,cCompetenciaDe,cCompetenciaAte,cMatDe,cMatAte,nSizeMat,cAnoDe,cAnoAte)}
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -506,15 +510,15 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
 return(cRDPD)
 
-static function SRDSourceFilter(cLine as character,cCompetenciaDe as character,cCompetenciaAte as character,cMatDe as character,cMatAte as character,nSizeMat as numeric) as logical
+static function SRDSourceFilter(cLine as character,cCompetenciaDe as character,cCompetenciaAte as character,cMatDe as character,cMatAte as character,nSizeMat as numeric,cAnoDe as character,cAnoAte as character) as logical
 
     local aLine as array
-    
-    local cFilter as character
 
     local nAT as numeric
 
     local lFilter:=.T. as logical
+
+    local xFilter as variant
 
     begin sequence
         if (empty(cLine))
@@ -529,13 +533,18 @@ static function SRDSourceFilter(cLine as character,cCompetenciaDe as character,c
         if (empty(aLine).or.(Len(aLine)<5))
             break
         endif
-        cFilter:=(aLine[4]+PadL(aLine[5],2,"0"))
-        lFilter:=((cFilter>=cCompetenciaDe).and.(cFilter<=cCompetenciaAte))
+        xFilter:=aLine[4]
+        lFilter:=((xFilter>=cAnoDe).and.(xFilter<=cAnoAte))
         if (!lFilter)
             break
         endif
-        cFilter:=PadL(aLine[3],nSizeMat,"0")
-        lFilter:=((cFilter>=cMatDe).and.(cFilter<=cMatAte))
+        xFilter:=(xFilter+PadL(aLine[5],2,"0"))
+        lFilter:=((xFilter>=cCompetenciaDe).and.(xFilter<=cCompetenciaAte))
+        if (!lFilter)
+            break
+        endif
+        xFilter:=PadL(aLine[3],nSizeMat,"0")
+        lFilter:=((xFilter>=cMatDe).and.(xFilter<=cMatAte))
         if (!lFilter)
             break
         endif

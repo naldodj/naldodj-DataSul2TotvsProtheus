@@ -70,9 +70,6 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical) as logica
     local cMatDe as character
     local cMatAte as character
 
-    local cDataDe as character
-    local cDataAte as character
-
     local dDataDe as date
     local dDataAte as date
 
@@ -129,10 +126,8 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical) as logica
                     );
                 );
             }
-            cDataDe:=DToS(dDataDe)
-            cDataAte:=DToS(dDataAte)
             nSizeMat:=getSX3Cache("RA_MAT","X3_TAMANHO")
-            bSourceSetFilter:={|cLine|SP8SourceFilter(cLine,cDataDe,cDataAte,cMatDe,cMatAte,nSizeMat)}
+            bSourceSetFilter:={|cLine|SP8SourceFilter(cLine,dDataDe,dDataAte,cMatDe,cMatAte,nSizeMat)}
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -422,15 +417,15 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 static function SP8SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
-static function SP8SourceFilter(cLine as character,cDataDe as character,cDataAte as character,cMatDe as character,cMatAte as character,nSizeMat as numeric) as logical
+static function SP8SourceFilter(cLine as character,dDataDe as date,dDataAte as date,cMatDe as character,cMatAte as character,nSizeMat as numeric) as logical
 
     local aLine as array
-    
-    local cFilter as character
 
     local nAT as numeric
 
     local lFilter:=.T. as logical
+
+    local xFilter as variant
 
     begin sequence
         if (empty(cLine))
@@ -445,13 +440,13 @@ static function SP8SourceFilter(cLine as character,cDataDe as character,cDataAte
         if (empty(aLine).or.(Len(aLine)<5))
             break
         endif
-        cFilter:=DToS(CToD(aLine[5]))
-        lFilter:=((cFilter>=cDataDe).and.(cFilter<=cDataAte))
+        xFilter:=CToD(aLine[5])
+        lFilter:=((xFilter>=dDataDe).and.(xFilter<=dDataAte))
         if (!lFilter)
             break
         endif
-        cFilter:=PadL(aLine[3],nSizeMat,"0")
-        lFilter:=((cFilter>=cMatDe).and.(cFilter<=cMatAte))
+        xFilter:=PadL(aLine[3],nSizeMat,"0")
+        lFilter:=((xFilter>=cMatDe).and.(xFilter<=cMatAte))
         if (!lFilter)
             break
         endif
