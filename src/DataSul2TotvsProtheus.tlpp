@@ -344,6 +344,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local bAfterUpdateTable as codeblock
     local bUpdateMemoVirtual as codeblock
 
+    local bSourceSetFilter as codeblock
     local bEnableFilterBlock as codeblock
     local bEnableFilterBlockMem as codeblock
 
@@ -642,6 +643,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
         oFT:=uft():New()
 
+        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"EnableFilterBlock","0"))=="1")
+        if (lEnableFilterBlock)
+            bSourceSetFilter:=cacheData():Get("datasul2totvsprotheus",cTableImport+"SourceSetFilter",{|cLine|.T.})
+            bEnableFilterBlock:=cacheData():Get("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",{||.T.})
+            cFieldsFilterBlock:=allTrim(oTFIni:GetPropertyValue(cTableImport,"FieldsFilterBlock",""))
+            bEnableFilterBlockMem:=cacheData():Get("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",{||.T.})
+            oFT:ft_fSetFilter(bSourceSetFilter)
+        endif
+
         MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Loading Data File","Wait")
         lImportData:=(nft_fHandle>=0)
         if (!lImportData)
@@ -687,13 +697,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             cCHR231:=chr(231)
             cCHR243:=chr(243)
             cCHR250:=chr(250)
-        endif
-
-        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"EnableFilterBlock","0"))=="1")
-        if (lEnableFilterBlock)
-            bEnableFilterBlock:=cacheData():Get("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",{||.T.})
-            cFieldsFilterBlock:=allTrim(oTFIni:GetPropertyValue(cTableImport,"FieldsFilterBlock",""))
-            bEnableFilterBlockMem:=cacheData():get("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",{||.T.})
         endif
 
         bAddTLogReport:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAddTLogReport","{|cAlias,cTableImport,oTLogReport|.F.}")))
@@ -795,8 +798,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 lHasError:=.F.
                                 xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                                 if (lHasError)
-                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
+                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
                                     CacheData():delSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
@@ -826,8 +829,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                             if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
                                 lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
                                 if (lHasError)
-                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
+                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
                                     CacheData():delSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
@@ -930,8 +933,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                         if (lHasError)
 
-                                            cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                                            cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                            cError:=cacheData():Get("EvalBlock","ErrorDescription","")
+                                            cError+=cacheData():Get("EvalBlock","ErrorStack","")
                                             CacheData():delSection("EvalBlock")
 
                                             if (!empty(cError))
@@ -968,8 +971,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                 if (lHasError)
 
-                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
+                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
                                     CacheData():delSection("EvalBlock")
 
                                     if (!empty(cError))
@@ -1074,8 +1077,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                                 if (lHasError)
 
-                                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
+                                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
                                                     CacheData():delSection("EvalBlock")
 
                                                     if (!empty(cError))
@@ -1095,8 +1098,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                                 if (lHasError)
 
-                                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
+                                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
                                                     CacheData():delSection("EvalBlock")
 
                                                     if (!empty(cError))
@@ -1352,8 +1355,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     if (lCustomUpdate)
                         lHasError:=(!EvalBlock():EvalBlock({||(cAlias)->(Eval(bCustomUpdate,cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef))},nil,.F.,nil,nil))
                         if (lHasError)
-                            cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                            cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                            cError:=cacheData():Get("EvalBlock","ErrorDescription","")
+                            cError+=cacheData():Get("EvalBlock","ErrorStack","")
                             CacheData():delSection("EvalBlock")
                             if (!empty(cError))
                                 cError:=cTools():StrReplace(cError,{CRLF," "})
@@ -1398,8 +1401,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                             if (lAfterUpdateRecNo)
                                 lHasError:=(!EvalBlock():EvalBlock({||(cAlias)->(Eval(bAfterUpdateRecNo,cAlias,RecNo()))},nil,.F.,nil,nil))
                                 if (lHasError)
-                                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
+                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
                                     CacheData():delSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
@@ -1460,8 +1463,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 (cAlias)->(dbGoTop())
                 lHasError:=(!EvalBlock():EvalBlock({||(cAlias)->(Eval(bAfterUpdateTable,cAlias))},nil,.F.,nil,nil))
                 if (lHasError)
-                    cError:=CacheData():Get("EvalBlock","ErrorDescription","")
-                    cError+=CacheData():Get("EvalBlock","ErrorStack","")
+                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
+                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
                     CacheData():delSection("EvalBlock")
                     if (!empty(cError))
                         cError:=cTools():StrReplace(cError,{CRLF," "})

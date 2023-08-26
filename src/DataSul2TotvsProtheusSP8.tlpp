@@ -56,6 +56,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical) as logica
     local aAddIndex as array
 
     local bCustomUpdate as codeblock
+    local bSourceSetFilter as codeblock
     local bEnableFilterBlock as codeblock
     local bEnableFilterBlockMem as codeblock
 
@@ -69,8 +70,13 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical) as logica
     local cMatDe as character
     local cMatAte as character
 
+    local cDataDe as character
+    local cDataAte as character
+
     local dDataDe as date
     local dDataAte as date
+
+    local nSizeMat as numeric
 
     local nEndLine as numeric
     local nStartLine as numeric
@@ -123,12 +129,19 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical) as logica
                     );
                 );
             }
+            cDataDe:=DToS(dDataDe)
+            cDataAte:=DToS(dDataAte)
+            nSizeMat:=getSX3Cache("RA_MAT","X3_TAMANHO")
+            bSourceSetFilter:={|cLine|SP8SourceFilter(cLine,cDataDe,cDataAte,cMatDe,cMatAte,nSizeMat)}
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
+            cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",bEnableFilterBlock)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",bEnableFilterBlockMem)
         else
+            cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"EndLine")
             cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"StartLine")
+            cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"SourceSetFilter")
             cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"EnableFilterBlock")
             cacheData():DelProperty("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem")
         endif
@@ -408,3 +421,42 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
 static function SP8SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function SP8SourceFilter(cLine as character,cDataDe as character,cDataAte as character,cMatDe as character,cMatAte as character,nSizeMat as numeric) as logical
+
+    local aLine as array
+    
+    local cFilter as character
+
+    local nAT as numeric
+
+    local lFilter:=.T. as logical
+
+    begin sequence
+        if (empty(cLine))
+            break
+        endif
+        cLine:=subStr(cLine,1,39)
+        nAT:=RAT(";",cLine)
+        if (nAT>0)
+            cLine:=substr(cLine,1,(nAT-1))
+        endif
+        aLine:=strToKArr2(cLine,";")
+        if (empty(aLine).or.(Len(aLine)<5))
+            break
+        endif
+        cFilter:=DToS(CToD(aLine[5]))
+        lFilter:=((cFilter>=cDataDe).and.(cFilter<=cDataAte))
+        if (!lFilter)
+            break
+        endif
+        cFilter:=PadL(aLine[3],nSizeMat,"0")
+        lFilter:=((cFilter>=cMatDe).and.(cFilter<=cMatAte))
+        if (!lFilter)
+            break
+        endif
+    end sequence
+
+    FWFreeArray(@aLine)
+
+return(lFilter)
