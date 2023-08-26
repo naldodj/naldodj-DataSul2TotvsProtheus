@@ -2,6 +2,7 @@
 
 #include "execin.th"
 EXECIN CLASS SRJImport
+EXECIN CLASS SQ3Import
 
 static function SRJImportData(oMsNewProcess as object,lEnd as logical) as logical
 
@@ -52,4 +53,10 @@ static function SRJGetValue(xGet as variant,xDefault as variant) as variant
 return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
 static function SRJSetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function SQ3GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SQ3SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
