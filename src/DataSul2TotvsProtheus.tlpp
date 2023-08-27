@@ -26,6 +26,17 @@ end class
 
 static method Activate() class Protheus
 
+    local lActivate as logical
+    local nSetVarNameLen:=SetVarNameLen(Max(SetVarNameLen(),254))
+    
+    lActivate:=datasul2totvs.Activate()
+    
+    SetVarNameLen(nSetVarNameLen)
+
+return(lActivate)
+
+static function Activate() as logical
+
     local aSections as array
     local aProperties as array
 
@@ -57,7 +68,7 @@ static method Activate() class Protheus
     local oFWDefSize as object
 
     local oTFIni as object
-    
+
     local oTMenuItem as object
     local oTMenuOptions as object
 
@@ -75,7 +86,7 @@ static method Activate() class Protheus
 
         lSendDataToServer:=((getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01"))).and.(ApMsgNoYes("Sending Data To Server?")))
         if (lSendDataToServer)
-            MsAguarde({||lSendDataToServer:=sendDataToServer(@cGetFileRoot,.F.)},"Sending Data To Server","Wait!")
+            MsProcess():MsAguarde({||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.F.)},"Sending Data To Server","Wait!")
         elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
             cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
         endif
@@ -97,12 +108,12 @@ static method Activate() class Protheus
             break
         endif
 
-        MsAguarde({||lActivate:=readIniFile(@cINIFile)},"Loading Settings","Wait")
+        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait! Loading ["+cINIFile+"]")
         if (!lActivate)
             break
         endif
 
-        MsAguarde({||lActivate:=readTableDefinition()},"Loading structure of tables","Wait")
+        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait")
         if (!lActivate)
             break
         endif
@@ -186,7 +197,8 @@ static method Activate() class Protheus
                                 beginContent var cTMenuAction
                                     {||datasul2totvs.ProcImportData("cAlias",lPercentage,lFastMode)}
                                 endContent
-                                cTMenuAction:=cTools():StrReplace(cTMenuAction,;
+                                cTMenuAction:=cTools():StrReplace(;
+                                    cTMenuAction,;
                                     {CRLF,""},;
                                     {CHR(10),""},;
                                     {CHR(13),""},;
@@ -197,7 +209,7 @@ static method Activate() class Protheus
                                 )
                                 bTMenuAction:=&(cTMenuAction)
                                 cTMenuAction:=""
-                                MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.)) 
+                                MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.))
                                 oTMenuItem:bAction:=bTMenuAction
                             next nProperty
                         ENDMENU
@@ -207,7 +219,8 @@ static method Activate() class Protheus
                 ENDMENU
                 MENUITEM "Tools"
                 MENU
-                    MENUITEM "Send data to the server" ACTION MsAguarde({||lSendDataToServer:=sendDataToServer(@cGetFileRoot,.T.)},"Sending Data To Server","Wait!")
+                    bTMenuAction:={||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.T.)}
+                    MENUITEM "Send data to the server" ACTION MsProcess():MsAguarde(bTMenuAction,"Sending Data To Server","Wait!")
                     MENUITEM "Settings" ACTION CFGFile()
                 ENDMENU
                 MENU
@@ -220,7 +233,7 @@ static method Activate() class Protheus
 
         ACTIVATE DIALOG oTDlg CENTERED
 
-        MsAguarde({||oTMenuOptions:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
+        MsProcess():MsAguarde({||oTMenuOptions:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
         if (valType(oTMenuOptions)=="O")
             oTMenuOptions:=FreeObj(oTMenuOptions)
         endif
@@ -235,7 +248,7 @@ static method Activate() class Protheus
     end sequence
 
     if (valType(oTFIni)=="O")
-        MsAguarde({||oTFIni:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
+        MsProcess():MsAguarde({||oTFIni:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
         if (valType(oTFIni)=="O")
             oTFIni:=FreeObj(oTFIni)
         endif
@@ -243,14 +256,14 @@ static method Activate() class Protheus
 
     __SetCentury(if(lSetCentury,"ON","OFF"))
 
-    MsAguarde({||cacheData():delSection("datasul2totvsprotheus")},"Releasing temporary files and workspace memory...","Wait...")
+    MsProcess():MsAguarde({||cacheData():delSection("datasul2totvsprotheus")},"Releasing temporary files and workspace memory...","Wait...")
 
     if (findFunction("RstPosAlias"))
         RstPosAlias()
     endif
 
     if (valType(st_oHMbTransform)=="O")
-        MsAguarde({||st_oHMbTransform:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+        MsProcess():MsAguarde({||st_oHMbTransform:Clean()},"Releasing temporary files and workspace memory...","Wait...")
         st_oHMbTransform:=FreeObj(st_oHMbTransform)
     endif
 
@@ -352,7 +365,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local cField as character
     local cLineUTF8 as character
 
-    local cTmpAlias:=getNextAlias() as character
+    local cSourceAlias:=getNextAlias() as character
+    local cTargetAlias:=cAlias as character
+    local cTargetAliasRealName as character
 
     local cType as character
 
@@ -487,34 +502,34 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
         dfv():Default(@lPreLoadTable,.F.)
 
-        nIndexKey:=retOrder(cAlias,cIndexKey,(!lPreLoadTable))
+        nIndexKey:=retOrder(cTargetAlias,cIndexKey,(!lPreLoadTable))
 
         lImportData:=((lPreLoadTable).or.(nIndexKey!=0))
         if (!lImportData)
-            ApMsgAlert("Unlocalized "+cAlias+" table search index ("+cIndexKey+")")
+            ApMsgAlert("Unlocalized "+cTargetAlias+" table search index ("+cIndexKey+")")
             break
         endif
 
         oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
 
-        cFieldFilial:=PrefixoCpo(cAlias)
+        cFieldFilial:=PrefixoCpo(cTargetAlias)
         cFieldFilial+="_FILIAL"
 
         lChkFilial:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkFilial","1"))=="1")
-        cAliasxFilial:=xFilial(cAlias)
+        cAliasxFilial:=xFilial(cTargetAlias)
 
         lAskUpdate:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"AskUpdate","1"))=="1")
-        if ((lAskUpdate).and.(cAlias==cTableImport))
+        if ((lAskUpdate).and.(cTargetAlias==cTableImport))
             if (lChkFilial)
-                nFieldFilial:=(cAlias)->(FieldPos(cFieldFilial))
+                nFieldFilial:=(cTargetAlias)->(FieldPos(cFieldFilial))
                 if (left(cIndexKey,Len(cFieldFilial))==cFieldFilial)
-                    (cAlias)->(dbSetOrder(nIndexKey))
-                    (cAlias)->(dbSeek(cAliasxFilial,.T.))
+                    (cTargetAlias)->(dbSetOrder(nIndexKey))
+                    (cTargetAlias)->(dbSeek(cAliasxFilial,.T.))
                 else
-                    (cAlias)->(dbGoTop())
+                    (cTargetAlias)->(dbGoTop())
                 endif
             endif
-            MsAguarde({||dbEval():Eval(cAlias,{||++nAliasdbCount},{||!deleted().and.if(lChkFilial,FieldGet(nFieldFilial)==cAliasxFilial,.T.)},{||nAliasdbCount==0},nil,nil,.F.,{||dbGoTop()})})
+            MsProcess():MsAguarde({||(cTargetAlias)->(dbEval():Eval(cTargetAlias,{||++nAliasdbCount},{||!deleted().and.if(lChkFilial,FieldGet(nFieldFilial)==cAliasxFilial,.T.)},{||nAliasdbCount==0},nil,nil,.F.,{||dbGoTop()}))})
             if (nAliasdbCount>0)
                 lImportData:=ApMsgNoYes("There is already data in this table. Do you want to update them?","Info")
                 if (!lImportData)
@@ -652,7 +667,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             oFT:ft_fSetFilter(bSourceSetFilter)
         endif
 
-        MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Loading Data File","Wait")
+        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Loading Data File","Wait Loading Data File: ["+cSourceFile+"]")
         lImportData:=(nft_fHandle>=0)
         if (!lImportData)
             ApMsgAlert("Could not open the file: "+cSourceFile,"Attention")
@@ -665,11 +680,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             break
         endif
 
-        oFWTemporaryTable:=FWTemporaryTable():New(@cTmpAlias,@aTargetStruct)
+        oFWTemporaryTable:=FWTemporaryTable():New(@cSourceAlias,@aTargetStruct)
         oFWTemporaryTable:AddIndex("01",aAddIndex)
         oFWTemporaryTable:Create()
 
-        cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Alias",cTmpAlias)
+        cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Alias",cSourceAlias)
         cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
 
         cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
@@ -763,7 +778,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             oProgress:=txtProgress():New()
 
-            TCSrvMap(cTmpAlias,nil,.F.)
+            TCSrvMap(cSourceAlias,nil,.F.)
 
             while (!oFT:ft_fEof())
 
@@ -774,6 +789,31 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                     if (empty(cLine))
                         break
+                    endif
+
+                    if (lChkEncode)
+                        if (lTablesEncodeUTF8)
+                            cLineUTF8:=DecodeUTF8(cLine)
+                        else
+                            cLineUTF8:=""
+                        endif
+                        if (empty(cLineUTF8))
+                            cLine:=cTools():StrReplace(;
+                                cLine,;
+                                {cCHR144,cCHR201},;
+                                {cCHR214,cCHR205},;
+                                {cCHR199,cCHR195},;
+                                {cCHR128,cCHR199},;
+                                {cCHR182,cCHR194},;
+                                {cCHR135,cCHR231},;
+                                {cCHR198,cCHR227},;
+                                {cCHR162,cCHR243},;
+                                {cCHR163,cCHR250};
+                            )
+                        else
+                            cLine:=cLineUTF8
+                            cLineUTF8:=""
+                        endif
                     endif
 
                     aLine:=strTokArr2(cLine,";")
@@ -796,7 +836,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     );
                                 )
                                 lHasError:=.F.
-                                xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+                                xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                                 if (lHasError)
                                     cError:=cacheData():Get("EvalBlock","ErrorDescription","")
                                     cError+=cacheData():Get("EvalBlock","ErrorStack","")
@@ -806,6 +846,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                        oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
                                         cError:=""
                                         lEnd:=oMsNewProcess:lEnd:=.T.
                                         lAppend:=.F.
@@ -855,36 +896,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                     if (lAppend)
 
-                        if (lChkEncode)
-                            FWFreeArray(@aLine)
-                            if (lTablesEncodeUTF8)
-                                cLineUTF8:=DecodeUTF8(cLine)
-                            else
-                                cLineUTF8:=""
-                            endif
-                            if (empty(cLineUTF8))
-                                cLine:=cTools():StrReplace(;
-                                    cLine,;
-                                    {cCHR144,cCHR201},;
-                                    {cCHR214,cCHR205},;
-                                    {cCHR199,cCHR195},;
-                                    {cCHR128,cCHR199},;
-                                    {cCHR182,cCHR194},;
-                                    {cCHR135,cCHR231},;
-                                    {cCHR198,cCHR227},;
-                                    {cCHR162,cCHR243},;
-                                    {cCHR163,cCHR250};
-                                )
-                                aLine:=strTokArr2(cLine,";")
-                            else
-                                aLine:=strTokArr2(cLineUTF8,";")
-                                cLineUTF8:=""
-                            endif
-                        endif
-
-                        cLine:=""
-
-                        (cTmpAlias)->(dbAppend(.F.))
+                        (cSourceAlias)->(dbAppend(.F.))
 
                         ldbCommit:=(++nCommitBuffer>=1024)
 
@@ -914,22 +926,22 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     nReplicate:=0
 
                                     while (((++nReplicate)<=nReplicates))
-                                        
+
                                         lHasError:=.F.
 
                                         if (nReplicate==1)
-                                        
-                                            xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+
+                                            xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
 
                                         else
-                                        
+
                                             aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
                                             aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
-                                            
-                                            xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
-                                            
+
+                                            xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
+
                                             FWFreeArray(@aTargetFieldsDefReplicate)
-                                        
+
                                         endif
 
                                         if (lHasError)
@@ -943,6 +955,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                                 cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                                 oTLogReport:AddGroup(cTLogReport)
                                                 oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                                oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
                                                 cError:=""
                                                 lEnd:=oMsNewProcess:lEnd:=.T.
                                                 lAppend:=.F.
@@ -955,9 +968,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         if (nTargetFieldPos==0)
                                             loop
                                         endif
-                                    
-                                        (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
-                                    
+
+                                        (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
+
                                     end while
 
                                     loop
@@ -966,7 +979,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                     lHasError:=.F.
 
-                                    xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+                                    xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
 
                                 endif
 
@@ -981,6 +994,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                        oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
                                         cError:=""
                                         lEnd:=oMsNewProcess:lEnd:=.T.
                                         lAppend:=.F.
@@ -997,10 +1011,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     oTLogReport:AddGroup(cTLogReport)
                                     oTLogReport:AddDetail(cTLogReport,"Estrutura da Linha diferente da estrutura de Dados")
                                     oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
-                                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))},nil,.F.,nil,nil))
+                                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
                                     if (lDeleteIfEmpty)
-                                        (cTmpAlias)->(dbDelete())
-                                        cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                                        (cSourceAlias)->(dbDelete())
+                                        cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
                                         cDeleteIfEmpty+=","
                                         nDeleteIfEmpty++
                                         break
@@ -1018,7 +1032,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 loop
                             endif
 
-                            (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
+                            (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
 
                             if ((lSeekTable).and.(!empty(cAllSeekIndexKey)))
                                 if (cField$cAllSeekIndexKey)
@@ -1026,28 +1040,28 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 endif
                                 if (empty(cTools():StrReplace(cAllSeekIndexKey,{"+",""})))
                                     cAllSeekIndexKey:=""
-                                    lSeekTableFound:=(cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
+                                    lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
                                 endif
                             endif
 
                         next nField
 
-                        lHasError:=(!EvalBlock():EvalBlock({||(cTmpAlias)->(Eval(bAddTLogReport,cTmpAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
+                        lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
 
-                        lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))},nil,.F.,nil,nil))
+                        lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
                         if (lDeleteIfEmpty)
-                            (cTmpAlias)->(dbDelete())
-                            cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                            (cSourceAlias)->(dbDelete())
+                            cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
                             cDeleteIfEmpty+=","
                             nDeleteIfEmpty++
                             break
                         endif
 
                         if (lEnableFilterBlock)
-                            lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cTmpAlias)->(!Eval(bEnableFilterBlock,cTmpAlias))},nil,.F.,nil,nil))
+                            lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cSourceAlias)->(!Eval(bEnableFilterBlock,cSourceAlias))},nil,.F.,nil,nil))
                             if ((!lHasError).and.(lFilterBlock))
-                                (cTmpAlias)->(dbDelete())
-                                cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                                (cSourceAlias)->(dbDelete())
+                                cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
                                 cDeleteIfEmpty+=","
                                 nDeleteIfEmpty++
                                 break
@@ -1056,10 +1070,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                         if (lSeekTable)
 
-                            lSeekTableFound:=(cSeekTable)->(MsSeek((cTmpAlias)->(&(cSeekIndexKey)),.F.))
-                            
+                            lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
+
                             if (lSeekTableFound)
-                                
+
                                 if ((lUpdateTableFields).and.(lLock:=MySoftLock(cSeekTable)))
 
                                     lLock:=(cSeekTable)->(MyRecLock(cSeekTable,.F.))
@@ -1074,7 +1088,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                             if (nTargetFieldPos>0)
 
                                                 lHasError:=.F.
-                                                xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
+                                                xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
 
                                                 if (lHasError)
 
@@ -1133,15 +1147,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                         endif
 
                         if ((nReplicates>0).and.(lTypeReplicateRow))
-                            
-                            aReplicateValues:=(cTmpAlias)->(aUtils():RegToArray(cTmpAlias,recNo(),aTargetReplicateFields,.F.,.F.,@aTargetReplicateFieldsPos))
+
+                            aReplicateValues:=(cSourceAlias)->(aUtils():RegToArray(cSourceAlias,recNo(),aTargetReplicateFields,.F.,.F.,@aTargetReplicateFieldsPos))
                             nReplicate:=1
 
                             while (((++nReplicate)<=nReplicates))
 
                                 lAppend:=.T.
 
-                                (cTmpAlias)->(dbAppend(.F.))
+                                (cSourceAlias)->(dbAppend(.F.))
                                 ldbCommit:=(++nCommitBuffer>=1024)
 
                                 for nField:=1 to nFields
@@ -1152,7 +1166,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                         aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
                                         aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
-                                        xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
+                                        xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
 
                                         FWFreeArray(@aTargetFieldsDefReplicate)
 
@@ -1169,16 +1183,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                             if (nTargetFieldPos==0)
                                                 loop
                                             endif
-                                            xValue:=(cTmpAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
+                                            xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
                                         endif
 
                                     endif
-                                    
+
                                     if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
                                         lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
                                         if ((!lHasError).and.(!lAppend))
-                                            (cTmpAlias)->(dbDelete())
-                                            cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                                            (cSourceAlias)->(dbDelete())
+                                            cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
                                             cDeleteIfEmpty+=","
                                             nDeleteIfEmpty++
                                             exit
@@ -1190,15 +1204,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         loop
                                     endif
 
-                                    (cTmpAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                    (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
 
                                 next nField
 
                                 if (lAppend)
-                                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cTmpAlias)->(Eval(bDeleteIfEmpty,cTmpAlias)))},nil,.F.,nil,nil))
+                                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
                                     if (lDeleteIfEmpty)
-                                        (cTmpAlias)->(dbDelete())
-                                        cDeleteIfEmpty+=(cTmpAlias)->(cTools():NToS(RecNo()))
+                                        (cSourceAlias)->(dbDelete())
+                                        cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
                                         cDeleteIfEmpty+=","
                                         nDeleteIfEmpty++
                                     endif
@@ -1206,7 +1220,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                 if ((nDeleteIfEmpty>=1024).or.((ldbCommit).and.(nDeleteIfEmpty>0)))
                                     if (!ldbCommit)
-                                        (cTmpAlias)->(dbCommitAll())
+                                        (cSourceAlias)->(dbCommitAll())
                                     endif
                                     if (right(cDeleteIfEmpty,1)==",")
                                         cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
@@ -1214,18 +1228,20 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                     nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                                     cDeleteIfEmpty:=""
                                     nDeleteIfEmpty:=0
+                                    TCRefresh(cFWTemporaryTableRealName)
                                 endif
 
                             end while
 
                             FwFreeArray(@aReplicateValues)
-                        
+
                         endif
 
                     endif
 
                 end sequence
 
+                cLine:=""
                 FWFreeArray(@aLine)
 
                 oTimeRemaining:nProgress:=(++nRecProc)
@@ -1256,12 +1272,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                 if (ldbCommit)
                     nCommitBuffer:=0
-                    (cTmpAlias)->(dbCommitAll())
+                    (cSourceAlias)->(dbCommitAll())
                 endif
 
                 if ((nDeleteIfEmpty>=1024).or.((ldbCommit).and.(nDeleteIfEmpty>0)))
                     if (!ldbCommit)
-                        (cTmpAlias)->(dbCommitAll())
+                        (cSourceAlias)->(dbCommitAll())
                     endif
                     if (right(cDeleteIfEmpty,1)==",")
                         cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
@@ -1269,6 +1285,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                     cDeleteIfEmpty:=""
                     nDeleteIfEmpty:=0
+                    TCRefresh(cFWTemporaryTableRealName)
                 endif
 
                 if (ldbCommit)
@@ -1284,8 +1301,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             end while
 
+            cLine:=""
+            FWFreeArray(@aLine)
+
             if (nCommitBuffer>0)
-                (cTmpAlias)->(dbCommitAll())
+                (cSourceAlias)->(dbCommitAll())
             endif
 
             if (nDeleteIfEmpty>0)
@@ -1295,9 +1315,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                 cDeleteIfEmpty:=""
                 nDeleteIfEmpty:=0
+                TCRefresh(cFWTemporaryTableRealName)
             endif
 
             nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE D_E_L_E_T_='*'")
+            TCRefresh(cFWTemporaryTableRealName)
 
             oFT:ft_fUse()
             oFT:FreeObj()
@@ -1307,9 +1329,30 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 break
             endif
 
-            MsAguarde({||nAliasdbCount:=GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
+            if (allTrim(oTFIni:GetPropertyValue(cTableImport,"TCSQLUpdateTable","0"))=="1")
+                cTargetAliasRealName:=RetSQLName(cTargetAlias)
+                MsProcess():MsAguarde(;
+                    {||;
+                        datasul2totvs.TCSQLUpdateTable(;
+                            cSourceAlias,;
+                            cFWTemporaryTableRealName,;
+                            cTargetAlias,;
+                            cTargetAliasRealName,;
+                            aTargetFieldsDef,;
+                            aAddIndex,;
+                            aTmpStruct,;
+                            oTLogReport,;
+                            oProgress;
+                        );
+                    },;
+                    "Wait...",;
+                    "Updating data from table "+cTargetAliasRealName;
+                )
+            endif
             
-            nRecCount:=Min(nAliasdbCount,(cTmpAlias)->(recCount()))
+            MsProcess():MsAguarde({||nAliasdbCount:=datasul2totvs.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
+
+            nRecCount:=Min(nAliasdbCount,(cSourceAlias)->(recCount()))
             cRecCount:=cTools():NToS(nRecCount)
 
             if (nRecCount<=nIncProcStep)
@@ -1319,14 +1362,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             oMsNewProcess:SetRegua2(Round(nRecCount/nIncProcStep,0))
             oTimeRemaining:SetRemaining(nRecCount)
 
-            (cAlias)->(dbSetOrder(nIndexKey))
+            (cTargetAlias)->(dbSetOrder(nIndexKey))
 
             nRecProc:=0
 
             lCustomUpdate:=((valType(bCustomUpdate)=="B").or.(allTrim(oTFIni:GetPropertyValue(cTableImport,"CustomUpdate","0"))=="1"))
             if (lCustomUpdate)
                 if (valType(bCustomUpdate)!="B")
-                    bCustomUpdate:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bCustomUpdate","{|cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef|.F.}")))
+                    bCustomUpdate:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bCustomUpdate","{|cSourceAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef|.F.}")))
                 endif
             endif
 
@@ -1338,23 +1381,23 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
             bAfterUpdateTable:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateTable","{|cAlias|.F.}")))
 
-            (cTmpAlias)->(dbGoTop())
+            (cSourceAlias)->(dbGoTop())
 
-            nTmpAliasOrder:=(cTmpAlias)->(IndexOrd())
+            nTmpAliasOrder:=(cSourceAlias)->(IndexOrd())
 
-            while (cTmpAlias)->(!eof())
-                if ((cTmpAlias)->(!dbEval():GetNextRecNo(@cTmpAlias,@nTmpAliasNextRecNo,@nTmpAliasRecNo,@nTmpAliasOrder)))
+            while (cSourceAlias)->(!eof())
+                if ((cSourceAlias)->(!dbEval():GetNextRecNo(@cSourceAlias,@nTmpAliasNextRecNo,@nTmpAliasRecNo,@nTmpAliasOrder)))
 				    exit
                 endif
-                cIndexID:=(cTmpAlias)->(&(cIndexKey))
-                lFound:=(cAlias)->(dbSeek(cIndexID,.F.))
+                cIndexID:=(cSourceAlias)->(&(cIndexKey))
+                lFound:=(cTargetAlias)->(dbSeek(cIndexID,.F.))
                 begin sequence
                     if ((!lFound).and.(!lAppendIfNotExist))
                         break
                     endif
                     lAddNew:=(!lFound)
                     if (lCustomUpdate)
-                        lHasError:=(!EvalBlock():EvalBlock({||(cAlias)->(Eval(bCustomUpdate,cTmpAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef))},nil,.F.,nil,nil))
+                        lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bCustomUpdate,cSourceAlias,cTargetAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef))},nil,.F.,nil,nil))
                         if (lHasError)
                             cError:=cacheData():Get("EvalBlock","ErrorDescription","")
                             cError+=cacheData():Get("EvalBlock","ErrorStack","")
@@ -1369,12 +1412,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                         endif
                     else
                         if (!lAddNew)
-                            lLock:=MySoftLock(cAlias)
+                            lLock:=MySoftLock(cTargetAlias)
                             if (lLock)
-                                lLock:=((cAlias)->(MyRecLock(cAlias,lAddNew)))
+                                lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew)))
                             endif
                         else
-                           lLock:=((cAlias)->(MyRecLock(cAlias,lAddNew))) 
+                           lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew)))
                         endif
                         if (lLock)
                             for nField:=1 to nFields
@@ -1389,32 +1432,32 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 if (nTargetFieldPos==0)
                                     loop
                                 endif
-                                xValue:=(cTmpAlias)->(FieldGet(nTargetFieldPos))
+                                xValue:=(cSourceAlias)->(FieldGet(nTargetFieldPos))
                                 if (empty(xValue).and.(!lUpdateEmptyValue))
                                     loop
                                 endif
                                 if ((lMemoVirutal).and.(oHMMemoVirutal:Get(cField,@bUpdateMemoVirtual)))
-                                    (cAlias)->(EvalBlock():EvalBlock(bUpdateMemoVirtual))
+                                    (cTargetAlias)->(EvalBlock():EvalBlock(bUpdateMemoVirtual))
                                 else
-                                    (cAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                    (cTargetAlias)->(FieldPut(nTargetFieldPos,xValue))
                                 endif
                             next nField
                             if (lAfterUpdateRecNo)
-                                lHasError:=(!EvalBlock():EvalBlock({||(cAlias)->(Eval(bAfterUpdateRecNo,cAlias,RecNo()))},nil,.F.,nil,nil))
+                                lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bAfterUpdateRecNo,cTargetAlias,RecNo()))},nil,.F.,nil,nil))
                                 if (lHasError)
                                     cError:=cacheData():Get("EvalBlock","ErrorDescription","")
                                     cError+=cacheData():Get("EvalBlock","ErrorStack","")
                                     CacheData():delSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
-                                        cTLogReport:="table : ["+cAlias+"] foram Encontradas inconsistencias na linha ["+cTools():NToS((cAlias)->(recNo()))+"] Processo:["+GetCBSource(bAfterUpdateRecNo)+"]"
+                                        cTLogReport:="table : ["+cTargetAlias+"] foram Encontradas inconsistencias na linha ["+cTools():NToS((cTargetAlias)->(recNo()))+"] Processo:["+GetCBSource(bAfterUpdateRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                         cError:=""
                                     endif
                                 endif
                             endif
-                            (cAlias)->(msUnLock())
+                            (cTargetAlias)->(msUnLock())
                         endif
                     endif
                 end sequence
@@ -1445,7 +1488,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     exit
                 endif
 
-                if ((cTmpAlias)->(!dbEval():GoToNextRecNo(@cTmpAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
+                if ((cSourceAlias)->(!dbEval():GoToNextRecNo(@cSourceAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
                     exit
                 endif
 
@@ -1461,8 +1504,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             endif
 
             if (valType(bAfterUpdateTable)=="B")
-                (cAlias)->(dbGoTop())
-                lHasError:=(!EvalBlock():EvalBlock({||(cAlias)->(Eval(bAfterUpdateTable,cAlias))},nil,.F.,nil,nil))
+                (cTargetAlias)->(dbGoTop())
+                lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bAfterUpdateTable,cTargetAlias))},nil,.F.,nil,nil))
                 if (lHasError)
                     cError:=cacheData():Get("EvalBlock","ErrorDescription","")
                     cError+=cacheData():Get("EvalBlock","ErrorStack","")
@@ -1481,7 +1524,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         end sequence
 
         if (!lPreLoadTable)
-            (cTmpAlias)->(dbCloseArea())
+            (cSourceAlias)->(dbCloseArea())
             oFWTemporaryTable:Delete()
             oFWTemporaryTable:=FreeObj(oFWTemporaryTable)
         endif
@@ -1489,7 +1532,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     end sequence
 
     SetFilAnt(cSVFilAnt)
-    
+
     CacheData():delSection("EvalBlock")
 
     oProgress:=FreeObj(oProgress)
@@ -1552,10 +1595,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     FWFreeArray(@aUpdateTableFields)
     FWFreeArray(@aUpdateTableSource)
-
-    FWFreeArray(@aTargetStruct)
-    FWFreeArray(@aFieldsDef)
-    FWFreeArray(@aTargetFieldsDef)
 
     DelClassIntF()
 
@@ -1666,6 +1705,8 @@ static function readTableDefinition() as logical
             break
         endif
 
+        MsProcess():MsProcTxt("Wait! Loading ["+cFileTablesDefinition+"]")
+
         oHMTablesImport:=aToHM(aTablesImport,2)
 
         oFT:ft_fGoTop()
@@ -1688,6 +1729,7 @@ static function readTableDefinition() as logical
                         oFT:ft_fSkip()
                     endif
                     aSize(aFieldsDef,0)
+                    MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]")
                     while (!oFT:ft_fEof())
                         cLine:=oFT:ft_fReadLN()
                         if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
@@ -2012,7 +2054,7 @@ static procedure CFGFile()
             endif
             oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
             if (valType(oTFIni)=="O")
-                MsAguarde({||oTFIni:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
+                MsProcess():MsAguarde({||oTFIni:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
                 if (valType(oTFIni)=="O")
                     oTFIni:=FreeObj(oTFIni)
                 endif
@@ -2021,8 +2063,8 @@ static procedure CFGFile()
             if (valType(st_oHMbTransform)=="O")
                 st_oHMbTransform:Clean()
             endif
-            MsAguarde({||readIniFile(@cINIFile)},"Loading Settings","Wait")
-            MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
+            MsProcess():MsAguarde({||datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait! Loading ["+cINIFile+"]")
+            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait")
         endif
 
     end sequence
@@ -2089,9 +2131,9 @@ static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logi
             bSet24:={||lOK:=.F.,oTDlg:End()}
 
             aButtons:=array(0)
-            bNotepadCFGFile:={||MsProcess():MsAguarde({||NotepadCFGFile(cINIFile)},"Abrindo no NotepadCFGFile","Aguarde...")}
+            bNotepadCFGFile:={||MsProcess():MsAguarde({||datasul2totvs.NotepadCFGFile(cINIFile)},"Abrindo no NotepadCFGFile","Aguarde...")}
             aAdd(aButtons,{"NotepadCFGFile",bNotepadCFGFile,OemToAnsi("Abir no NotepadCFGFile"),OemtoAnsi("Abir no NotepadCFGFile")})
-            bRestoreCFGFile:={||MsProcess():MsAguarde({||RestoreCFGFile(cINIFile,@cMemoEdit,@oTMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
+            bRestoreCFGFile:={||MsProcess():MsAguarde({||datasul2totvs.RestoreCFGFile(cINIFile,@cMemoEdit,@oTMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
             aAdd(aButtons,{"RestoreCFGFile",bRestoreCFGFile,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
 
         ACTIVATE MSDIALOG oTDlg CENTERED ON INIT EnchoiceBar(oTDlg,bSet15,bSet24,nil,@aButtons)
@@ -2422,8 +2464,8 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
             aFiles:=Directory(cDirectory+"*.*")
             nFiles:=Len(aFiles)
             for nFile:=1 To nFiles
-                MsProcTxt(aFiles[nFile][1])
                 cFile:=cDirectory+aFiles[nFile][1]
+                MsProcess():MsProcTxt(cFile)
                 aAdd(aZipFiles,cFile)
                 cFile:=cDirectoryServer+aFiles[nFile][1]
                 if (file(cFile))
@@ -2433,7 +2475,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
         next nDirectory
 
         cZipFile:=(getTempPath()+criatrab(nil,.F.)+".zip")
-        MsProcTxt("ZipFile. Wait!")
+        MsProcess():MsProcTxt("ZipFile ["+cZipFile+"]. Wait!")
         lSendDataToServer:=(FZip(cZipFile,aZipFiles,cDirectoryClient,/*,[cSenha]*/)==0)
         if (!lSendDataToServer)
             ApMsgAlert("Problem zipping ["+cZipFile+"] file")
@@ -2446,14 +2488,14 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
         cZipFileServer+=cSPPFile
         cZipFileServer+=cSPPExt
 
-        MsProcTxt("Wait!")
+        MsProcess():MsProcTxt("Wait! Sending ["+cZipFile+"] file to server")
         lSendDataToServer:=__CopyFile(cZipFile,cZipFileServer)
         if (!lSendDataToServer)
             ApMsgAlert("Problem copying ["+cZipFile+"] file to server")
             break
         endif
 
-        MsProcTxt("UnZipFile. Wait!")
+        MsProcess():MsProcTxt("UnZipFile ["+cZipFileServer+"]. Wait!")
         lSendDataToServer:=(FUnzip(cZipFileServer,cDirectoryServer,/*[cSenha]*/)==0)
         if (!lSendDataToServer)
             ApMsgAlert("Problem unzipping the test ["+cZipFile+"] on the server")
@@ -2488,8 +2530,8 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
                 st_oHMbTransform:Clean()
             endif
             cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
-            MsAguarde({||readIniFile(@cINIFile)},"Loading Settings","Wait")
-            MsAguarde({||readTableDefinition()},"Loading structure of tables","Wait")
+            MsProcess():MsAguarde({||datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait")
+            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait")
         endif
     endif
 
@@ -2523,7 +2565,7 @@ static function ForceAsBlind(lIsBlind as logical) as logical
             HelpInDark(.T.)
         endif
     endif
-return(lIsBlind)    
+return(lIsBlind)
 
 static function GetRecCount(cTable as character, cWhere as character) as numeric
 
@@ -2539,22 +2581,277 @@ static function GetRecCount(cTable as character, cWhere as character) as numeric
     endif
 
     beginContent var cQuery
-        SELECT COUNT(*) QRYLASTREC 
+        SELECT COUNT(*) QRYLASTREC
           FROM cTable
          WHERE cWhere
     endContent
 
-    cQuery:=cTools():StrReplace(cQuery,;
+    cQuery:=cTools():StrReplace(;
+        cQuery,;
+        {CRLF," "},;
+        {CHR(10)," "},;
+        {CHR(13)," "},;
+        {"  "," "},;
         {"cTable",cTable},;
         {"cWhere",cWhere};
     )
 
+    while ("  "$cQuery)
+        cQuery:=strTran(cQuery,"  "," ")
+    end while
+
     cQuery:=ChangeQuery(cQuery)
-    if (MsOpenDbf(.T.,"TOPCONN",TcGenQry(nil,nil,cQuery),cAlias,.T.,.T.,.F.,.F.))
+    if (MsOpenDbf(.T.,"TOPCONN",TCGenQry(nil,nil,cQuery),cAlias,.T.,.T.,.F.,.F.))
         nRecCount:=(cAlias)->QRYLASTREC
         (cAlias)->(dbCloseArea())
     endif
 
     FWRestArea(aArea)
+    FWFreeArray(@aArea)
 
 return(nRecCount)
+
+static function TCSQLUpdateTable(;
+        cSourceAlias as character,;
+        cSourceTable as character,;
+        cTargetAlias as character,;
+        cTargetTable as character,;
+        aTargetFieldsDef as array,;
+        aKeys as array,;
+        aTmpStruct as array,;
+        oTLogReport as object,;
+        oProgress;
+    ) as numeric
+
+    local cQueryFull as character
+    local cQueryRecNo as character
+    local cQueryUpdate as character
+    local cQueryDelete as character
+
+    local cTLogReport as character
+    local cTLogReportMsg as character
+
+    local cField as character
+
+    local cMsProcTXT as character
+
+    local cTableFieldsSET:="" as character
+
+    local cTableJoinPredicate:="" as character
+    local cTableWherePredicate:="" as character
+
+    local lTmpStruct:=((valType(aTmpStruct)=="A").and.(!empty(aTmpStruct))) as logical
+
+    local nKey as numeric
+    local nKeys:=Len(aKeys) as numeric
+    local nField as numeric
+    local nFields:=Len(aTargetFieldsDef) as numeric
+
+    local nMinRecNo as numeric
+    local nMaxRecNo as numeric
+    local nMinRecNoPlus as numeric
+
+    local nTCSQLExec as numeric
+
+    for nKey:=1 to nKeys
+        cField:=aKeys[nKey]
+        cTableJoinPredicate+="src."
+        cTableJoinPredicate+=cField
+        cTableJoinPredicate+="="
+        cTableJoinPredicate+="trg."
+        cTableJoinPredicate+=cField
+        if (nKey<nKeys)
+            cTableJoinPredicate+=" AND "
+        endif
+    next nKey
+
+    if (Right(cTableJoinPredicate,5)==" AND ")
+        cTableJoinPredicate:=subStr(cTableJoinPredicate,1,Len(cTableFieldsSET)-5)
+    endif
+
+    cTableWherePredicate:=cTableJoinPredicate
+
+    for nField:=1 to nFields
+        cField:=aTargetFieldsDef[nField][1]
+        if (aScan(aKeys,{|cFieldKey|(cFieldKey==cField)})>0)
+            loop
+        endif
+        if ((lTmpStruct).and.(aScan(aTmpStruct,{|e|(e[DBS_NAME]==cField)})>0))
+            loop
+        endif
+        if (aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]==0)
+            loop
+        endif
+        cTableFieldsSET+="trg."
+        cTableFieldsSET+=cField
+        cTableFieldsSET+="="
+        cTableFieldsSET+="src."
+        cTableFieldsSET+=cField
+        if (nField<nFields)
+            cTableFieldsSET+=", "
+        endif
+    next nField
+
+    if (Right(cTableFieldsSET,2)==", ")
+        cTableFieldsSET:=subStr(cTableFieldsSET,1,Len(cTableFieldsSET)-2)
+    endif
+
+    beginContent var cQueryUpdate
+        UPDATE trg
+           SET cTableFieldsSET
+          FROM cTargetTable trg
+    INNER JOIN cSourceTable src ON (cTableJoinPredicate)
+         WHERE (cTableWherePredicate)
+    endContent
+
+    cQueryUpdate:=cTools():StrReplace(;
+        cQueryUpdate,;
+        {CRLF," "},;
+        {CHR(10)," "},;
+        {CHR(13)," "},;
+        {"  "," "},;
+        {"cTargetTable",cTargetTable},;
+        {"cSourceTable",cSourceTable},;
+        {"cTableJoinPredicate",cTableJoinPredicate},;
+        {"cTableFieldsSET",cTableFieldsSET},;
+        {"cTableWherePredicate",cTableWherePredicate};
+    )
+
+    while ("  "$cQueryUpdate)
+        cQueryUpdate:=strTran(cQueryUpdate,"  "," ")
+    end while
+
+    beginContent var cQueryDelete
+        DELETE src
+          FROM cSourceTable src
+    INNER JOIN cTargetTable trg ON (cTableJoinPredicate)
+        WHERE (cTableWherePredicate)
+    endContent
+
+    cQueryDelete:=cTools():StrReplace(;
+        cQueryDelete,;
+        {CRLF," "},;
+        {CHR(10)," "},;
+        {CHR(13)," "},;
+        {"  "," "},;
+        {"cSourceTable",cSourceTable},;
+        {"cTargetTable",cTargetTable},;
+        {"cTableJoinPredicate",cTableJoinPredicate},;
+        {"cTableWherePredicate",cTableWherePredicate};
+    )
+
+    while ("  "$cQueryDelete)
+        cQueryDelete:=strTran(cQueryDelete,"  "," ")
+    end while
+
+    GetMinMaxRecNo(cSourceAlias,cSourceTable,"(1=1)",@nMinRecNo,@nMaxRecNo)
+
+    nMinRecNoPlus:=nMinRecNo
+
+    while (nMinRecNo<=nMaxRecNo)
+
+        nMinRecNoPlus+=1024
+
+        cMsProcTXT:="["+oProgress:Eval()+"]"
+        cMsProcTXT+="Upd. recs from "//"Updating records from "
+        cMsProcTXT+="["+cTools():NToS(nMinRecNo)+"]"
+        cMsProcTXT+="/" //to
+        cMsProcTXT+="["+cTools():NToS(nMinRecNoPlus)+"] "
+        cMsProcTXT+="out of "
+        cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]"
+        
+        MsProcess():MsProcTxt(cMsProcTXT)
+
+        cMsProcTXT:=""
+
+        cQueryRecNo:=" AND (src.R_E_C_N_O_ BETWEEN nMinRecNo AND nMaxRecNo)"
+        cQueryRecNo:=cTools():StrReplace(;
+            cQueryRecNo,;
+            {"cSourceTable",cSourceTable},;
+            {"nMinRecNo",cTools():NToS(nMinRecNo)},;
+            {"nMaxRecNo",cTools():NToS(nMinRecNoPlus)};
+        )
+
+        cQueryFull:=cQueryUpdate
+        cQueryFull+=cQueryRecNo
+        
+        nTCSQLExec:=TCSQLExec(cQueryFull)
+
+        if (nTCSQLExec<>0)
+        
+            cTLogReport:=ProcName()
+            cTLogReport+=" :: "
+            cTLogReport+="["+cSourceTable+"]"
+            cTLogReport+=" => "
+            cTLogReport+="["+cTargetTable+"]"
+            oTLogReport:AddGroup(cTLogReport)
+            cTLogReportMsg:="TCSQLExec ["+cTools():NToS(nTCSQLExec)+"]"
+            oTLogReport:AddDetail(cTLogReport,cTLogReportMsg)
+            cTLogReportMsg:=TCSQLError()
+            oTLogReport:AddDetail(cTLogReport,cTLogReportMsg)
+            cTLogReportMsg:=""
+        
+        else
+
+            cQueryFull:=cQueryDelete
+            cQueryFull+=cQueryRecNo
+
+            TCSQLExec(cQueryDelete)
+
+        endif
+
+        cQueryFull:=""
+
+        nMinRecNo:=nMinRecNoPlus
+
+    end while
+
+    TCRefresh(cSourceTable)
+
+return(nTCSQLExec)
+
+static function GetMinMaxRecNo(cAlias as character,cTable as character,cWhere as character,nMinRecNo as numeric,nMaxRecNo as numeric) as variant
+
+    local aArea:=FWGetArea() as array
+
+    local cQryAlias:=getNextAlias() as character
+    local cQryMinMax as character
+
+    if (empty(cWhere))
+        cWhere:="(1=1)"
+    endif
+
+    beginContent var cQryMinMax
+        SELECT MIN(R_E_C_N_O_) MINRECNO
+              ,MAX(R_E_C_N_O_) MAXRECNO
+          FROM cTable
+         WHERE cWhere
+    endContent
+
+    cQryMinMax:=cTools():StrReplace(;
+        cQryMinMax,;
+        {CRLF," "},;
+        {CHR(10)," "},;
+        {CHR(13)," "},;
+        {"  "," "},;
+        {"cTable",cTable},;
+        {"cWhere",cWhere};
+    )
+
+    while ("  "$cQryMinMax)
+        cQryMinMax:=strTran(cQryMinMax,"  "," ")
+    end while
+
+    if (MsOpenDbf(.T.,"TOPCONN",TCGenQry(nil,nil,cQryMinMax),cQryAlias,.F.,.T.))
+        nMinRecNo:=(cQryAlias)->MINRECNO
+        nMaxRecNo:=(cQryAlias)->MAXRECNO
+        (cQryAlias)->(dbCloseArea())
+    else
+        nMinRecNo:=1
+        nMaxRecNo:=(cAlias)->(RecCount())
+    endif
+
+    FWRestArea(aArea)
+    FWFreeArray(@aArea)
+
+return(NIL)
