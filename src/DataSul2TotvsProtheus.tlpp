@@ -837,6 +837,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
+                                        oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
                                         cError:=""
                                     endif
                                 endif
