@@ -127,7 +127,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical) as logica
                 );
             }
             nSizeMat:=getSX3Cache("RA_MAT","X3_TAMANHO")
-            bSourceSetFilter:={|cLine|SP8SourceFilter(cLine,dDataDe,dDataAte,cMatDe,cMatAte,nSizeMat)}
+            bSourceSetFilter:={|cLine|SP8SourceFilter(cLine,dDataDe,dDataAte,cMatDe,cMatAte,nSizeMat,cFilDe,cFilAte)}
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -417,13 +417,15 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 static function SP8SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
-static function SP8SourceFilter(cLine as character,dDataDe as date,dDataAte as date,cMatDe as character,cMatAte as character,nSizeMat as numeric) as logical
+static function SP8SourceFilter(cLine as character,dDataDe as date,dDataAte as date,cMatDe as character,cMatAte as character,nSizeMat as numeric,cFilDe as character,cFilAte as character) as logical
 
     local aLine as array
 
     local nAT as numeric
 
     local lFilter:=.T. as logical
+
+    local oTFIni as object
 
     local xFilter as variant
 
@@ -447,6 +449,14 @@ static function SP8SourceFilter(cLine as character,dDataDe as date,dDataAte as d
         endif
         xFilter:=PadL(aLine[3],nSizeMat,"0")
         lFilter:=((xFilter>=cMatDe).and.(xFilter<=cMatAte))
+        if (!lFilter)
+            break
+        endif
+        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+        xFilter:=aLine[2]
+        xFilter:=strTran(aLine[2],'"',"")
+        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
+        lFilter:=((xFilter>=cFilDe).and.(xFilter<=cFilAte))
         if (!lFilter)
             break
         endif
