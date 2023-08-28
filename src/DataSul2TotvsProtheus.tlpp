@@ -462,6 +462,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local nRecProc:=0 as numeric
     local nRecCount as numeric
     local nCommitBuffer as numeric
+    local nTargetFieldAT as numeric
     local nTargetFieldPos as numeric
 
     local nReplicateValuesAT as numeric
@@ -492,12 +493,19 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local oFT as object
     local oTFIni as object
     local oProgress as object
-    local oHMMemoVirutal as object
-    local oHMTargetStruct as object
+
     local oTimeRemaining as object
+    
     local oFWTemporaryTable as object
-    local oHMSourceFieldsDef as object
+
+    local oHMMemoVirutal as object
+
+    local oHMTargetStruct as object
+    local oHMTargetFieldsPos as object
+    local oHMTargetFieldsDef as object
     local oHMTargetReplicateFields as object
+
+    local oHMSourceFieldsDef as object
 
     begin sequence
 
@@ -640,6 +648,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             oHMTargetReplicateFields:=THashMap():New()
         endif
 
+        oHMTargetFieldsPos:=THashMap():New()
+        oHMTargetFieldsDef:=THashMap():New()
+
         for nField:=1 to nFields
             cField:=aTargetFieldsDef[nField][1]
             if (oHMTargetStruct:Get(cField,@aField))
@@ -647,6 +658,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             else
                 nTargetFieldPos:=0
             endif
+            oHMTargetFieldsPos:Set(cField,nTargetFieldPos)
+            oHMTargetFieldsDef:Set(cField,nField)
             aAdd(aTargetFieldsDef[nField],nTargetFieldPos)
             if (lTypeReplicate).and.(nTargetFieldPos>0)
                 aAdd(aTargetReplicateFields,cField)
@@ -965,8 +978,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
                                         endif
 
-                                        nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
-                                        if (nTargetFieldPos==0)
+                                        if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
                                             loop
                                         endif
 
@@ -1027,9 +1039,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 endif
                             endif
 
-                            nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
-
-                            if (nTargetFieldPos==0)
+                            if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
                                 loop
                             endif
 
@@ -1084,12 +1094,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         for nField:=1 to nUpdateTableSource
 
                                             cField:=aUpdateTableSource[nField]
-                                            nTargetFieldPos:=aScan(aTargetFieldsDef,{|e|(e[1]==cField)})
 
-                                            if (nTargetFieldPos>0)
+                                            if ((oHMTargetFieldsDef:Get(cField,@nTargetFieldAT)).and.(nTargetFieldAT>0))
 
                                                 lHasError:=.F.
-                                                xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
+                                                xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldAT],@aFieldsDef,@oHMSourceFieldsDef,@cType))
 
                                                 if (lHasError)
 
@@ -1180,11 +1189,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         if (aScan(aNoReplicateValues,{|x|(x==cField)})==0)
                                             xValue:=aReplicateValues[nReplicateValuesAT]
                                         else
-                                            nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
-                                            if (nTargetFieldPos==0)
-                                                loop
-                                            endif
-                                            xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldPos],@aFieldsDef,@oHMSourceFieldsDef,@cType))
+                                            xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef,@cType))
                                         endif
 
                                     endif
@@ -1200,8 +1205,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                         endif
                                     endif
 
-                                    nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
-                                    if (nTargetFieldPos==0)
+                                    if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
                                         loop
                                     endif
 
@@ -1430,8 +1434,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 if ((lAddFieldTmp).and.(aScan(aSourceTmpFldStruct,{|e|(e[DBS_NAME]==cField)})>0))
                                     loop
                                 endif
-                                nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
-                                if (nTargetFieldPos==0)
+                                if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
                                     loop
                                 endif
                                 xValue:=(cSourceAlias)->(FieldGet(nTargetFieldPos))
@@ -1564,6 +1567,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     if (valtype(oHMSourceFieldsDef)=="O")
         oHMSourceFieldsDef:Clean()
         oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
+    endif
+    
+    if (valtype(oHMTargetFieldsDef)=="O")
+        oHMTargetFieldsDef:Clean()
+        oHMTargetFieldsDef:=FreeObj(oHMTargetFieldsDef)
+    endif
+
+    if (valtype(oHMTargetFieldsPos)=="O")
+        oHMTargetFieldsPos:Clean()
+        oHMTargetFieldsPos:=FreeObj(oHMTargetFieldsPos)
     endif
 
     if (lMemoVirutal)
@@ -2754,9 +2767,9 @@ static function TCSQLUpdateTable(;
 
     nMinRecNoPlus:=nMinRecNo
 
-    nRecCount:=Max(Round((nMaxRecNo-nMinRecNo)/1024,0),1)
+    nRecCount:=Max(Round(((nMaxRecNo-nMinRecNo)/1024),0),1)
 
-    oMsNewProcess:SetRegua2(Round(nRecCount,0))
+    oMsNewProcess:SetRegua2(nRecCount)
 
     while (nMinRecNo<=nMaxRecNo)
 
