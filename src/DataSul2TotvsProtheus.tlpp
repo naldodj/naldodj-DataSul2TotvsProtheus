@@ -337,8 +337,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local aField as array
 
     local aFieldsDef:=array(0) as array
-    local aTmpFields as array
-    local aTmpStruct as array
+    
+    local aSourceTmpFields as array
+    local aSourceTmpFldStruct as array
 
     local aTargetStruct:=(cAlias)->(dbStruct()) as array
     local aTargetFieldsDef as array
@@ -591,20 +592,20 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             cTmpFields:=allTrim(oTFIni:GetPropertyValue(cTableImport+"_addTmpField","TmpFields",""))
             lAddFieldTmp:=(!Empty(cTmpFields))
             if (lAddFieldTmp)
-                aTmpFields:=strToKArr2(cTmpFields,",")
-                nFields:=Len(aTmpFields)
+                aSourceTmpFields:=strToKArr2(cTmpFields,",")
+                nFields:=Len(aSourceTmpFields)
                 if (nFields>0)
-                    aTmpStruct:=array(0)
+                    aSourceTmpFldStruct:=array(0)
                     for nField:=1 to nFields
-                        cField:=aTmpFields[nField]
-                        aAdd(aTmpStruct,array(DBS_ALEN))
-                        aTmpStruct[nField][DBS_NAME]:=Upper(allTrim(oTFIni:GetPropertyValue(cField,"DBS_NAME","")))
-                        aTmpStruct[nField][DBS_TYPE]:=Upper(allTrim(oTFIni:GetPropertyValue(cField,"DBS_TYPE","")))
-                        aTmpStruct[nField][DBS_LEN]:=val(allTrim(oTFIni:GetPropertyValue(cField,"DBS_LEN","1")))
-                        aTmpStruct[nField][DBS_DEC]:=val(allTrim(oTFIni:GetPropertyValue(cField,"DBS_DEC","0")))
+                        cField:=aSourceTmpFields[nField]
+                        aAdd(aSourceTmpFldStruct,array(DBS_ALEN))
+                        aSourceTmpFldStruct[nField][DBS_NAME]:=Upper(allTrim(oTFIni:GetPropertyValue(cField,"DBS_NAME","")))
+                        aSourceTmpFldStruct[nField][DBS_TYPE]:=Upper(allTrim(oTFIni:GetPropertyValue(cField,"DBS_TYPE","")))
+                        aSourceTmpFldStruct[nField][DBS_LEN]:=val(allTrim(oTFIni:GetPropertyValue(cField,"DBS_LEN","1")))
+                        aSourceTmpFldStruct[nField][DBS_DEC]:=val(allTrim(oTFIni:GetPropertyValue(cField,"DBS_DEC","0")))
                     next nField
                 endif
-                FWFreeArray(@aTmpFields)
+                FWFreeArray(@aSourceTmpFields)
             endif
         endif
 
@@ -625,7 +626,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         endif
 
         if (lAddFieldTmp)
-            aEval(aTmpStruct,{|e|aAdd(aTargetStruct,aClone(e))})
+            aEval(aSourceTmpFldStruct,{|e|aAdd(aTargetStruct,aClone(e))})
         endif
 
         oHMTargetStruct:=aUtils():dbStructHM(@aTargetStruct)
@@ -667,7 +668,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             oFT:ft_fSetFilter(bSourceSetFilter)
         endif
 
-        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Loading Data File","Wait Loading Data File: ["+cSourceFile+"]")
+        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Wait. Loading Data File.","Loading:["+cSourceFile+"]")
         lImportData:=(nft_fHandle>=0)
         if (!lImportData)
             ApMsgAlert("Could not open the file: "+cSourceFile,"Attention")
@@ -1340,7 +1341,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                             cTargetAliasRealName,;
                             aTargetFieldsDef,;
                             aAddIndex,;
-                            aTmpStruct,;
+                            aSourceTmpFldStruct,;
+                            oMsNewProcess,;
                             oTLogReport,;
                             oProgress;
                         );
@@ -1425,7 +1427,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                                 if ((lFound).and.(cField$cIndexKey))
                                     loop
                                 endif
-                                if ((lAddFieldTmp).and.(aScan(aTmpStruct,{|e|(e[DBS_NAME]==cField)})>0))
+                                if ((lAddFieldTmp).and.(aScan(aSourceTmpFldStruct,{|e|(e[DBS_NAME]==cField)})>0))
                                     loop
                                 endif
                                 nTargetFieldPos:=aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]
@@ -1584,8 +1586,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     FWFreeArray(@aField)
 
     FWFreeArray(@aFieldsDef)
-    FWFreeArray(@aTmpFields)
-    FWFreeArray(@aTmpStruct)
+    FWFreeArray(@aSourceTmpFields)
+    FWFreeArray(@aSourceTmpFldStruct)
 
     FWFreeArray(@aTargetStruct)
     FWFreeArray(@aTargetFieldsDef)
@@ -1696,6 +1698,8 @@ static function readTableDefinition() as logical
 
         oFT:=uft():New()
 
+        MsProcess():MsProcTxt(cFileTablesDefinition)
+
         nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)
         lreadTableDefinition:=(nft_fHandle>=0)
         if (!lreadTableDefinition)
@@ -1704,8 +1708,6 @@ static function readTableDefinition() as logical
             ApMsgAlert("Could not open the file: "+cFileTablesDefinition,"Attention")
             break
         endif
-
-        MsProcess():MsProcTxt("Wait! Loading ["+cFileTablesDefinition+"]")
 
         oHMTablesImport:=aToHM(aTablesImport,2)
 
@@ -1721,6 +1723,7 @@ static function readTableDefinition() as logical
                 if ("Table:"==Left(cLine,6))
                     cTable:=strTran(cLine,"Table:","")
                     cTable:=allTrim(cTable)
+                    MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]")
                     lSkipTable:=(!oHMTablesImport:Get(cTable))
                     if (lSkipTable)
                         break
@@ -1729,8 +1732,8 @@ static function readTableDefinition() as logical
                         oFT:ft_fSkip()
                     endif
                     aSize(aFieldsDef,0)
-                    MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]")
                     while (!oFT:ft_fEof())
+                        MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]")
                         cLine:=oFT:ft_fReadLN()
                         if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
                             oFT:ft_fDelete()
@@ -2617,10 +2620,11 @@ static function TCSQLUpdateTable(;
         cTargetAlias as character,;
         cTargetTable as character,;
         aTargetFieldsDef as array,;
-        aKeys as array,;
-        aTmpStruct as array,;
+        aTargetFieldsKeys as array,;
+        aSourceTmpFldStruct as array,;
+        oMsNewProcess as object,;
         oTLogReport as object,;
-        oProgress;
+        oProgress as object;
     ) as numeric
 
     local cQueryFull as character
@@ -2640,12 +2644,14 @@ static function TCSQLUpdateTable(;
     local cTableJoinPredicate:="" as character
     local cTableWherePredicate:="" as character
 
-    local lTmpStruct:=((valType(aTmpStruct)=="A").and.(!empty(aTmpStruct))) as logical
+    local lTmpStruct:=((valType(aSourceTmpFldStruct)=="A").and.(!empty(aSourceTmpFldStruct))) as logical
 
     local nKey as numeric
-    local nKeys:=Len(aKeys) as numeric
+    local nKeys:=Len(aTargetFieldsKeys) as numeric
     local nField as numeric
     local nFields:=Len(aTargetFieldsDef) as numeric
+
+    local nRecCount as numeric
 
     local nMinRecNo as numeric
     local nMaxRecNo as numeric
@@ -2654,7 +2660,7 @@ static function TCSQLUpdateTable(;
     local nTCSQLExec as numeric
 
     for nKey:=1 to nKeys
-        cField:=aKeys[nKey]
+        cField:=aTargetFieldsKeys[nKey]
         cTableJoinPredicate+="src."
         cTableJoinPredicate+=cField
         cTableJoinPredicate+="="
@@ -2673,10 +2679,10 @@ static function TCSQLUpdateTable(;
 
     for nField:=1 to nFields
         cField:=aTargetFieldsDef[nField][1]
-        if (aScan(aKeys,{|cFieldKey|(cFieldKey==cField)})>0)
+        if (aScan(aTargetFieldsKeys,{|cFieldKey|(cFieldKey==cField)})>0)
             loop
         endif
-        if ((lTmpStruct).and.(aScan(aTmpStruct,{|e|(e[DBS_NAME]==cField)})>0))
+        if ((lTmpStruct).and.(aScan(aSourceTmpFldStruct,{|e|(e[DBS_NAME]==cField)})>0))
             loop
         endif
         if (aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]==0)
@@ -2748,19 +2754,24 @@ static function TCSQLUpdateTable(;
 
     nMinRecNoPlus:=nMinRecNo
 
+    nRecCount:=Max(Round((nMaxRecNo-nMinRecNo)/1024,0),1)
+
+    oMsNewProcess:SetRegua2(Round(nRecCount,0))
+
     while (nMinRecNo<=nMaxRecNo)
 
         nMinRecNoPlus+=1024
 
-        cMsProcTXT:="["+oProgress:Eval()+"]"
-        cMsProcTXT+="Upd. recs from "//"Updating records from "
-        cMsProcTXT+="["+cTools():NToS(nMinRecNo)+"]"
-        cMsProcTXT+="/" //to
-        cMsProcTXT+="["+cTools():NToS(nMinRecNoPlus)+"] "
+        cMsProcTXT:="["+oProgress:Eval()+"] "
+        cMsProcTXT+="Updating records from "
+        cMsProcTXT+="["+cTools():NToS(nMinRecNo)+"] "
+        cMsProcTXT+="to "
+        cMsProcTXT+="["+cTools():NToS(Min(nMaxRecNo,nMinRecNoPlus))+"] "
         cMsProcTXT+="out of "
         cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]"
-        
+
         MsProcess():MsProcTxt(cMsProcTXT)
+        oMsNewProcess:IncRegua2(cMsProcTXT)
 
         cMsProcTXT:=""
 
