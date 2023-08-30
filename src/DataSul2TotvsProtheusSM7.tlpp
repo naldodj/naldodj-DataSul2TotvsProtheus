@@ -11,6 +11,7 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical) as logica
     local aAddIndex as array
 
     local bSM7Import as codeblock
+    local bSourceSetFilter as codeblock
     local bEnableFilterBlock as codeblock
     local bEnableFilterBlockMem as codeblock
 
@@ -56,6 +57,8 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical) as logica
             );
         }
         oSM7Import[#cItem][#"bEnableFilterBlockMem"]:=bEnableFilterBlockMem
+        bSourceSetFilter:={|cLine|SM7SourceFilter(cLine,oTFIni)}
+        oSM7Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter
     endif
 
     aItems:=aClone(oSM7Import:GetAllSections())
@@ -69,8 +72,10 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical) as logica
         cAddIndex:=oSM7Import[#cItem][#"AddIndex"]
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
         bSM7Import:=oSM7Import[#cItem][#"bSM7Import"]
+        bSourceSetFilter:=oSM7Import[#cItem][#"bSourceSetFilter"]
         bEnableFilterBlock:=oSM7Import[#cItem][#"bEnableFilterBlock"]
         bEnableFilterBlockMem:=oSM7Import[#cItem][#"bEnableFilterBlockMem"]
+        cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
         cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",bEnableFilterBlock)
         cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",bEnableFilterBlockMem)
         oMsNewProcess:SetRegua1(0)
@@ -125,3 +130,47 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
 static function SM7SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function SM7SourceFilter(cLine as character,oTFIni as object) as logical
+
+    local aLine as array
+
+    local nAT as numeric
+
+    local lFilter:=.T. as logical
+
+    local xFilter as variant
+
+    begin sequence
+        if (empty(cLine))
+            break
+        endif
+        cLine:=subStr(cLine,1,35)
+        nAT:=RAT(";",cLine)
+        if (nAT>0)
+            cLine:=substr(cLine,1,(nAT-1))
+        endif
+        aLine:=strToKArr2(cLine,";")
+        if (empty(aLine).or.(Len(aLine)<5))
+            break
+        endif
+        xFilter:=aLine[4]
+        lFilter:=(xFilter=="0")
+        if (!lFilter)
+            break
+        endif
+        xFilter:=aLine[5]
+        lFilter:=(xFilter=="26")
+        if (!lFilter)
+            break
+        endif
+        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaTiposDeBeneficio",xFilter,.T.,.T.)
+        lFilter:=(xFilter=="1")
+        if (!lFilter)
+            break
+        endif
+    end sequence
+
+    FWFreeArray(@aLine)
+
+return(lFilter)

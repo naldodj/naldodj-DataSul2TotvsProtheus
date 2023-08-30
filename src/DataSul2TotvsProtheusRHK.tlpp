@@ -1,0 +1,176 @@
+#define __NToS
+
+#include "totvs.ch"
+
+#include "execin.th"
+EXECIN CLASS RHKImport
+
+static function RHKImportData(oMsNewProcess as object,lEnd as logical) as logical
+
+    local aItems as array
+    local aAddIndex as array
+
+    local bRHKImport as codeblock
+    local bSourceSetFilter as codeblock
+    local bEnableFilterBlock as codeblock
+    local bEnableFilterBlockMem as codeblock
+
+    local cCRLF:=CRLF as character
+    local cMsg:="" as character
+    local cItem:="00" as character
+    local cAlias as character
+    local cIndexKey:="RHK_FILIAL+RHK_MAT+RHK_TPFORN+RHK_CODFOR+RHK_TPPLAN+RHK_PLANO+RHK_PERINI" as character
+    local cAddIndex:="RHK_FILIAL,RHK_MAT,RHK_TPFORN,RHK_CODFOR,RHK_TPPLAN,RHK_PLANO,RHK_PERINI" as character
+    local cTableImport as character
+
+    local lRHKImport:=.T. as logical
+    local lItemImport as logical
+    local lEnableFilterBlock as logical
+
+    local nItem as numeric
+    local nItems as numeric
+
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oRHKImport:=Array(#) as object
+    local oTLogReport:=tLogReport():New() as object
+
+    cItem:=__Soma1(cItem)
+    oRHKImport[#cItem]:=Array(#)
+    oRHKImport[#cItem][#"cAlias"]:="RHK"
+    oRHKImport[#cItem][#"cTableImport"]:="RHK"
+    oRHKImport[#cItem][#"cIndexKey"]:=cIndexKey
+    oRHKImport[#cItem][#"AddIndex"]:=cAddIndex
+    oRHKImport[#cItem][#"lRHKImport"]:=.F.
+    oRHKImport[#cItem][#"bRHKImport"]:={||lRHKImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
+    lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(oRHKImport[#cItem][#"cTableImport"],"EnableFilterBlock","0"))=="1")
+    if (lEnableFilterBlock)
+        bEnableFilterBlock:={|cAlias|;
+            (cAlias)->(;
+                !Empty(RHK_TPPLAN).and.;
+                !Empty(RHK_TPFORN).and.;
+                !Empty(RHK_CODFOR).and.;
+                !Empty(RHK_PLANO).and.;
+                !Empty(RHK_PDDAGR);                
+            );
+        }
+        oRHKImport[#cItem][#"bEnableFilterBlock"]:=bEnableFilterBlock
+        bEnableFilterBlockMem:={|xValue,cField|;
+            IF((cField$"RHK_TPPLAN,RHK_TPFORN,RHK_CODFOR,RHK_PLANO,RHK_PDDAGR"),;
+                !Empty(xValue),;
+                .T.;
+            );
+        }
+        oRHKImport[#cItem][#"bEnableFilterBlockMem"]:=bEnableFilterBlockMem
+        bSourceSetFilter:={|cLine|RHKSourceFilter(cLine,oTFIni)}
+        oRHKImport[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter
+    endif
+
+    aItems:=aClone(oRHKImport:GetAllSections())
+    nItems:=Len(aItems)
+    for nItem:=1 to nItems
+        cItem:=aItems[nItem]
+        cAlias:=oRHKImport[#cItem][#"cAlias"]    
+        cTableImport:=oRHKImport[#cItem][#"cTableImport"]
+        cIndexKey:=oRHKImport[#cItem][#"cIndexKey"]
+        cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
+        cAddIndex:=oRHKImport[#cItem][#"AddIndex"]
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
+        bRHKImport:=oRHKImport[#cItem][#"bRHKImport"]
+        bSourceSetFilter:=oRHKImport[#cItem][#"bSourceSetFilter"]
+        bEnableFilterBlock:=oRHKImport[#cItem][#"bEnableFilterBlock"]
+        bEnableFilterBlockMem:=oRHKImport[#cItem][#"bEnableFilterBlockMem"]
+        cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
+        cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",bEnableFilterBlock)
+        cacheData():Set("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",bEnableFilterBlockMem)
+        oMsNewProcess:SetRegua1(0)
+        oMsNewProcess:IncRegua1("Wait!")
+        oMsNewProcess:SetRegua2(0)
+        oMsNewProcess:IncRegua2("...")
+        Eval(bRHKImport)
+        FWFreeArray(@aAddIndex)
+        oRHKImport[#cItem][#"lRHKImport"]:=lRHKImport
+        if (lEnd)
+            exit
+        endif
+    next nItem
+
+    if (!lEnd)
+        for nItem:=1 to nItems
+            cItem:=aItems[nItem]
+            cAlias:=oRHKImport[#cItem][#"cAlias"]    
+            cTableImport:=oRHKImport[#cItem][#"cTableImport"]
+            lItemImport:=oRHKImport[#cItem][#"lRHKImport"]
+            lRHKImport:=((lRHKImport).and.(lItemImport))
+            if (lItemImport)
+                cMsg+=cAlias+"/"+cTableImport+" Table Import Completed"
+            else
+                cMsg+="Problems were encountered while processing the "+cAlias+"/"+cTableImport+" table"
+            endif
+            cMsg+=cCRLF
+        next nItem
+        ApMsgInfo(cMsg,"Info")
+        cMsg:=""
+    else
+        lRHKImport:=.F.
+    endif
+
+    FWFreeArray(@aItems)
+    FWFreeArray(@aAddIndex)
+
+    MsAguarde({||oRHKImport:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+    oRHKImport:=FreeObj(oRHKImport)
+
+    dfv():Default(@cAlias,"RHK")
+    oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+    MsAguarde({||oTLogReport:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+    oTLogReport:=FreeObj(oTLogReport)
+
+    DelClassIntF()
+
+return(lRHKImport)
+
+static function RHKGetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function RHKSetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function RHKSourceFilter(cLine as character,oTFIni as object) as logical
+
+    local aLine as array
+
+    local nAT as numeric
+
+    local lFilter:=.T. as logical
+
+    local xFilter as variant
+
+    begin sequence
+        if (empty(cLine))
+            break
+        endif
+        cLine:=subStr(cLine,1,35)
+        nAT:=RAT(";",cLine)
+        if (nAT>0)
+            cLine:=substr(cLine,1,(nAT-1))
+        endif
+        aLine:=strToKArr2(cLine,";")
+        if (empty(aLine).or.(Len(aLine)<5))
+            break
+        endif
+        xFilter:=aLine[4]
+        lFilter:=(xFilter=="0")
+        if (!lFilter)
+            break
+        endif
+        xFilter:=aLine[5]
+        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaTiposDeBeneficioRHK_TPPLAN",xFilter,.T.,.T.)
+        lFilter:=(!empty(xFilter))
+        if (!lFilter)
+            break
+        endif
+    end sequence
+
+    FWFreeArray(@aLine)
+
+return(lFilter)

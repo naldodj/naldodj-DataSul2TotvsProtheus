@@ -83,7 +83,7 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
             nSizeMat:=getSX3Cache("RA_MAT","X3_TAMANHO")
             cAnoDe:=Left(cCompetenciaDe,4)
             cAnoAte:=Left(cCompetenciaAte,4)
-            bSourceSetFilter:={|cLine|SRDSourceFilter(cLine,cCompetenciaDe,cCompetenciaAte,cMatDe,cMatAte,nSizeMat,cAnoDe,cAnoAte,cFilDe,cFilAte)}
+            bSourceSetFilter:={|cLine|SRDSourceFilter(cLine,oTFIni,cCompetenciaDe,cCompetenciaAte,cMatDe,cMatAte,nSizeMat,cAnoDe,cAnoAte,cFilDe,cFilAte)}
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -510,15 +510,13 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
 return(cRDPD)
 
-static function SRDSourceFilter(cLine as character,cCompetenciaDe as character,cCompetenciaAte as character,cMatDe as character,cMatAte as character,nSizeMat as numeric,cAnoDe as character,cAnoAte as character,cFilDe as character,cFilAte as character) as logical
+static function SRDSourceFilter(cLine as character,oTFIni as object,cCompetenciaDe as character,cCompetenciaAte as character,cMatDe as character,cMatAte as character,nSizeMat as numeric,cAnoDe as character,cAnoAte as character,cFilDe as character,cFilAte as character) as logical
 
     local aLine as array
 
     local nAT as numeric
 
     local lFilter:=.T. as logical
-
-    local oTFIni as object
 
     local xFilter as variant
 
@@ -550,7 +548,6 @@ static function SRDSourceFilter(cLine as character,cCompetenciaDe as character,c
         if (!lFilter)
             break
         endif
-        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
         xFilter:=strTran(aLine[2],'"',"")
         xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
         lFilter:=((xFilter>=cFilDe).and.(xFilter<=cFilAte))
