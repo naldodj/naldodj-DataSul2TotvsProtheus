@@ -173,6 +173,7 @@ static function Activate() as logical
         oTMenuOptions[#cSection][#"Alias"][#"01"]:="RI1"
         oTMenuOptions[#cSection][#"Alias"][#"02"]:="SM7"
         oTMenuOptions[#cSection][#"Alias"][#"03"]:="RHK"
+        oTMenuOptions[#cSection][#"Alias"][#"04"]:="RHL"
 
         cSection:="Employee Punch Marking"
         oTMenuOptions[#cSection]:=Array(#)
