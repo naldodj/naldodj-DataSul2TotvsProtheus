@@ -149,13 +149,18 @@ static function RHKSourceFilter(cLine as character,oTFIni as object) as logical
         if (empty(cLine))
             break
         endif
-        cLine:=subStr(cLine,1,35)
+        cLine:=subStr(cLine,1,59)
         nAT:=RAT(";",cLine)
         if (nAT>0)
             cLine:=substr(cLine,1,(nAT-1))
         endif
         aLine:=strToKArr2(cLine,";")
-        if (empty(aLine).or.(Len(aLine)<5))
+        if (empty(aLine).or.(Len(aLine)<9))
+            break
+        endif
+        xFilter:=aLine[9]
+        lFilter:=(xFilter=="1")
+        if (!lFilter)
             break
         endif
         xFilter:=aLine[4]
