@@ -1,11 +1,9 @@
-#define __NToS
-
 #include "totvs.ch"
 
 #include "execin.th"
 EXECIN CLASS SM7Import
 
-static function SM7ImportData(oMsNewProcess as object,lEnd as logical) as logical
+static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aItems as array
     local aAddIndex as array
@@ -41,7 +39,7 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical) as logica
     oSM7Import[#cItem][#"cIndexKey"]:=cIndexKey
     oSM7Import[#cItem][#"AddIndex"]:=cAddIndex
     oSM7Import[#cItem][#"lSM7Import"]:=.F.
-    oSM7Import[#cItem][#"bSM7Import"]:={||lSM7Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
+    oSM7Import[#cItem][#"bSM7Import"]:={||lSM7Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
     lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(oSM7Import[#cItem][#"cTableImport"],"EnableFilterBlock","0"))=="1")
     if (lEnableFilterBlock)
         bEnableFilterBlock:={|cAlias|;

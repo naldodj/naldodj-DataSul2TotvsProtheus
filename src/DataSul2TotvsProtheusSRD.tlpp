@@ -3,7 +3,7 @@
 #include "execin.th"
 EXECIN CLASS SRDImport
 
-static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logical
+static function SRDImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
 
@@ -102,7 +102,7 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical) as logica
 
         cacheData():Set("datasul2totvsprotheus","SRDImportDataLogReport",oTLogReport)
 
-        lSRDImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRDImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
         if (lSRDImport)
             ApMsgInfo(cAlias+" Table Import Completed","Info")

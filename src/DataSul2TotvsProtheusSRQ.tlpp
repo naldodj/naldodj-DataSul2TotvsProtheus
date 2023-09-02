@@ -3,7 +3,7 @@
 #include "execin.th"
 EXECIN CLASS SRQImport
 
-static function SRQImportData(oMsNewProcess as object,lEnd as logical) as logical
+static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
 
@@ -36,7 +36,7 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical) as logica
     lPreLoadTable:=((lPreLoadTable).and.(!empty(aPreLoadAddIndex)))
 
     if (lPreLoadTable)
-        lPreLoadTable:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cPreLoadAlias,@cPreLoadIndexKey,@cPreLoadTableImport,@aPreLoadAddIndex,@lPreLoadTable)
+        lPreLoadTable:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cPreLoadAlias,@cPreLoadIndexKey,@cPreLoadTableImport,@aPreLoadAddIndex,@lPreLoadTable)
     endif
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RQ_FILIAL+RQ_MAT+RQ_ORQEM+RQ_SEQUENC"))
@@ -44,7 +44,7 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical) as logica
 
     cacheData():Set("datasul2totvsprotheus","SRQImportDataLogReport",oTLogReport)
     
-    lSRQImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSRQImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lPreLoadTable)
         cTmpAlias:=cacheData():Get("datasul2totvsprotheus","import"+cPreLoadTableImport+"Alias")

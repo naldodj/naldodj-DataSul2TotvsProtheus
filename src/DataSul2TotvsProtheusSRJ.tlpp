@@ -3,7 +3,7 @@
 #include "execin.th"
 EXECIN CLASS SRJImport
 
-static function SRJImportData(oMsNewProcess as object,lEnd as logical) as logical
+static function SRJImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
 
@@ -19,7 +19,7 @@ static function SRJImportData(oMsNewProcess as object,lEnd as logical) as logica
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RJ_FILIAL+RJ_FUNCAO"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RJ_FILIAL,RJ_FUNCAO")),",")
 
-    lSRJImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSRJImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if ((lSRJImport).and.(!lEnd))
         oMsNewProcess:SetRegua1(0)
@@ -30,7 +30,7 @@ static function SRJImportData(oMsNewProcess as object,lEnd as logical) as logica
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","Q3_FILIAL+Q3_CARGO+Q3_CC"))
         FWFreeArray(@aAddIndex)
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","Q3_FILIAL,Q3_CARGO,Q3_CC")),",")
-        lSRJImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRJImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
         if (lSRJImport)
             ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
         else

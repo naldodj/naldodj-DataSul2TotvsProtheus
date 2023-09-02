@@ -3,7 +3,7 @@
 #include "execin.th"
 EXECIN CLASS SR6Import
 
-static function SR6ImportData(oMsNewProcess as object,lEnd as logical) as logical
+static function SR6ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
 
@@ -19,7 +19,7 @@ static function SR6ImportData(oMsNewProcess as object,lEnd as logical) as logica
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R6_FILIAL+R6_TURNO"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R6_FILIAL,R6_TURNO")),",")
 
-    lSR6Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSR6Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lSR6Import)
         ApMsgInfo(cAlias+" Table Import Completed","Info")

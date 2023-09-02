@@ -9,7 +9,7 @@
 #include "execin.th"
 EXECIN CLASS RCEImport
 
-static function RCEImportData(oMsNewProcess as object,lEnd as logical) as logical
+static function RCEImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
 
@@ -25,7 +25,7 @@ static function RCEImportData(oMsNewProcess as object,lEnd as logical) as logica
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RCE_FILIAL+RCE_CODIGO"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RCE_FILIAL,RCE_CODIGO")),",")
 
-    lRCEImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lRCEImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lRCEImport)
         ApMsgInfo(cAlias+" Table Import Completed","Info")

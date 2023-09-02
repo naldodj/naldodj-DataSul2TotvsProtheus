@@ -1,11 +1,9 @@
-#define __NToS
-
 #include "totvs.ch"
 
 #include "execin.th"
 EXECIN CLASS RHLImport
 
-static function RHLImportData(oMsNewProcess as object,lEnd as logical) as logical
+static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aItems as array
     local aAddIndex as array
@@ -41,7 +39,7 @@ static function RHLImportData(oMsNewProcess as object,lEnd as logical) as logica
     oRHLImport[#cItem][#"cIndexKey"]:=cIndexKey
     oRHLImport[#cItem][#"AddIndex"]:=cAddIndex
     oRHLImport[#cItem][#"lRHLImport"]:=.F.
-    oRHLImport[#cItem][#"bRHLImport"]:={||lRHLImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
+    oRHLImport[#cItem][#"bRHLImport"]:={||lRHLImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
     lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(oRHLImport[#cItem][#"cTableImport"],"EnableFilterBlock","0"))=="1")
     if (lEnableFilterBlock)
         bEnableFilterBlock:={|cAlias|;

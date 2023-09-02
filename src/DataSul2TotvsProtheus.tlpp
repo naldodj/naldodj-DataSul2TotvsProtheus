@@ -1,5 +1,3 @@
-#define __NToS
-
 #DEFINE DTS_DBS_NAME   1
 #DEFINE DTS_DBS_TYPE   2
 #DEFINE DTS_DBS_FLG    3
@@ -27,16 +25,26 @@ end class
 static method Activate() class Protheus
 
     local lActivate as logical
+    local lSetCentury:=__SetCentury("ON") as logical
     local nSetVarNameLen:=SetVarNameLen(Max(SetVarNameLen(),254))
-    
-    lActivate:=datasul2totvs.Activate()
-    
+
+    private cCadastro:="TOTVS :: DataSul To Protheus" as character
+
+    lActivate:=((FWIsAdmin(__cUserID)).and.(GetNewPar("TOTVSDS2PT",.T.)))
+    if (!lActivate)
+        ApMsgAlert("User without administrative privileges")
+    else    
+        lActivate:=datasul2totvs.Activate()
+    endif
+
+    __SetCentury(if(lSetCentury,"ON","OFF"))
     SetVarNameLen(nSetVarNameLen)
 
 return(lActivate)
 
 static function Activate() as logical
 
+    local aStack:={"DATASUL2TOTVS.ACTIVATE","ACTIVATE","U_DATASUL2TOTVSPROTHEUS"} as array
     local aSections as array
     local aProperties as array
 
@@ -54,7 +62,6 @@ static function Activate() as logical
     local lPercentage as logical
 
     local lActivate as logical
-    local lSetCentury:=__SetCentury("ON") as logical
     local lSendDataToServer as logical
 
     local nSection as numeric
@@ -72,17 +79,14 @@ static function Activate() as logical
     local oTMenuItem as object
     local oTMenuOptions as object
 
-    private st_oHMbTransform:=THashMap():New() as object
-
-    private cCadastro:="TOTVS :: DataSul To Protheus" as character
-
     begin sequence
 
-        lActivate:=((FWIsAdmin(__cUserID)).and.(GetNewPar("TOTVSDS2PT",.T.)))
+        lActivate:=stacktools():IsInStackCall(aStack)
         if (!lActivate)
-            ApMsgAlert("User without administrative privileges")
             break
         endif
+
+        private st_oHMbTransform:=THashMap():New() as object
 
         lSendDataToServer:=((getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01"))).and.(ApMsgNoYes("Sending Data To Server?")))
         if (lSendDataToServer)
@@ -244,9 +248,6 @@ static function Activate() as logical
         oTMenu:=FreeObj(oTMenu)
         oTDlg:=FreeObj(oTDlg)
 
-        FWFreeArray(@aSections)
-        FWFreeArray(@aProperties)
-
     end sequence
 
     if (valType(oTFIni)=="O")
@@ -256,7 +257,9 @@ static function Activate() as logical
         endif
     endif
 
-    __SetCentury(if(lSetCentury,"ON","OFF"))
+    FWFreeArray(@aStack)
+    FWFreeArray(@aSections)
+    FWFreeArray(@aProperties)
 
     MsProcess():MsAguarde({||cacheData():delSection("datasul2totvsprotheus")},"Releasing temporary files and workspace memory...","Wait...")
 
@@ -304,6 +307,7 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     oParameters[#"FunctionParameters"]:=Array(#)
     oParameters[#"FunctionParameters"][#"oMSNewProcess"]:=oMSNewProcess
     oParameters[#"FunctionParameters"][#"lEnd"]:=lEnd
+    oParameters[#"FunctionParameters"][#"lPercentage"]:=lPercentage
 
     oMSNewProcess:Activate()
 
@@ -333,10 +337,11 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
 
 return(lImportData)
 
-static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport as object,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array,lPreLoadTable as logical,bCustomUpdate as codeblock) as logical
+static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical,oTLogReport as object,cAlias as character,cIndexKey as character,cTableImport as character,aAddIndex as array,lPreLoadTable as logical,bCustomUpdate as codeblock) as logical
 
     local aLine as array
     local aField as array
+    local aIncProcStep as array
 
     local aFieldsDef:=array(0) as array
     
@@ -466,6 +471,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     local nRecProc:=0 as numeric
     local nRecCount as numeric
+    local nRecProcPerc as numeric
+    local nRecCountProc as numeric
     local nCommitBuffer as numeric
     local nTargetFieldAT as numeric
     local nTargetFieldPos as numeric
@@ -504,6 +511,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
     local oFWTemporaryTable as object
 
     local oHMMemoVirutal as object
+
+    local oHMIncProcStep as object
 
     local oHMTargetStruct as object
     local oHMTargetFieldsPos as object
@@ -803,14 +812,27 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 oFT:ft_fGoTop()
             endif
 
-            cRecCount:=cTools():NToS(nRecCount)
+            nRecCountProc:=nRecCount
 
-            if (nRecCount<=nIncProcStep)
-                nIncProcStep:=1
+            if ((lPercentage).and.(nRecCount>=1000))
+                nIncProcStep=(1/nRecCount*100)
+                aIncProcStep:=array(200,2)
+                aEval(aIncProcStep,{|x,y|aIncProcStep[y][2]:=((y*5)/100),aIncProcStep[y][1]:=Round((nRecCountProc*aIncProcStep[y][2]),0)})
+                oHMIncProcStep:=aToHM(aIncProcStep)
+                FWFreeArray(@aIncProcStep)
+                nRecCount:=100
+            else
+                lPercentage:=.F.
+                if (nRecCount<=nIncProcStep)
+                    nIncProcStep:=1
+                endif
             endif
 
-            oMsNewProcess:SetRegua1(Round(nRecCount/nIncProcStep,0))
-            oTimeRemaining:=timeRemaining():New(nRecCount)
+            cRecCount:=cTools():NToS(nRecCountProc)
+
+            oMsNewProcess:SetRegua1(if(lPercentage,nRecCount,Round(nRecCount/nIncProcStep,0)))
+            
+            oTimeRemaining:=timeRemaining():New(nRecCountProc)
 
             oProgress:=txtProgress():New()
 
@@ -1271,9 +1293,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 cLine:=""
                 FWFreeArray(@aLine)
 
-                oTimeRemaining:nProgress:=(++nRecProc)
-
-                if ((Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
+                nRecProc++
+                if (lPercentage)
+                    nRecProcPerc:=(nRecProc*nIncProcStep)
+                else
+                    nRecProcPerc:=nRecProc
+                endif
+                
+                oTimeRemaining:nProgress:=nRecProc
+                
+                if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
                     oTimeRemaining:Calcule(.F.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
@@ -1284,7 +1313,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     cIncProc+="/"
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
-                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
+                    cIncProc+="::["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
                     oMsNewProcess:IncRegua1(cIncProc)
                 endif
 
@@ -1319,7 +1348,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     ldbCommit:=.F.
                 endif
 
-                if (nRecProc>=nRecCount)
+                if (nRecProcPerc>=nRecCount)
                     exit
                 endif
 
@@ -1327,6 +1356,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                 oFT:ft_fSkip()
 
             end while
+
+            if (lPercentage)
+                oHMIncProcStep:Clean()
+                oHMIncProcStep:=FreeObj(oHMIncProcStep)
+            endif
 
             cLine:=""
             FWFreeArray(@aLine)
@@ -1381,14 +1415,28 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
             MsProcess():MsAguarde({||nAliasdbCount:=datasul2totvs.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
 
             nRecCount:=Min(nAliasdbCount,(cSourceAlias)->(recCount()))
-            cRecCount:=cTools():NToS(nRecCount)
 
-            if (nRecCount<=nIncProcStep)
-                nIncProcStep:=1
+            nRecCountProc:=nRecCount
+
+            if ((lPercentage).and.(nRecCount>=1000))
+                nIncProcStep=(1/nRecCount*100)
+                aIncProcStep:=array(200,2)
+                aEval(aIncProcStep,{|x,y|aIncProcStep[y][2]:=((y*5)/100),aIncProcStep[y][1]:=Round((nRecCountProc*aIncProcStep[y][2]),0)})
+                oHMIncProcStep:=aToHM(aIncProcStep)
+                FWFreeArray(@aIncProcStep)
+                nRecCount:=100
+            else
+                lPercentage:=.F.
+                if (nRecCount<=nIncProcStep)
+                    nIncProcStep:=1
+                endif
             endif
 
-            oMsNewProcess:SetRegua2(Round(nRecCount/nIncProcStep,0))
-            oTimeRemaining:SetRemaining(nRecCount)
+            cRecCount:=cTools():NToS(nRecCountProc)
+
+            oMsNewProcess:SetRegua2(if(lPercentage,nRecCount,Round(nRecCount/nIncProcStep,0)))
+            
+            oTimeRemaining:SetRemaining(nRecCountProc)
 
             (cTargetAlias)->(dbSetOrder(nIndexKey))
 
@@ -1489,9 +1537,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     endif
                 end sequence
 
-                oTimeRemaining:nProgress:=(++nRecProc)
+                nRecProc++
+                if (lPercentage)
+                    nRecProcPerc:=(nRecProc*nIncProcStep)
+                else
+                    nRecProcPerc:=nRecProc
+                endif
+                
+                oTimeRemaining:nProgress:=nRecProc
 
-                if ((Mod(nRecProc,nIncProcStep)==0).or.(nRecProc>=nRecCount))
+                if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
                     oTimeRemaining:Calcule(.F.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
@@ -1502,7 +1557,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
                     cIncProc+="/"
                     cIncProc+=cRecCount
                     cIncProc+=cTimeRemaining
-                    cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
+                    cIncProc+="::["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
                     oMsNewProcess:IncRegua2(cIncProc)
                 endif
 
@@ -1608,6 +1663,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
         endif
     endif
 
+    if (lPercentage)
+        if (valtype(oHMIncProcStep)=="O")
+            oHMIncProcStep:Clean()
+            oHMIncProcStep:=FreeObj(oHMIncProcStep)
+        endif
+    endif
+
     if (lTypeReplicate)
         FWFreeArray(@aTargetReplicateFields)
         FWFreeArray(@aTargetReplicateFieldsPos)
@@ -1619,6 +1681,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,oTLogReport a
 
     FWFreeArray(@aLine)
     FWFreeArray(@aField)
+    FWFreeArray(@aIncProcStep)
 
     FWFreeArray(@aFieldsDef)
     FWFreeArray(@aSourceTmpFields)
