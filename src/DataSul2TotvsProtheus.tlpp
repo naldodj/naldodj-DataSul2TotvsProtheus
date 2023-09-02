@@ -816,11 +816,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             if ((lPercentage).and.(nRecCount>=1000))
                 nIncProcStep=(1/nRecCount*100)
-                aIncProcStep:=array(200,2)
+                nRecCount:=200
+                aIncProcStep:=array(nRecCount,2)
                 aEval(aIncProcStep,{|x,y|aIncProcStep[y][2]:=((y*5)/100),aIncProcStep[y][1]:=Round((nRecCountProc*aIncProcStep[y][2]),0)})
                 oHMIncProcStep:=aToHM(aIncProcStep)
                 FWFreeArray(@aIncProcStep)
-                nRecCount:=100
             else
                 lPercentage:=.F.
                 if (nRecCount<=nIncProcStep)
@@ -1420,11 +1420,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             if ((lPercentage).and.(nRecCount>=1000))
                 nIncProcStep=(1/nRecCount*100)
-                aIncProcStep:=array(200,2)
+                nRecCount:=200
+                aIncProcStep:=array(nRecCount,2)
                 aEval(aIncProcStep,{|x,y|aIncProcStep[y][2]:=((y*5)/100),aIncProcStep[y][1]:=Round((nRecCountProc*aIncProcStep[y][2]),0)})
                 oHMIncProcStep:=aToHM(aIncProcStep)
                 FWFreeArray(@aIncProcStep)
-                nRecCount:=100
             else
                 lPercentage:=.F.
                 if (nRecCount<=nIncProcStep)
