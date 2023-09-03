@@ -1,53 +1,5 @@
 #include "totvs.ch"
 
-#IFNDEF _AMARC_CH    
-
-    #DEFINE _AMARC_CH    
-
-        #DEFINE ELEMENTOS_AMARC      50    //Numero de Elementos do Array aMarcacoes
-
-        #DEFINE AMARC_DATA           01    //Data da Marcacao
-        #DEFINE AMARC_HORA           02    //Hora da Marcacao
-        #DEFINE AMARC_ORDEM          03    //Ordem da Marcacao
-        #DEFINE AMARC_FLAG           04    //Flag (Origem) da Marcacao
-        #DEFINE AMARC_RECNO          05    //Recno ou Logico Alterar Ordem/Turno
-        #DEFINE AMARC_TURNO          06    //Turno da Marcacao
-        #DEFINE AMARC_FUNCAO         07    //Funcao do Relogio
-        #DEFINE AMARC_GIRO           08    //Giro do Relogio
-        #DEFINE AMARC_CC             09    //Centro de Custo da Marcacao
-        #DEFINE AMARC_APONTA         10    //Flag de Marcacao Apontada
-        #DEFINE AMARC_RELOGIO        11    //Relogio da Marcacao
-        #DEFINE AMARC_TIPOMARC       12    //Flag de Tipo de Marcacao
-        #DEFINE AMARC_L_ORIGEM       13    //Define Se a Marcacao Pode ou Nao ser (Re)Ordenada
-        #DEFINE AMARC_DTHR2STR       14    //String de Data/Hora para aSort
-        #DEFINE AMARC_PERAPONTA      15    //String de Data com o Periodo de Apontamento
-        #DEFINE AMARC_SEQ            16    //String de Sequencia da Tabela Padrao
-        #DEFINE AMARC_DIA            17    //String de Dia da Semana da Tabela de Horario Padrao
-        #DEFINE AMARC_PROCESSO       18    //Processo
-        #DEFINE AMARC_ROTEIRO        19    //Roteiro
-        #DEFINE AMARC_PERIODO        20    //Periodo
-        #DEFINE AMARC_NUM_PAGTO      21    //Num. pagto                        
-        #DEFINE AMARC_DEPTO          22    //Depto
-        #DEFINE AMARC_POSTO          23    //Posto
-        #DEFINE AMARC_CODFUNC        24    //C?. FUnc        
-        #DEFINE AMARC_DATAAPO        25    //Data de Apontamento
-        #DEFINE AMARC_NUMREP         26    //N?ero do REP
-        #DEFINE AMARC_TPMCREP        27    //Tipo de Marca?o no REP
-        #DEFINE AMARC_TIPOREG        28    //Tipo de Registro
-        #DEFINE AMARC_MOTIVRG        29    //Motivo Modifica?o do Registro
-        #DEFINE AMARC_TNOPC          30    //Flag para controlar turno opcional
-        #DEFINE AMARC_EMPORG         31    //Empresa Origem da marcacao
-        #DEFINE AMARC_FILORG         32    //Filial Origem da marcacao
-        #DEFINE AMARC_MATORG         33    //Matricula Origem da marcacao
-        #DEFINE AMARC_DHORG          34    //Data/Hora Origem da marcacao
-        #DEFINE AMARC_IDORG          35    //Identificacao da Origem da marcacao
-        #DEFINE AMARC_LATITU         36    //Latitude 
-        #DEFINE AMARC_LONGIT         37    //Longitude
-        #DEFINE AMARC_GEOFENCE       38    //Define se a marca?o est?dentro ou fora do per?etro
-        //...Outros Elementos de aMarcacoes
-
-#ENDIF
-
 #include "execin.th"
 EXECIN CLASS SP8Import
 
@@ -87,7 +39,8 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     begin sequence
 
-        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cAlias,"EnableFilterBlock","0"))=="1")
+        oTFIni:SetPropertyValue(cTableImport,"TCSQLUpdateTable","0")
+        lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"EnableFilterBlock","0"))=="1")
         if (lEnableFilterBlock)
             if (!SP8Pergunte(@oSP8Pergunte))
                 break
@@ -98,8 +51,8 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
             dDataAte:=oSP8Pergunte:Get("Data.Ate")
             cMatDe:=oSP8Pergunte:Get("Matricula.De")
             cMatAte:=oSP8Pergunte:Get("Matricula.Ate")
-            nStartLine:=oSP8Pergunte:Get("Linha.Inicial")
-            nEndLine:=oSP8Pergunte:Get("Linha.Final")
+            nStartLine:=oSP8Pergunte:Get("Linha.Inicial",1)
+            nEndLine:=oSP8Pergunte:Get("Linha.Final",9999999999999990)
             bEnableFilterBlock:={|cAlias|;
                 (cAlias)->(;
                     (P8_FILIAL>=cFilDe).and.;
@@ -153,9 +106,10 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
                 cIndexKey,;
                 cIndexID,;
                 nFields,;
-                aTargetFieldsDef;
+                aTargetFieldsDef,;
+                oTLogReport;
             |;
-            SP8CustomUpdate(@cTmpAlias,@cAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef);
+            SP8CustomUpdate(@cTmpAlias,@cAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef,oTLogReport);
         }
 
         lSP8Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,/*lPreLoadTable*/,bCustomUpdate)
@@ -296,31 +250,35 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
         aPBoxPrm[nPBox][8]:=CalcFieldSize("C",nP8Mat,0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
         aPBoxPrm[nPBox][9]:=.T.             //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
-        aAdd(aPBoxPrm,Array(9))
-        nPBox:=Len(aPBoxPrm)
-        //07----------------------------------------------------------------------------------------------
-        aPBoxPrm[nPBox][1]:=1                 //[1]:1 - MsGet
-        aPBoxPrm[nPBox][2]:="Linha.Inicial"   //[2]:Descricao
-        aPBoxPrm[nPBox][3]:=1                 //[3]:String contendo o inicializador do campo
-        aPBoxPrm[nPBox][4]:="9999999999999999"//[4]:String contendo a Picture do campo
-        aPBoxPrm[nPBox][5]:="(NaoVazio().and.IF(MV_PAR08>=IF(MV_PAR07>9999999999999990,(MV_PAR07:=9999999999999990),MV_PAR07),AllWaysTrue(),(MV_PAR08:=MV_PAR07,AllWaysTrue())))"//[5]:String contendo a validacao
-        aPBoxPrm[nPBox][6]:=""                //[6]:Consulta F3
-        aPBoxPrm[nPBox][7]:="AllWaysTrue()"   //[7]:String contendo a validacao When
-        aPBoxPrm[nPBox][8]:=CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
-        aPBoxPrm[nPBox][9]:=.F.               //[9]:Flag .T./.F. Parametro Obrigatorio ?
+        if (.F.)
 
-        aAdd(aPBoxPrm,Array(9))
-        nPBox:=Len(aPBoxPrm)
-        //08----------------------------------------------------------------------------------------------
-        aPBoxPrm[nPBox][1]:=1                 //[1]:1 - MsGet
-        aPBoxPrm[nPBox][2]:="Linha.Final"     //[2]:Descricao
-        aPBoxPrm[nPBox][3]:=9999999999999990  //[3]:String contendo o inicializador do campo
-        aPBoxPrm[nPBox][4]:="9999999999999999"//[4]:String contendo a Picture do campo
-        aPBoxPrm[nPBox][5]:="NaoVazio().and.(IF(MV_PAR08>9999999999999990,(MV_PAR08:=9999999999999990),MV_PAR08)>=MV_PAR07)"//[5]:String contendo a validacao
-        aPBoxPrm[nPBox][6]:=""                //[6]:Consulta F3
-        aPBoxPrm[nPBox][7]:="IF(IF(IF(MV_PAR08>9999999999999990,(MV_PAR08:=9999999999999990),MV_PAR08)<MV_PAR07,(MV_PAR08:=MV_PAR07),MV_PAR08)>=MV_PAR07,AllWaysTrue(),(MV_PAR08:=MV_PAR07,AllWaysTrue()))"//[7]:String contendo a validacao When
-        aPBoxPrm[nPBox][8]:=CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
-        aPBoxPrm[nPBox][9]:=.F.               //[9]:Flag .T./.F. Parametro Obrigatorio ?
+            aAdd(aPBoxPrm,Array(9))
+            nPBox:=Len(aPBoxPrm)
+            //07----------------------------------------------------------------------------------------------
+            aPBoxPrm[nPBox][1]:=1                 //[1]:1 - MsGet
+            aPBoxPrm[nPBox][2]:="Linha.Inicial"   //[2]:Descricao
+            aPBoxPrm[nPBox][3]:=1                 //[3]:String contendo o inicializador do campo
+            aPBoxPrm[nPBox][4]:="9999999999999999"//[4]:String contendo a Picture do campo
+            aPBoxPrm[nPBox][5]:="(NaoVazio().and.IF(MV_PAR08>=IF(MV_PAR07>9999999999999990,(MV_PAR07:=9999999999999990),MV_PAR07),AllWaysTrue(),(MV_PAR08:=MV_PAR07,AllWaysTrue())))"//[5]:String contendo a validacao
+            aPBoxPrm[nPBox][6]:=""                //[6]:Consulta F3
+            aPBoxPrm[nPBox][7]:="AllWaysTrue()"   //[7]:String contendo a validacao When
+            aPBoxPrm[nPBox][8]:=CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+            aPBoxPrm[nPBox][9]:=.F.               //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+            aAdd(aPBoxPrm,Array(9))
+            nPBox:=Len(aPBoxPrm)
+            //08----------------------------------------------------------------------------------------------
+            aPBoxPrm[nPBox][1]:=1                 //[1]:1 - MsGet
+            aPBoxPrm[nPBox][2]:="Linha.Final"     //[2]:Descricao
+            aPBoxPrm[nPBox][3]:=9999999999999990  //[3]:String contendo o inicializador do campo
+            aPBoxPrm[nPBox][4]:="9999999999999999"//[4]:String contendo a Picture do campo
+            aPBoxPrm[nPBox][5]:="NaoVazio().and.(IF(MV_PAR08>9999999999999990,(MV_PAR08:=9999999999999990),MV_PAR08)>=MV_PAR07)"//[5]:String contendo a validacao
+            aPBoxPrm[nPBox][6]:=""                //[6]:Consulta F3
+            aPBoxPrm[nPBox][7]:="IF(IF(IF(MV_PAR08>9999999999999990,(MV_PAR08:=9999999999999990),MV_PAR08)<MV_PAR07,(MV_PAR08:=MV_PAR07),MV_PAR08)>=MV_PAR07,AllWaysTrue(),(MV_PAR08:=MV_PAR07,AllWaysTrue()))"//[7]:String contendo a validacao When
+            aPBoxPrm[nPBox][8]:=CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+            aPBoxPrm[nPBox][9]:=.F.               //[9]:Flag .T./.F. Parametro Obrigatorio ?
+        
+        endif
 
         while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,NIL,NIL,.T.,NIL,NIL,NIL,NIL,.T.,.T.)))
             lParamBox:=MsgYesNo("Deseja Abortar a Importacao?","Atencao!")
@@ -343,73 +301,72 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
 
 return(lParamBox)
 
-static procedure SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFound as logical,lAddNew as logical,cIndexKey as character,cIndexID as character,nFields as numeric,aTargetFieldsDef as array)
+static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFound as logical,lAddNew as logical,cIndexKey as character,cIndexID as character,nFields as numeric,aTargetFieldsDef as array,oTLogReport as object) as logical
 
-    local aMarcacoes:=array(0) as array
+    local aDetail:=array(0) as array
+    
+    local aPONM010Header:=array(0) as array
+    local aPONM010Detail:=array(0) as array
+    
+    local aPONM010LogFile as array
 
-    local lPutMarcacoes as logical
+    local cProcFil as character
+    local cSVFilAnt:=SetFilAnt()
 
-    aAdd(aMarcacoes,array(ELEMENTOS_AMARC))
+    local cTLogReport as character
+    local cTLogDetail as character
 
-    aMarcacoes[1][AMARC_DATA]:=(cTmpAlias)->P8_DATA
-    aMarcacoes[1][AMARC_HORA]:=(cTmpAlias)->P8_HORA
-    aMarcacoes[1][AMARC_ORDEM]:=(cTmpAlias)->P8_ORDEM
-    aMarcacoes[1][AMARC_FLAG]:=(cTmpAlias)->P8_FLAG
-    aMarcacoes[1][AMARC_RECNO]:=0
-    aMarcacoes[1][AMARC_TURNO]:=(cTmpAlias)->P8_TURNO
-    aMarcacoes[1][AMARC_FUNCAO]:=(cTmpAlias)->P8_FUNCAO
-    aMarcacoes[1][AMARC_GIRO]:=(cTmpAlias)->P8_GIRO
-    aMarcacoes[1][AMARC_CC]:=(cTmpAlias)->P8_CC
-    aMarcacoes[1][AMARC_APONTA]:=(cTmpAlias)->P8_APONTA
-    aMarcacoes[1][AMARC_RELOGIO]:=(cTmpAlias)->P8_RELOGIO
-    aMarcacoes[1][AMARC_TIPOMARC]:=(cTmpAlias)->P8_TPMARCA
-    aMarcacoes[1][AMARC_L_ORIGEM]:=.F.
-    /*
-    aMarcacoes[1][AMARC_DTHR2STR]:=nil
-    aMarcacoes[1][AMARC_PERAPONTA]:=nil
-    aMarcacoes[1][AMARC_SEQ]:=nil
-    aMarcacoes[1][AMARC_DIA]:=nil
-    aMarcacoes[1][AMARC_PROCESSO]:=nil
-    aMarcacoes[1][AMARC_ROTEIRO]:=nil
-    aMarcacoes[1][AMARC_PERIODO]:=nil
-    aMarcacoes[1][AMARC_NUM_PAGTO]:=nil
-    aMarcacoes[1][AMARC_DEPTO]:=nil
-    aMarcacoes[1][AMARC_POSTO]:=nil
-    aMarcacoes[1][AMARC_CODFUNC]:=nil
-    aMarcacoes[1][AMARC_DATAAPO]:=nil
-    aMarcacoes[1][AMARC_NUMREP]:=nil
-    aMarcacoes[1][AMARC_TPMCREP]:=nil
-    aMarcacoes[1][AMARC_TIPOREG]:=nil
-    aMarcacoes[1][AMARC_MOTIVRG]:=nil
-    aMarcacoes[1][AMARC_TNOPC]:=nil
-    aMarcacoes[1][AMARC_EMPORG]:=nil
-    aMarcacoes[1][AMARC_FILORG]:=nil
-    aMarcacoes[1][AMARC_MATORG]:=nil
-    aMarcacoes[1][AMARC_DHORG]:=nil
-    aMarcacoes[1][AMARC_IDORG]:=nil
-    aMarcacoes[1][AMARC_LATITU]:=nil
-    aMarcacoes[1][AMARC_LONGIT]:=nil
-    aMarcacoes[1][AMARC_GEOFENCE]:=nil
-    //...Outros Elementos de aMarcacoes
-    */
+    local dProcData as date
 
-    lPutMarcacoes:=PutMarcacoes(;
-        aMarcacoes,;//01 -> Array contendo as Marcacoes do Funcionario
-        (cTmpAlias)->P8_FILIAL,;//02 -> Filial do Funcionario
-        (cTmpAlias)->P8_MAT,;//03 -> Matricula do Funcionario
-        cAlias,;//04 -> Arquivo para Gravacao ( "SP8" ou "SPG" )
-        lAddNew,;//05 -> Se Forca a Inclusao de Novo Registro
-        .T.,;//06 -> Se Forca a Substituicao da Data/Hora
-        nil,;//07 -> Posicao Inicial para o aMarcacoes
-        .T.,;//08 -> Se Forca a Substituicao de Tudo
-        .F.,;//09 -> Se eh executado via workflow
-        1,;//10 -> Se leitura, apontamento ou ambos
-        .F.;//11 -> Se deve gravar campos do usu?io
+    local lPutMarcacoes:=.T. as logical
+
+    cProcFil:=(cTmpAlias)->P8_FILIAL
+
+    SetFilAnt(cProcFil)
+
+    dProcData:=(cTmpAlias)->P8_DATA
+
+    (cTmpAlias)->(aAdd(aPONM010Header,{"RA_FILIAL",P8_FILIAL}))
+    (cTmpAlias)->(aAdd(aPONM010Header,{"RA_MAT",P8_MAT}))
+
+    (cTmpAlias)->(aAdd(aDetail,{"P8_FILIAL",P8_FILIAL}))
+    (cTmpAlias)->(aAdd(aDetail,{"P8_MAT",P8_MAT}))
+    (cTmpAlias)->(aAdd(aDetail,{"P8_DATA",P8_DATA}))
+    (cTmpAlias)->(aAdd(aDetail,{"P8_HORA",P8_HORA}))
+    
+    aAdd(aPONM010Detail,aClone(aDetail))
+
+    aPONM010LogFile:=PONM010(;
+        .F./*lWork*/,;//01 -> Se o "Start" foi via WorkFlow
+        .F./*lUserDef*/,;//02 -> Se deve considerar as configuracoes dos parametros do usuario
+        .F./*lLimita*/,;//03 -> Se deve limitar a Data Final de Apontamento a Data Base
+        cProcFil/*cProcFil*/,;//04 -> Filial a Ser Processada
+        .T./*lProcFil*/,;//05 -> Processo por Filial
+        .F./*lApoNLidas*/,;//06 -> Apontar quando nao Leu as Marcacoes para a Filial
+        .T./*lForceR*/,;//07 -> Se deve Forcar o Reapontamento
+        @aPONM010Header,;
+        @aPONM010Detail,;
+        3/*nOpcAuto*/,;
+        "1"/*cProcessa*/,;//11 -> '1'->Leitura , '2'->Apontamento , '3'->Ambos
+        '1'/*cTipoRel*/,;//12 -> '1'->Funcionario , '2'->Relogio
+        dProcData/*dDataDe*/,;//13 -> Data inicio para leitura das marcacoes - Via Workflow
+        dProcData/*dDataAte*/;//14 -> Data Fim para leitura das marcacoes - Via Workflow
     )
+    
+    if (!empty(aPONM010LogFile).and.(len(aPONM010LogFile)>=2).and.(!aPONM010LogFile[1]))
+        lPutMarcacoes:=.F.
+        cTLogReport:="Inconsistências na Inclusão das Marcações"
+        aEval(aPONM010LogFile[2],{|cTLogDetail|oTLogReport:AddDetail(cTLogReport,cTLogDetail)})
+    endif
 
-    FWFreeArray(@aMarcacoes)
+    FWFreeArray(@aDetail)
+    FWFreeArray(@aPONM010Header)
+    FWFreeArray(@aPONM010Detail)
+    FWFreeArray(@aPONM010LogFile)
 
-return
+    SetFilAnt(cSVFilAnt)
+
+return(lPutMarcacoes)
 
 static function SP8GetValue(xGet as variant,xDefault as variant) as variant
 return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
@@ -480,3 +437,9 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
     FWFreeArray(@aLine)
 
 return(lFilter)
+
+static function GetMinMaxRecNo(cAlias as character,cTable as character,cWhere as character,nMinRecNo as numeric,nMaxRecNo as numeric) as logical
+return(dbEval():GetMinMaxRecNo(@cAlias,@cTable,@cWhere,@nMinRecNo,@nMaxRecNo))
+
+static function SetFilAnt(cFil as character)
+return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.SetFilAnt",@cFil))

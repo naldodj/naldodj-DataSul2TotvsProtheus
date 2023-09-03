@@ -25,10 +25,12 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
     local oFWTemporaryTable as object
 
-    cPreLoadAlias:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAlias",""))
-    cPreLoadTableImport:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadTableImport",""))
-    cPreLoadIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadIndexKey",""))
-    aPreLoadAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAddIndex","")),",")
+    oTFIni:SetPropertyValue(cTableImport,"TCSQLUpdateTable","0")
+    
+    cPreLoadAlias:=allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadAlias",""))
+    cPreLoadTableImport:=allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadTableImport",""))
+    cPreLoadIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadIndexKey",""))
+    aPreLoadAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadAddIndex","")),",")
 
     lPreLoadTable:=(!empty(cPreLoadAlias))
     lPreLoadTable:=((lPreLoadTable).and.(!empty(cPreLoadTableImport)))

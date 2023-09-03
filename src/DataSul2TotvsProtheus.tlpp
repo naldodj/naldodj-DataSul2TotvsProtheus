@@ -1445,7 +1445,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             lCustomUpdate:=((valType(bCustomUpdate)=="B").or.(allTrim(oTFIni:GetPropertyValue(cTableImport,"CustomUpdate","0"))=="1"))
             if (lCustomUpdate)
                 if (valType(bCustomUpdate)!="B")
-                    bCustomUpdate:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bCustomUpdate","{|cSourceAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef|.F.}")))
+                    bCustomUpdate:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bCustomUpdate","{|cSourceAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef,oTLogReport|.F.}")))
                 endif
             endif
 
@@ -1455,7 +1455,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             bAfterUpdateRecNo:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateRecNo","{|cAlias,nRecNo|.F.}")))
             lAfterUpdateRecNo:=(valType(bAfterUpdateRecNo)=="B")
 
-            bAfterUpdateTable:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateTable","{|cAlias|.F.}")))
+            bAfterUpdateTable:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateTable","{|cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oProgress|.F.}")))
 
             (cSourceAlias)->(dbGoTop())
 
@@ -1473,7 +1473,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     endif
                     lAddNew:=(!lFound)
                     if (lCustomUpdate)
-                        lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bCustomUpdate,cSourceAlias,cTargetAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef))},nil,.F.,nil,nil))
+                        lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bCustomUpdate,cSourceAlias,cTargetAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef,oTLogReport))},nil,.F.,nil,nil))
                         if (lHasError)
                             cError:=cacheData():Get("EvalBlock","ErrorDescription","")
                             cError+=cacheData():Get("EvalBlock","ErrorStack","")
@@ -1587,7 +1587,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             if (valType(bAfterUpdateTable)=="B")
                 (cTargetAlias)->(dbGoTop())
-                lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bAfterUpdateTable,cTargetAlias))},nil,.F.,nil,nil))
+                lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bAfterUpdateTable,cTargetAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oProgress))},nil,.F.,nil,nil))
                 if (lHasError)
                     cError:=cacheData():Get("EvalBlock","ErrorDescription","")
                     cError+=cacheData():Get("EvalBlock","ErrorStack","")
@@ -2669,48 +2669,7 @@ static function ForceAsBlind(lIsBlind as logical) as logical
 return(lIsBlind)
 
 static function GetRecCount(cTable as character, cWhere as character) as numeric
-
-    local aArea:=FWGetArea() as array
-
-    local cAlias:=getNextAlias() as numeric
-    local cQuery as character
-
-    local nRecCount:=0 as numeric
-
-    if (empty(cWhere))
-        cWhere:="(1=1)"
-    endif
-
-    beginContent var cQuery
-        SELECT COUNT(*) QRYLASTREC
-          FROM cTable
-         WHERE cWhere
-    endContent
-
-    cQuery:=cTools():StrReplace(;
-        cQuery,;
-        {CRLF," "},;
-        {CHR(10)," "},;
-        {CHR(13)," "},;
-        {"  "," "},;
-        {"cTable",cTable},;
-        {"cWhere",cWhere};
-    )
-
-    while ("  "$cQuery)
-        cQuery:=strTran(cQuery,"  "," ")
-    end while
-
-    cQuery:=ChangeQuery(cQuery)
-    if (MsOpenDbf(.T.,"TOPCONN",TCGenQry(nil,nil,cQuery),cAlias,.T.,.T.,.F.,.F.))
-        nRecCount:=(cAlias)->QRYLASTREC
-        (cAlias)->(dbCloseArea())
-    endif
-
-    FWRestArea(aArea)
-    FWFreeArray(@aArea)
-
-return(nRecCount)
+return(dbEval():SQLRecCount(@cTable,@cWhere))
 
 static function TCSQLUpdateTable(;
         cSourceAlias as character,;
@@ -2725,250 +2684,51 @@ static function TCSQLUpdateTable(;
         oProgress as object;
     ) as numeric
 
-    local cQueryFull as character
-    local cQueryRecNo as character
-    local cQueryUpdate as character
-    local cQueryDelete as character
-
+    local cMsProcTXT as character
     local cTLogReport as character
     local cTLogReportMsg as character
 
-    local cField as character
+    local bSetRegua:={|nRecCount|oMsNewProcess:SetRegua2(nRecCount)} as codeblock
+    local bIncRegua:={|nMinRecNo,nMaxRecNo,nMinRecNoPlus|;
+            cMsProcTXT:="["+oProgress:Eval()+"] ",;
+            cMsProcTXT+="Updating records from ",;
+            cMsProcTXT+="["+cTools():NToS(nMinRecNo)+"] ",;
+            cMsProcTXT+="to ",;
+            cMsProcTXT+="["+cTools():NToS(Min(nMaxRecNo,nMinRecNoPlus))+"] ",;
+            cMsProcTXT+="out of ",;
+            cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]",;
+            MsProcess():MsProcTxt(cMsProcTXT),;
+            oMsNewProcess:IncRegua2(cMsProcTXT);
+    } as codeblock
+    local bOnError:={|cQueryFull,cSourceTable,cTargetTable,nTCSQLExec,cTCSQLError|;
+        cTLogReport:=ProcName(),;
+        cTLogReport+=" :: ",;
+        cTLogReport+="["+cSourceTable+"]",;
+        cTLogReport+=" => ",;
+        cTLogReport+="["+cTargetTable+"]",;
+        oTLogReport:AddGroup(cTLogReport),;
+        cTLogReportMsg:="TCSQLExec ["+cTools():NToS(nTCSQLExec)+"]",;
+        oTLogReport:AddDetail(cTLogReport,cTLogReportMsg),;
+        cTLogReportMsg:=cTCSQLError,;
+        cTCSQLError:="",;
+        oTLogReport:AddDetail(cTLogReport,cTLogReportMsg),;
+        cTLogReportMsg:="";
+    } as codeblock
 
-    local cMsProcTXT as character
+    local nTCSQLExec as numeric
 
-    local cTableFieldsSET:="" as character
-
-    local cTableJoinPredicate:="" as character
-    local cTableWherePredicate:="" as character
-
-    local lTmpStruct:=((valType(aSourceTmpFldStruct)=="A").and.(!empty(aSourceTmpFldStruct))) as logical
-
-    local nKey as numeric
-    local nKeys:=Len(aTargetFieldsKeys) as numeric
-    local nField as numeric
-    local nFields:=Len(aTargetFieldsDef) as numeric
-
-    local nRecCount as numeric
-
-    local nMinRecNo as numeric
-    local nMaxRecNo as numeric
-    local nMinRecNoPlus as numeric
-
-    local nTCSQLExec:=-1 as numeric
-
-    begin sequence
-    
-        GetMinMaxRecNo(cSourceAlias,cSourceTable,"(1=1)",@nMinRecNo,@nMaxRecNo)
-
-        if (empty(nMinRecNo).or.empty(nMaxRecNo))
-            break
-        endif
-
-        for nKey:=1 to nKeys
-            cField:=aTargetFieldsKeys[nKey]
-            cTableJoinPredicate+="src."
-            cTableJoinPredicate+=cField
-            cTableJoinPredicate+="="
-            cTableJoinPredicate+="trg."
-            cTableJoinPredicate+=cField
-            if (nKey<nKeys)
-                cTableJoinPredicate+=" AND "
-            endif
-        next nKey
-
-        if (Right(cTableJoinPredicate,5)==" AND ")
-            cTableJoinPredicate:=subStr(cTableJoinPredicate,1,Len(cTableFieldsSET)-5)
-        endif
-
-        cTableWherePredicate:=cTableJoinPredicate
-
-        for nField:=1 to nFields
-            cField:=aTargetFieldsDef[nField][1]
-            if (aScan(aTargetFieldsKeys,{|cFieldKey|(cFieldKey==cField)})>0)
-                loop
-            endif
-            if ((lTmpStruct).and.(aScan(aSourceTmpFldStruct,{|e|(e[DBS_NAME]==cField)})>0))
-                loop
-            endif
-            if (aTargetFieldsDef[nField][Len(aTargetFieldsDef[nField])]==0)
-                loop
-            endif
-            cTableFieldsSET+="trg."
-            cTableFieldsSET+=cField
-            cTableFieldsSET+="="
-            cTableFieldsSET+="src."
-            cTableFieldsSET+=cField
-            if (nField<nFields)
-                cTableFieldsSET+=", "
-            endif
-        next nField
-
-        if (Right(cTableFieldsSET,2)==", ")
-            cTableFieldsSET:=subStr(cTableFieldsSET,1,Len(cTableFieldsSET)-2)
-        endif
-
-        beginContent var cQueryUpdate
-            UPDATE trg
-            SET cTableFieldsSET
-            FROM cTargetTable trg
-        INNER JOIN cSourceTable src ON (cTableJoinPredicate)
-            WHERE (cTableWherePredicate)
-        endContent
-
-        cQueryUpdate:=cTools():StrReplace(;
-            cQueryUpdate,;
-            {CRLF," "},;
-            {CHR(10)," "},;
-            {CHR(13)," "},;
-            {"  "," "},;
-            {"cTargetTable",cTargetTable},;
-            {"cSourceTable",cSourceTable},;
-            {"cTableJoinPredicate",cTableJoinPredicate},;
-            {"cTableFieldsSET",cTableFieldsSET},;
-            {"cTableWherePredicate",cTableWherePredicate};
-        )
-
-        while ("  "$cQueryUpdate)
-            cQueryUpdate:=strTran(cQueryUpdate,"  "," ")
-        end while
-
-        beginContent var cQueryDelete
-            DELETE src
-            FROM cSourceTable src
-        INNER JOIN cTargetTable trg ON (cTableJoinPredicate)
-            WHERE (cTableWherePredicate)
-        endContent
-
-        cQueryDelete:=cTools():StrReplace(;
-            cQueryDelete,;
-            {CRLF," "},;
-            {CHR(10)," "},;
-            {CHR(13)," "},;
-            {"  "," "},;
-            {"cSourceTable",cSourceTable},;
-            {"cTargetTable",cTargetTable},;
-            {"cTableJoinPredicate",cTableJoinPredicate},;
-            {"cTableWherePredicate",cTableWherePredicate};
-        )
-
-        while ("  "$cQueryDelete)
-            cQueryDelete:=strTran(cQueryDelete,"  "," ")
-        end while
-
-        nMinRecNoPlus:=nMinRecNo
-
-        nRecCount:=Max(Round(((nMaxRecNo-nMinRecNo)/1024),0),Min(nMinRecNo,1))
-
-        oMsNewProcess:SetRegua2(nRecCount)
-
-        while (nMinRecNo<=nMaxRecNo)
-
-            nMinRecNoPlus+=1024
-
-            cMsProcTXT:="["+oProgress:Eval()+"] "
-            cMsProcTXT+="Updating records from "
-            cMsProcTXT+="["+cTools():NToS(nMinRecNo)+"] "
-            cMsProcTXT+="to "
-            cMsProcTXT+="["+cTools():NToS(Min(nMaxRecNo,nMinRecNoPlus))+"] "
-            cMsProcTXT+="out of "
-            cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]"
-
-            MsProcess():MsProcTxt(cMsProcTXT)
-            oMsNewProcess:IncRegua2(cMsProcTXT)
-
-            cMsProcTXT:=""
-
-            cQueryRecNo:=" AND (src.R_E_C_N_O_ BETWEEN nMinRecNo AND nMaxRecNo)"
-            cQueryRecNo:=cTools():StrReplace(;
-                cQueryRecNo,;
-                {"cSourceTable",cSourceTable},;
-                {"nMinRecNo",cTools():NToS(nMinRecNo)},;
-                {"nMaxRecNo",cTools():NToS(nMinRecNoPlus)};
-            )
-
-            cQueryFull:=cQueryUpdate
-            cQueryFull+=cQueryRecNo
-            
-            nTCSQLExec:=TCSQLExec(cQueryFull)
-
-            if (nTCSQLExec<>0)
-            
-                cTLogReport:=ProcName()
-                cTLogReport+=" :: "
-                cTLogReport+="["+cSourceTable+"]"
-                cTLogReport+=" => "
-                cTLogReport+="["+cTargetTable+"]"
-                oTLogReport:AddGroup(cTLogReport)
-                cTLogReportMsg:="TCSQLExec ["+cTools():NToS(nTCSQLExec)+"]"
-                oTLogReport:AddDetail(cTLogReport,cTLogReportMsg)
-                cTLogReportMsg:=TCSQLError()
-                oTLogReport:AddDetail(cTLogReport,cTLogReportMsg)
-                cTLogReportMsg:=""
-            
-            else
-
-                cQueryFull:=cQueryDelete
-                cQueryFull+=cQueryRecNo
-
-                TCSQLExec(cQueryDelete)
-
-            endif
-
-            cQueryFull:=""
-
-            nMinRecNo:=nMinRecNoPlus
-
-        end while
-
-        TCRefresh(cSourceTable)
-
-    end sequence
-
-return(nTCSQLExec)
-
-static function GetMinMaxRecNo(cAlias as character,cTable as character,cWhere as character,nMinRecNo as numeric,nMaxRecNo as numeric) as variant
-
-    local aArea:=FWGetArea() as array
-
-    local cQryAlias:=getNextAlias() as character
-    local cQryMinMax as character
-
-    if (empty(cWhere))
-        cWhere:="(1=1)"
-    endif
-
-    beginContent var cQryMinMax
-        SELECT MIN(R_E_C_N_O_) MINRECNO
-              ,MAX(R_E_C_N_O_) MAXRECNO
-          FROM cTable
-         WHERE cWhere
-    endContent
-
-    cQryMinMax:=cTools():StrReplace(;
-        cQryMinMax,;
-        {CRLF," "},;
-        {CHR(10)," "},;
-        {CHR(13)," "},;
-        {"  "," "},;
-        {"cTable",cTable},;
-        {"cWhere",cWhere};
+    nTCSQLExec:=dbEval():TCSQLUpdateFromTable(;
+        @cSourceAlias,;
+        @cSourceTable,;
+        @cTargetAlias,;
+        @cTargetTable,;
+        @aTargetFieldsDef,;
+        @aTargetFieldsKeys,;
+        @aSourceTmpFldStruct,;
+        .F./*lSourceKeepRegs*/,;
+        @bSetRegua,;
+        @bIncRegua,;
+        @bOnError;
     )
 
-    while ("  "$cQryMinMax)
-        cQryMinMax:=strTran(cQryMinMax,"  "," ")
-    end while
-
-    if (MsOpenDbf(.T.,"TOPCONN",TCGenQry(nil,nil,cQryMinMax),cQryAlias,.F.,.T.))
-        nMinRecNo:=(cQryAlias)->MINRECNO
-        nMaxRecNo:=(cQryAlias)->MAXRECNO
-        (cQryAlias)->(dbCloseArea())
-    else
-        nMinRecNo:=1
-        nMaxRecNo:=(cAlias)->(RecCount())
-    endif
-
-    FWRestArea(aArea)
-    FWFreeArray(@aArea)
-
-return(NIL)
+return(nTCSQLExec)

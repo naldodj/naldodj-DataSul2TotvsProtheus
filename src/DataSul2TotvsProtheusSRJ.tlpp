@@ -27,6 +27,7 @@ static function SRJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         oMsNewProcess:SetRegua2(0)
         oMsNewProcess:IncRegua2("...")
         cTableImport:="SQ3"
+        oTFIni:SetPropertyValue(cTableImport,"TCSQLUpdateTable","0")
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","Q3_FILIAL+Q3_CARGO+Q3_CC"))
         FWFreeArray(@aAddIndex)
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","Q3_FILIAL,Q3_CARGO,Q3_CC")),",")
