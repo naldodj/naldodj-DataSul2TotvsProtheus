@@ -3,6 +3,12 @@
 #include "execin.th"
 EXECIN CLASS SPJImport
 
+static function SPJGetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SPJSetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
 static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
@@ -71,12 +77,6 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     DelClassIntF()
 
 return(lSPJImport)
-
-static function SPJGetValue(xGet as variant,xDefault as variant) as variant
-return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
-
-static function SPJSetValue(xVar as variant,xValue as variant) as variant
-return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
 static function SPJORNTRAB(xGet as variant) as variant
 

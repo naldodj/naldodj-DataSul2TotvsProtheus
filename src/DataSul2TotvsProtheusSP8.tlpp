@@ -3,6 +3,15 @@
 #include "execin.th"
 EXECIN CLASS SP8Import
 
+static function SP8GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SP8SetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function SetFilAnt(cFil as character)
+return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.SetFilAnt",@cFil))
+
 static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
@@ -385,12 +394,6 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
 
 return(lPutMarcacoes)
 
-static function SP8GetValue(xGet as variant,xDefault as variant) as variant
-return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
-
-static function SP8SetValue(xVar as variant,xValue as variant) as variant
-return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
-
 static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as date,dDataAte as date,cMatDe as character,cMatAte as character,nSizeMat as numeric,cFilDe as character,cFilAte as character,oTLogReport as object) as logical
 
     local aLine as array
@@ -478,9 +481,3 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
     FWFreeArray(@aLine)
 
 return(lFilter)
-
-static function GetMinMaxRecNo(cAlias as character,cTable as character,cWhere as character,nMinRecNo as numeric,nMaxRecNo as numeric) as logical
-return(dbEval():GetMinMaxRecNo(@cAlias,@cTable,@cWhere,@nMinRecNo,@nMaxRecNo))
-
-static function SetFilAnt(cFil as character)
-return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.SetFilAnt",@cFil))

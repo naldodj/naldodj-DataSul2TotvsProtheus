@@ -3,6 +3,12 @@
 #include "execin.th"
 EXECIN CLASS SR6Import
 
+static function SR6GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SR6SetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
 static function SR6ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
@@ -36,9 +42,3 @@ static function SR6ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     DelClassIntF()
 
 return(lSR6Import)
-
-static function SR6GetValue(xGet as variant,xDefault as variant) as variant
-return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
-
-static function SR6SetValue(xVar as variant,xValue as variant) as variant
-return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))

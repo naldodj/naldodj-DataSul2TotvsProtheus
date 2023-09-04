@@ -3,6 +3,12 @@
 #include "execin.th"
 EXECIN CLASS SM7Import
 
+static function SM7GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SM7SetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
 static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aItems as array
@@ -122,12 +128,6 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     DelClassIntF()
 
 return(lSM7Import)
-
-static function SM7GetValue(xGet as variant,xDefault as variant) as variant
-return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
-
-static function SM7SetValue(xVar as variant,xValue as variant) as variant
-return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
 static function SM7SourceFilter(cLine as character,oTFIni as object) as logical
 

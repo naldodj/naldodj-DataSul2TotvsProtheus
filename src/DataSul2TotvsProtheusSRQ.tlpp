@@ -3,6 +3,12 @@
 #include "execin.th"
 EXECIN CLASS SRQImport
 
+static function SRQGetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SRQSetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
 static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
@@ -80,12 +86,6 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     DelClassIntF()
 
 return(lSRQImport)
-
-static function SRQGetValue(xGet as variant,xDefault as variant) as variant
-return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
-
-static function SRQSetValue(xVar as variant,xValue as variant) as variant
-return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
 static function SRQFindSRVPD(cRQPD as character) as logical
 

@@ -3,6 +3,23 @@
 #include "execin.th"
 EXECIN CLASS RI1Import
 
+static function RI1GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function RI1SetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function SetFilAnt(cFil as character)
+return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.SetFilAnt",@cFil))
+
+static function MySoftLock(cAlias as character) as logical
+    local lLock as logical
+    lLock:=(cAlias)->(MyRecLock(cAlias,.F.,.F.,.T.,.T.))
+    return(lLock)
+
+static function MyRecLock(cAlias,lAdd,lDelete,lSoft,lInJob)
+return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.MyRecLock",@cAlias,@lAdd,@lDelete,@lSoft,@lInJob))
+
 static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aItems as array
@@ -385,20 +402,3 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
     DelClassIntF()
 
 return(lRI1Import)
-
-static function RI1GetValue(xGet as variant,xDefault as variant) as variant
-return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
-
-static function RI1SetValue(xVar as variant,xValue as variant) as variant
-return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
-
-static function SetFilAnt(cFil as character)
-return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.SetFilAnt",@cFil))
-
-static function MySoftLock(cAlias as character) as logical
-    local lLock as logical
-    lLock:=(cAlias)->(MyRecLock(cAlias,.F.,.F.,.T.,.T.))
-    return(lLock)
-
-static function MyRecLock(cAlias,lAdd,lDelete,lSoft,lInJob)
-return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.MyRecLock",@cAlias,@lAdd,@lDelete,@lSoft,@lInJob))

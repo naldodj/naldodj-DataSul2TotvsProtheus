@@ -3,6 +3,12 @@
 #include "execin.th"
 EXECIN CLASS SR3Import
 
+static function SR3GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SR3SetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
 static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array
@@ -16,7 +22,6 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
     local oTLogReport:=tLogReport():New() as object
 
-    
     oTFIni:SetPropertyValue(cTableImport,"TCSQLUpdateTable","0")
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R3_FILIAL+R3_MAT+DTOS(R3_DATA)+R3_SEQ+R3_TIPO+R3_PD"))
@@ -54,9 +59,3 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     DelClassIntF()
 
 return(lSR3Import)
-
-static function SR3GetValue(xGet as variant,xDefault as variant) as variant
-return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
-
-static function SR3SetValue(xVar as variant,xValue as variant) as variant
-return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
