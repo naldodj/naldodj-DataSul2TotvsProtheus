@@ -107,9 +107,12 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
                 cIndexID,;
                 nFields,;
                 aTargetFieldsDef,;
-                oTLogReport;
+                oTLogReport,;
+                nTmpAliasNextRecNo,;
+                nTmpAliasOrder,;
+                nRecProc;
             |;
-            SP8CustomUpdate(@cTmpAlias,@cAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef,oTLogReport);
+            SP8CustomUpdate(@cTmpAlias,@cAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef,oTLogReport,@nTmpAliasNextRecNo,@nTmpAliasOrder,@nRecProc);
         }
 
         lSP8Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,/*lPreLoadTable*/,bCustomUpdate)
@@ -301,7 +304,7 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
 
 return(lParamBox)
 
-static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFound as logical,lAddNew as logical,cIndexKey as character,cIndexID as character,nFields as numeric,aTargetFieldsDef as array,oTLogReport as object) as logical
+static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFound as logical,lAddNew as logical,cIndexKey as character,cIndexID as character,nFields as numeric,aTargetFieldsDef as array,oTLogReport as object,nTmpAliasNextRecNo as numeric,nTmpAliasOrder as numeric,nRecProc as numeric) as logical
 
     local aDetail:=array(0) as array
     
@@ -312,29 +315,43 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
 
     local cProcFil as character
     local cSVFilAnt:=SetFilAnt()
+    local cTmpAliasKey as character
 
     local cTLogReport as character
     local cTLogDetail as character
 
-    local dProcData as date
+    local dDataDe as date
+    local dDataAte as date
 
     local lPutMarcacoes:=.T. as logical
 
     cProcFil:=(cTmpAlias)->P8_FILIAL
-
     SetFilAnt(cProcFil)
 
-    dProcData:=(cTmpAlias)->P8_DATA
+    cTmpAliasKey:=cProcFil
+    cTmpAliasKey+=(cTmpAlias)->P8_MAT
+
+    dDataDe:=(cTmpAlias)->P8_DATA
 
     (cTmpAlias)->(aAdd(aPONM010Header,{"RA_FILIAL",P8_FILIAL}))
     (cTmpAlias)->(aAdd(aPONM010Header,{"RA_MAT",P8_MAT}))
 
-    (cTmpAlias)->(aAdd(aDetail,{"P8_FILIAL",P8_FILIAL}))
-    (cTmpAlias)->(aAdd(aDetail,{"P8_MAT",P8_MAT}))
-    (cTmpAlias)->(aAdd(aDetail,{"P8_DATA",P8_DATA}))
-    (cTmpAlias)->(aAdd(aDetail,{"P8_HORA",P8_HORA}))
-    
-    aAdd(aPONM010Detail,aClone(aDetail))
+    while ((cTmpAlias)->(!eof().and.(P8_FILIAL+P8_MAT)==cTmpAliasKey))
+        nRecProc++
+        dDataAte:=(cTmpAlias)->P8_DATA
+        if ((cTmpAlias)->(!dbEval():GetNextRecNo(@cTmpAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
+            exit
+        endif
+        (cTmpAlias)->(aAdd(aDetail,{"P8_FILIAL",P8_FILIAL}))
+        (cTmpAlias)->(aAdd(aDetail,{"P8_MAT",P8_MAT}))
+        (cTmpAlias)->(aAdd(aDetail,{"P8_DATA",P8_DATA}))
+        (cTmpAlias)->(aAdd(aDetail,{"P8_HORA",P8_HORA}))
+        aAdd(aPONM010Detail,aClone(aDetail))
+        aSize(aDetail,0)
+        if ((cTmpAlias)->(!dbEval():GoToNextRecNo(@cTmpAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
+            exit
+        endif
+    end while
 
     aPONM010LogFile:=PONM010(;
         .F./*lWork*/,;//01 -> Se o "Start" foi via WorkFlow
@@ -344,13 +361,13 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
         .T./*lProcFil*/,;//05 -> Processo por Filial
         .F./*lApoNLidas*/,;//06 -> Apontar quando nao Leu as Marcacoes para a Filial
         .T./*lForceR*/,;//07 -> Se deve Forcar o Reapontamento
-        @aPONM010Header,;
-        @aPONM010Detail,;
+        @aPONM010Header,;//08 -> Cabeçalho do ExecAuto
+        @aPONM010Detail,;//09 -> Itens do ExecAuto
         3/*nOpcAuto*/,;
         "1"/*cProcessa*/,;//11 -> '1'->Leitura , '2'->Apontamento , '3'->Ambos
         '1'/*cTipoRel*/,;//12 -> '1'->Funcionario , '2'->Relogio
-        dProcData/*dDataDe*/,;//13 -> Data inicio para leitura das marcacoes - Via Workflow
-        dProcData/*dDataAte*/;//14 -> Data Fim para leitura das marcacoes - Via Workflow
+        dDataDe/*dDataDe*/,;//13 -> Data inicio para leitura das marcacoes - Via Workflow
+        dDataAte/*dDataAte*/;//14 -> Data Fim para leitura das marcacoes - Via Workflow
     )
     
     if (!empty(aPONM010LogFile).and.(len(aPONM010LogFile)>=2).and.(!aPONM010LogFile[1]))

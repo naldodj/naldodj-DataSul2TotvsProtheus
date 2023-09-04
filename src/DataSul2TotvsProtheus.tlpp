@@ -151,7 +151,7 @@ static function Activate() as logical
         oTMenuOptions[#cSection][#"Alias"]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"][#"01"]:="SRJ"
         oTMenuOptions[#cSection][#"Alias"][#"02"]:="SR6"
-        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SPJ"
+*        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SPJ"
         oTMenuOptions[#cSection][#"Alias"][#"04"]:="RCE"
         oTMenuOptions[#cSection][#"Alias"][#"05"]:="SQB"
         oTMenuOptions[#cSection][#"Alias"][#"06"]:="SRV"
@@ -474,6 +474,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local nRecProcPerc as numeric
     local nRecCountProc as numeric
     local nCommitBuffer as numeric
+    local nRecProcCustom as numeric
     local nTargetFieldAT as numeric
     local nTargetFieldPos as numeric
 
@@ -499,7 +500,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local nAliasdbCount:=0 as numeric
 
     local nTmpAliasOrder as numeric
-    local nTmpAliasRecNo as numeric
     local nTmpAliasNextRecNo:=(-1) as numeric
 
     local oFT as object
@@ -1462,8 +1462,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             nTmpAliasOrder:=(cSourceAlias)->(IndexOrd())
 
             while (cSourceAlias)->(!eof())
-                if ((cSourceAlias)->(!dbEval():GetNextRecNo(@cSourceAlias,@nTmpAliasNextRecNo,@nTmpAliasRecNo,@nTmpAliasOrder)))
-				    exit
+                if ((cSourceAlias)->(!dbEval():GetNextRecNo(@cSourceAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
+                    exit
                 endif
                 cIndexID:=(cSourceAlias)->(&(cIndexKey))
                 lFound:=(cTargetAlias)->(dbSeek(cIndexID,.F.))
@@ -1472,8 +1472,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         break
                     endif
                     lAddNew:=(!lFound)
+                    nRecProcCustom:=1
                     if (lCustomUpdate)
-                        lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bCustomUpdate,cSourceAlias,cTargetAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef,oTLogReport))},nil,.F.,nil,nil))
+                        lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(@bCustomUpdate,@cSourceAlias,@cTargetAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef,@oTLogReport,@nTmpAliasNextRecNo,@nTmpAliasOrder,@nRecProcCustom))},nil,.F.,nil,nil))
                         if (lHasError)
                             cError:=cacheData():Get("EvalBlock","ErrorDescription","")
                             cError+=cacheData():Get("EvalBlock","ErrorStack","")
@@ -1485,6 +1486,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                 cError:=""
                             endif
+                        else
+                            nRecProcCustom--
                         endif
                     else
                         if (!lAddNew)
@@ -1537,29 +1540,35 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     endif
                 end sequence
 
-                nRecProc++
-                if (lPercentage)
-                    nRecProcPerc:=(nRecProc*nIncProcStep)
-                else
-                    nRecProcPerc:=nRecProc
-                endif
-                
-                oTimeRemaining:nProgress:=nRecProc
+                while (nRecProcCustom>=1)
 
-                if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
-                    oTimeRemaining:Calcule(.F.)
-                    cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
-                    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
-                    cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
-                    cIncProc:="["+oProgress:Eval()+"] "
-                    cIncProc+="Updating Record: "
-                    cIncProc+=cTools():NToS(nRecProc)
-                    cIncProc+="/"
-                    cIncProc+=cRecCount
-                    cIncProc+=cTimeRemaining
-                    cIncProc+="::["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
-                    oMsNewProcess:IncRegua2(cIncProc)
-                endif
+                    nRecProcCustom--
+                    
+                    nRecProc++
+                    if (lPercentage)
+                        nRecProcPerc:=(nRecProc*nIncProcStep)
+                    else
+                        nRecProcPerc:=nRecProc
+                    endif
+                    
+                    oTimeRemaining:nProgress:=nRecProc
+
+                    if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
+                        oTimeRemaining:Calcule(.F.)
+                        cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                        cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                        cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+                        cIncProc:="["+oProgress:Eval()+"] "
+                        cIncProc+="Updating Record: "
+                        cIncProc+=cTools():NToS(nRecProc)
+                        cIncProc+="/"
+                        cIncProc+=cRecCount
+                        cIncProc+=cTimeRemaining
+                        cIncProc+="::["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
+                        oMsNewProcess:IncRegua2(cIncProc)
+                    endif
+
+                end while
 
                 lEnd:=oMsNewProcess:lEnd
 
