@@ -18,6 +18,22 @@ namespace datasul2totvs
 #include "execin.th"
 EXECIN CLASS datasul2totvs
 
+static function GetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+
+static function SetValue(xVar as variant,xValue as variant) as variant
+return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function DelProperty(xProperty as variant) as variant
+return(cacheData():delProperty("datasul2totvsprotheus",xProperty))
+
+static function DelSection(xSection as variant) as variant
+    dfv():Default(@xSection,"datasul2totvsprotheus")
+return(cacheData():delSection(xSection))
+
+static function EvalBlockGetValue(xGet as variant,xDefault as variant) as variant
+return(cacheData():Get("EvalBlock",xGet,xDefault))
+
 class Protheus
     static method Activate() as logical
 end class
@@ -88,7 +104,12 @@ static function Activate() as logical
 
         private st_oHMbTransform:=THashMap():New() as object
 
-        lSendDataToServer:=((getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01"))).and.(ApMsgNoYes("Sending Data To Server?")))
+        lSendDataToServer:=(;
+            (getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01")));
+            .and.;
+            (ApMsgNoYes("Sending Data To Server?"));
+        )
+
         if (lSendDataToServer)
             MsProcess():MsAguarde({||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.F.)},"Sending Data To Server","Wait!")
         elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
@@ -98,7 +119,17 @@ static function Activate() as logical
         cGetFileMask:="Arquivo de Configuração | DataSul2Protheus.ini"
         cGetFileTitle:="Arquivo de Configuração DataSul2Protheus.ini"
         nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
-        cINIFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+        
+        cINIFile:=cGetFile(;
+            cGetFileMask,;
+            cGetFileTitle,;
+            1,;
+            cGetFileRoot,;
+            .F.,;
+            nGetFileOptions,;
+            /*[lArvore]*/,;
+            /*[lKeepCase]*/;
+        )
 
         lActivate:=file(cINIFile)
         if (!lActivate)
@@ -122,7 +153,7 @@ static function Activate() as logical
             break
         endif
 
-        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+        oTFIni:=GetValue("readIniFile")
 
         lActivate:=(allTrim(oTFIni:GetPropertyValue("General","CompanyCode","@@"))==&("cEmpAnt"))
         if (!lActivate)
@@ -151,7 +182,7 @@ static function Activate() as logical
         oTMenuOptions[#cSection][#"Alias"]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"][#"01"]:="SRJ"
         oTMenuOptions[#cSection][#"Alias"][#"02"]:="SR6"
-*        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SPJ"
+*       oTMenuOptions[#cSection][#"Alias"][#"03"]:="SPJ"
         oTMenuOptions[#cSection][#"Alias"][#"04"]:="RCE"
         oTMenuOptions[#cSection][#"Alias"][#"05"]:="SQB"
         oTMenuOptions[#cSection][#"Alias"][#"06"]:="SRV"
@@ -261,7 +292,7 @@ static function Activate() as logical
     FWFreeArray(@aSections)
     FWFreeArray(@aProperties)
 
-    MsProcess():MsAguarde({||cacheData():delSection("datasul2totvsprotheus")},"Releasing temporary files and workspace memory...","Wait...")
+    MsProcess():MsAguarde({||DelSection()},"Releasing temporary files and workspace memory...","Wait...")
 
     if (findFunction("RstPosAlias"))
         RstPosAlias()
@@ -299,7 +330,20 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     cMsgProcImportData+=" :: ["+DToC(Date())+"]["+Time()+"]"
 
     oTFont:=TFont():New("Courier New",nil,16,nil,.T.)
-    bProcImportData:={||datasul2totvs.ProcRedefine(oMSNewProcess,@oTFont,0,650,650,.T.,.T.,lPercentage,lFastMode),lImportData:=ExecIn():evalJSONArrayObject(@oParameters,@aByRef,@lEvalOK)}
+    bProcImportData:={||;
+        datasul2totvs.ProcRedefine(;
+            oMSNewProcess,;
+            @oTFont,;
+            0,;
+            650,;
+            650,;
+            .T.,;
+            .T.,;
+            lPercentage,;
+            lFastMode;
+        ),;
+        lImportData:=ExecIn():evalJSONArrayObject(@oParameters,@aByRef,@lEvalOK);
+    }
     oMSNewProcess:=MsNewProcess():New(bProcImportData,cMsgProcImportData,"Wait!",.T.)
 
     oParameters[#"ClassName"]:=cAlias+"Import"
@@ -533,7 +577,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             break
         endif
 
-        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+        oTFIni:=GetValue("readIniFile")
 
         cFieldFilial:=PrefixoCpo(cTargetAlias)
         cFieldFilial+="_FILIAL"
@@ -575,7 +619,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             break
         endif
 
-        cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+        cRootPath:=GetValue("cRootPath")
         cSourceFile:=(cRootPath+".."+cDataPath+cSourceTable+".csv")
         lImportData:=file(cSourceFile)
         if (!lImportData)
@@ -583,14 +627,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             break
         endif
 
-        aFieldsDef:=aClone(cacheData():Get("datasul2totvsprotheus",cSourceTable,aFieldsDef))
+        aFieldsDef:=aClone(GetValue(cSourceTable,aFieldsDef))
         lImportData:=(!empty(aFieldsDef))
         if (!lImportData)
             ApMsgAlert("Field definitions for the "+cSourceTable+" table not found","Attention")
             break
         endif
 
-        lTypeReplicate:=cacheData():Get("datasul2totvsprotheus",cSourceTable+"_TypeReplicate",lTypeReplicate)
+        lTypeReplicate:=GetValue(cSourceTable+"_TypeReplicate",lTypeReplicate)
         if (lTypeReplicate)
             lTypeReplicateRow:=(Lower(allTrim(oTFIni:GetPropertyValue(cSourceTable,"TypeReplicate","")))=="row")
         endif
@@ -705,10 +749,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"EnableFilterBlock","0"))=="1")
         if (lEnableFilterBlock)
-            bSourceSetFilter:=cacheData():Get("datasul2totvsprotheus",cTableImport+"SourceSetFilter",{|cLine|.T.})
-            bEnableFilterBlock:=cacheData():Get("datasul2totvsprotheus",cTableImport+"EnableFilterBlock",{||.T.})
+            bSourceSetFilter:=GetValue(cTableImport+"SourceSetFilter",{|cLine|.T.})
+            bEnableFilterBlock:=GetValue(cTableImport+"EnableFilterBlock",{||.T.})
             cFieldsFilterBlock:=allTrim(oTFIni:GetPropertyValue(cTableImport,"FieldsFilterBlock",""))
-            bEnableFilterBlockMem:=cacheData():Get("datasul2totvsprotheus",cTableImport+"EnableFilterBlockMem",{||.T.})
+            bEnableFilterBlockMem:=GetValue(cTableImport+"EnableFilterBlockMem",{||.T.})
             oFT:ft_fSetFilter(bSourceSetFilter)
         endif
 
@@ -729,11 +773,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         oFWTemporaryTable:AddIndex("01",aAddIndex)
         oFWTemporaryTable:Create()
 
-        cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Alias",cSourceAlias)
-        cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
+        SetValue("import"+cTableImport+"Alias",cSourceAlias)
+        SetValue("import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
 
         cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
-        cacheData():Set("datasul2totvsprotheus","import"+cTableImport+"Table",cFWTemporaryTableRealName)
+        SetValue("import"+cTableImport+"Table",cFWTemporaryTableRealName)
 
         FWFreeArray(@aField)
         FWFreeArray(@aTargetStruct)
@@ -792,14 +836,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         begin sequence
 
-            nStartLine:=cacheData():Get("datasul2totvsprotheus",cTableImport+"StartLine",1)
+            nStartLine:=GetValue(cTableImport+"StartLine",1)
             if (nStartLine==1)
                 nStartLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"StartLine","1")))
             endif
 
             nRecCount:=oFT:ft_fLastRec()
 
-            nEndLine:=cacheData():Get("datasul2totvsprotheus",cTableImport+"EndLine",nRecCount)
+            nEndLine:=GetValue(cTableImport+"EndLine",nRecCount)
             if (nEndLine>=nRecCount)
                 nEndLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"EndLine",cTools():NToS(nRecCount))))
             endif
@@ -894,11 +938,21 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     );
                                 )
                                 lHasError:=.F.
-                                xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+                                xValue:=(cSourceAlias)->(;
+                                    getTargetFieldValue(;
+                                        @lHasError,;
+                                        @oTFIni,;
+                                        @aLine,;
+                                        @cField,;
+                                        aTargetFieldsDef[nField],;
+                                        @aFieldsDef,;
+                                        @oHMSourceFieldsDef;
+                                    );
+                                )
                                 if (lHasError)
-                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
-                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
-                                    CacheData():delSection("EvalBlock")
+                                    cError:=EvalBlockGetValue("ErrorDescription","")
+                                    cError+=EvalBlockGetValue("ErrorStack","")
+                                    DelSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
@@ -928,9 +982,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
                                 lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
                                 if (lHasError)
-                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
-                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
-                                    CacheData():delSection("EvalBlock")
+                                    cError:=EvalBlockGetValue("ErrorDescription","")
+                                    cError+=EvalBlockGetValue("ErrorStack","")
+                                    DelSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
                                         cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
@@ -967,7 +1021,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             cField:=aTargetFieldsDef[nField][1]
 
                             if (lTypeReplicate)
-                                nReplicates:=cacheData():Get("datasul2totvsprotheus",aTargetFieldsDef[nField][2]+"_TypeReplicate",0)
+                                nReplicates:=GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)
                                 if (nReplicates>0)
                                     lTypeReplicate:=.F.
                                 endif
@@ -979,7 +1033,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             else
 
-                                if ((nReplicates>0).and.(!lTypeReplicateRow).and.(cacheData():Get("datasul2totvsprotheus",aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0))
+                                if ((nReplicates>0).and.(!lTypeReplicateRow).and.(GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0))
 
                                     nReplicate:=0
 
@@ -1004,9 +1058,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                         if (lHasError)
 
-                                            cError:=cacheData():Get("EvalBlock","ErrorDescription","")
-                                            cError+=cacheData():Get("EvalBlock","ErrorStack","")
-                                            CacheData():delSection("EvalBlock")
+                                            cError:=EvalBlockGetValue("ErrorDescription","")
+                                            cError+=EvalBlockGetValue("ErrorStack","")
+                                            DelSection("EvalBlock")
 
                                             if (!empty(cError))
                                                 cError:=cTools():StrReplace(cError,{CRLF," "})
@@ -1042,9 +1096,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                 if (lHasError)
 
-                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
-                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
-                                    CacheData():delSection("EvalBlock")
+                                    cError:=EvalBlockGetValue("ErrorDescription","")
+                                    cError+=EvalBlockGetValue("ErrorStack","")
+                                    DelSection("EvalBlock")
 
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
@@ -1146,9 +1200,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                                 if (lHasError)
 
-                                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
-                                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
-                                                    CacheData():delSection("EvalBlock")
+                                                    cError:=EvalBlockGetValue("ErrorDescription","")
+                                                    cError+=EvalBlockGetValue("ErrorStack","")
+                                                    DelSection("EvalBlock")
 
                                                     if (!empty(cError))
                                                         cError:=cTools():StrReplace(cError,{CRLF," "})
@@ -1167,9 +1221,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                                 if (lHasError)
 
-                                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
-                                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
-                                                    CacheData():delSection("EvalBlock")
+                                                    cError:=EvalBlockGetValue("ErrorDescription","")
+                                                    cError+=EvalBlockGetValue("ErrorStack","")
+                                                    DelSection("EvalBlock")
 
                                                     if (!empty(cError))
                                                         cError:=cTools():StrReplace(cError,{CRLF," "})
@@ -1216,7 +1270,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                     cField:=aTargetFieldsDef[nField][1]
 
-                                    if (cacheData():Get("datasul2totvsprotheus",aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0)
+                                    if (GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0)
 
                                         aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
                                         aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
@@ -1476,9 +1530,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     if (lCustomUpdate)
                         lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(@bCustomUpdate,@cSourceAlias,@cTargetAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef,@oTLogReport,@nTmpAliasNextRecNo,@nTmpAliasOrder,@nRecProcCustom))},nil,.F.,nil,nil))
                         if (lHasError)
-                            cError:=cacheData():Get("EvalBlock","ErrorDescription","")
-                            cError+=cacheData():Get("EvalBlock","ErrorStack","")
-                            CacheData():delSection("EvalBlock")
+                            cError:=EvalBlockGetValue("ErrorDescription","")
+                            cError+=EvalBlockGetValue("ErrorStack","")
+                            DelSection("EvalBlock")
                             if (!empty(cError))
                                 cError:=cTools():StrReplace(cError,{CRLF," "})
                                 cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
@@ -1523,9 +1577,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             if (lAfterUpdateRecNo)
                                 lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bAfterUpdateRecNo,cTargetAlias,RecNo()))},nil,.F.,nil,nil))
                                 if (lHasError)
-                                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
-                                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
-                                    CacheData():delSection("EvalBlock")
+                                    cError:=EvalBlockGetValue("ErrorDescription","")
+                                    cError+=EvalBlockGetValue("ErrorStack","")
+                                    DelSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
                                         cTLogReport:="table : ["+cTargetAlias+"] foram Encontradas inconsistencias na linha ["+cTools():NToS((cTargetAlias)->(recNo()))+"] Processo:["+GetCBSource(bAfterUpdateRecNo)+"]:"
@@ -1587,7 +1641,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             for nField:=1 to nFields
                 cField:=aTargetFieldsDef[nField][1]
-                cacheData():delProperty("datasul2totvsprotheus",cField)
+                DelProperty(cField)
             next nField
 
             if (lEnd)
@@ -1598,9 +1652,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 (cTargetAlias)->(dbGoTop())
                 lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bAfterUpdateTable,cTargetAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oProgress))},nil,.F.,nil,nil))
                 if (lHasError)
-                    cError:=cacheData():Get("EvalBlock","ErrorDescription","")
-                    cError+=cacheData():Get("EvalBlock","ErrorStack","")
-                    CacheData():delSection("EvalBlock")
+                    cError:=EvalBlockGetValue("ErrorDescription","")
+                    cError+=EvalBlockGetValue("ErrorStack","")
+                    DelSection("EvalBlock")
                     if (!empty(cError))
                         cError:=cTools():StrReplace(cError,{CRLF," "})
                         cTLogReport:="table : ["+cAlias+"] foram Encontradas inconsistencias no Processo: ["+GetCBSource(bAfterUpdateTable)+"]:"
@@ -1624,7 +1678,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     SetFilAnt(cSVFilAnt)
 
-    CacheData():delSection("EvalBlock")
+    DelSection("EvalBlock")
 
     oProgress:=FreeObj(oProgress)
     oTimeRemaining:=FreeObj(oTimeRemaining)
@@ -1735,12 +1789,12 @@ static function readIniFile(cINIFile as character) as logical
         cRootPath:=cSPPDrive
         cRootPath+=cSPPPath
 
-        cacheData():Set("datasul2totvsprotheus","cINIFile",cINIFile)
-        cacheData():Set("datasul2totvsprotheus","cRootPath",cRootPath)
+        SetValue("cINIFile",cINIFile)
+        SetValue("cRootPath",cRootPath)
 
         oTFIni:=TFIni():New(cINIFile,"#")
 
-        cacheData():Set("datasul2totvsprotheus","readIniFile",oTFIni)
+        SetValue("readIniFile",oTFIni)
 
     end sequence
 
@@ -1779,7 +1833,7 @@ static function readTableDefinition() as logical
 
     begin sequence
 
-        oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+        oTFIni:=GetValue("readIniFile")
 
         aTablesImport:=aClone(oTFIni:GetAllProperties("TablesImport"))
         lreadTableDefinition:=(!empty(aTablesImport))
@@ -1795,7 +1849,7 @@ static function readTableDefinition() as logical
             break
         endif
 
-        cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+        cRootPath:=GetValue("cRootPath")
         cFileTablesDefinition:=(cRootPath+".."+cTablesDefinition)
         lreadTableDefinition:=file(cFileTablesDefinition)
         if (!lreadTableDefinition)
@@ -1848,7 +1902,7 @@ static function readTableDefinition() as logical
                             loop
                         endif
                         if ("Table:"==Left(cLine,6))
-                            cacheData():Set("datasul2totvsprotheus",cTable,aClone(aFieldsDef))
+                            SetValue(cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
                             nft_fRecNo:=oFT:ft_fRecNo()
                             oFT:ft_fGoTo(nft_fRecNo-1)
@@ -1880,8 +1934,8 @@ static function readTableDefinition() as logical
                             aAdd(aFieldsDef,aClone(aFieldDef))
                             if (nFields>1)
                                 aFieldDefTmp:=aClone(aFieldDef)
-                                cacheData():Set("datasul2totvsprotheus",cTable+"_TypeReplicate",lTypeReplicate)
-                                cacheData():Set("datasul2totvsprotheus",aFieldDef[DTS_DBS_NAME]+"_TypeReplicate",nFields)
+                                SetValue(cTable+"_TypeReplicate",lTypeReplicate)
+                                SetValue(aFieldDef[DTS_DBS_NAME]+"_TypeReplicate",nFields)
                                 for nField:=2 to nFields
                                     aFieldDef[DTS_DBS_NAME]:=(aFieldDefTmp[DTS_DBS_NAME]+cTools():NToS(nField))
                                     aAdd(aFieldsDef,aClone(aFieldDef))
@@ -1895,7 +1949,7 @@ static function readTableDefinition() as logical
                         oFT:ft_fDelete()
                         oFT:ft_fSkip()
                     end while
-                    cacheData():Set("datasul2totvsprotheus",cTable,aClone(aFieldsDef))
+                    SetValue(cTable,aClone(aFieldsDef))
                     aSize(aFieldsDef,0)
                 elseif (lSkipTable)
                     break
@@ -2004,7 +2058,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
 
     end sequence
 
-    cacheData():Set("datasul2totvsprotheus",cTargetField,xValue)
+    SetValue(cTargetField,xValue)
 
     FWFreeArray(@aValueField)
     FwFreeArray(@aSourceField)
@@ -2080,13 +2134,13 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
         if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
             dfv():Default(@lTableInFile,.F.)
             if (lTableInFile)
-                oTFIniTable:=cacheData():Get("datasul2totvsprotheus",cTable,nil)
+                oTFIniTable:=GetValue(cTable,nil)
                 if (oTFIniTable==nil)
-                    cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+                    cRootPath:=GetValue("cRootPath")
                     cINIFile:=cRootPath
                     cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
                     oTFIniTable:=TFIni():New(cINIFile,"#")
-                    cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
+                    SetValue(cTable,oTFIniTable)
                 endif
                 xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
                 if ((lUseDFV).and.(empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
@@ -2094,13 +2148,13 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
                 endif
                 xValue:=xTmp
             else
-                oTFIniTable:=cacheData():Get("datasul2totvsprotheus",cTable,nil)
+                oTFIniTable:=GetValue(cTable,nil)
                 if (oTFIniTable==nil)
-                    cRootPath:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+                    cRootPath:=GetValue("cRootPath")
                     cINIFile:=cRootPath
                     cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
                     oTFIniTable:=TFIni():New(cINIFile,"#")
-                    cacheData():Set("datasul2totvsprotheus",cTable,oTFIniTable)
+                    SetValue(cTable,oTFIniTable)
                 endif
                 xValue:=FindInTable(oTFIniTable,cTable,xValue,lTableInFile,lUseDFV)
             endif
@@ -2145,7 +2199,7 @@ static procedure CFGFile()
 
     begin sequence
 
-        cGetFileRoot:=cacheData():Get("datasul2totvsprotheus","cRootPath")
+        cGetFileRoot:=GetValue("cRootPath")
         cGetFileMask:="Arquivo de Configuração | *.ini"
         cGetFileTitle:="Arquivo de Configuração *.ini"
         nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
@@ -2160,16 +2214,16 @@ static procedure CFGFile()
 
         if (EdtCFGFile(@cINIFile,@cMemoEdit))
             if (!("datasul2protheus.ini"$lower(cINIFile)))
-                cINIFile:=cacheData():Get("datasul2totvsprotheus","cINIFile")
+                cINIFile:=GetValue("cINIFile")
             endif
-            oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile")
+            oTFIni:=GetValue("readIniFile")
             if (valType(oTFIni)=="O")
                 MsProcess():MsAguarde({||oTFIni:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
                 if (valType(oTFIni)=="O")
                     oTFIni:=FreeObj(oTFIni)
                 endif
             endif
-            cacheData():delSection("datasul2totvsprotheus")
+            DelSection("datasul2totvsprotheus")
             if (valType(st_oHMbTransform)=="O")
                 st_oHMbTransform:Clean()
             endif
@@ -2635,7 +2689,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
     if (lSendDataToServer)
         dfv():Default(@lReloadConfig,.F.)
         if (lReloadConfig)
-            cacheData():delSection("datasul2totvsprotheus")
+            DelSection("datasul2totvsprotheus")
             if (valType(st_oHMbTransform)=="O")
                 st_oHMbTransform:Clean()
             endif

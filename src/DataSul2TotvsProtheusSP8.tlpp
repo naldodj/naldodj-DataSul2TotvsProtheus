@@ -324,14 +324,20 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
 
     local cProcFil as character
     local cSVFilAnt:=SetFilAnt()
+
     local cTmpAliasKey as character
 
     local cTLogReport as character
     local cTLogDetail as character
+    
+    local cTxtTmp:="" as character
+    local cTxtFind as character
+    local cTxtReplace as character
 
     local dDataDe as date
     local dDataAte as date
 
+    local lTXTTmp:=.F. as logical
     local lPutMarcacoes:=.T. as logical
 
     cProcFil:=(cTmpAlias)->P8_FILIAL
@@ -382,7 +388,27 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
     if (!empty(aPONM010LogFile).and.(len(aPONM010LogFile)>=2).and.(!aPONM010LogFile[1]))
         lPutMarcacoes:=.F.
         cTLogReport:="Inconsistências na Inclusão das Marcações:"
-        aEval(aPONM010LogFile[2],{|cTLogDetail|oTLogReport:AddDetail(cTLogReport,cTLogDetail)})
+        cTxtFind:="- Nao Foi Possivel Carregar as Marcacoes do Funcionario"
+        cTxtReplace:="- Nao Foi Possivel Carregar as Marcacoes do Funcionario. Turno: "
+        aEval(;
+            aPONM010LogFile[2],;
+            {|cTLogDetail|;
+                if((cTXTFind$cTLogDetail),;
+                    (;
+                        lTXTTmp:=.T.,;
+                        cTLogReport:=strTran(cTLogDetail,cTXTFind,cTxtReplace);
+                    ),;
+                    if((lTXTTmp),;
+                        cTxtTmp+=cTLogDetail,;
+                        oTLogReport:AddDetail(cTLogReport,cTLogDetail);
+                    );
+                );
+            };
+        )
+        if (lTXTTmp)
+            oTLogReport:AddDetail(cTLogReport,cTxtTmp)
+            cTxtTmp:=""
+        endif
     endif
 
     FWFreeArray(@aDetail)
