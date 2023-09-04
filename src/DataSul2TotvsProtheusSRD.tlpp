@@ -488,7 +488,7 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
         if (!lSRVFound)
             oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
             if (valType(oTLogReport)=="O")
-                cTReportGrp:="[Verba Não Localizada na tabela SRV]"
+                cTReportGrp:="[Verba Não Localizada na tabela SRV]:"
                 cTReportMsg:="Verba ["+cRDPD+"]. Evento ["+cFindInTable+"]."
                 oTLogReport:AddGroup(cTReportGrp)
                 if (oTLogReport:FindDetail(cTReportGrp,cTReportMsg)==0)
@@ -502,7 +502,7 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
         oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
         if (valType(oTLogReport)=="O")
-            cTReportGrp:="[De/Para Não Localizado]"
+            cTReportGrp:="[De/Para Não Localizado]:"
             cTReportMsg:="Não Existe paridade de Verba Protheus para o Evento Datasul ["+if(Empty(cFindInTable),cEventoDataSul,cFindInTable)+"]."
             oTLogReport:AddGroup(cTReportGrp)
             if (oTLogReport:FindDetail(cTReportGrp,cTReportMsg)==0)

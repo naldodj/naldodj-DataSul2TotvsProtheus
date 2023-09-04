@@ -161,7 +161,7 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
     //RI1_FILIAL+RI1_MAT+RI1_BENEF+RI1_TABELA+DTOS(RI1_DINIPG)+DTOS(RI1_DFIMPG)
     RI1->(dbSetOrder(nRI1Order))
 
-    cTLogReport:="Não foi possível obter exclusividade no(s) Registro(s) da Tabela RI1"
+    cTLogReport:="Não foi possível obter exclusividade no(s) Registro(s) da Tabela RI1:"
 
     aRDSGetAdvFVal:=array(0)
     
@@ -295,7 +295,7 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
     //RI1_FILIAL+RI1_MAT+RI1_BENEF+RI1_TABELA+DTOS(RI1_DINIPG)+DTOS(RI1_DFIMPG)
     RI1->(dbSetOrder(nRI1Order))
 
-    cTLogReport:="Não foi possível obter exclusividade no(s) Registro(s) da Tabela RI1"
+    cTLogReport:="Não foi possível obter exclusividade no(s) Registro(s) da Tabela RI1:"
 
     aRDSGetAdvFVal:=array(0)
     

@@ -901,7 +901,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     CacheData():delSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
-                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                         oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
@@ -913,7 +913,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 endif
                                 if (empty(xValue))
                                     if (lHasError)
-                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,"Estrutura da Linha diferente da estrutura de Dados")
                                         oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
@@ -933,7 +933,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     CacheData():delSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
-                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                         oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
@@ -1010,7 +1010,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                             if (!empty(cError))
                                                 cError:=cTools():StrReplace(cError,{CRLF," "})
-                                                cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                                cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                                 oTLogReport:AddGroup(cTLogReport)
                                                 oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                                 oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
@@ -1048,7 +1048,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
-                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                         oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
@@ -1064,7 +1064,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             if (empty(xValue))
                                 if (lHasError)
-                                    cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                    cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                     oTLogReport:AddGroup(cTLogReport)
                                     oTLogReport:AddDetail(cTLogReport,"Estrutura da Linha diferente da estrutura de Dados")
                                     oTLogReport:AddDetail(cTLogReport,cLine,nMLCountSize)
@@ -1152,7 +1152,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                                     if (!empty(cError))
                                                         cError:=cTools():StrReplace(cError,{CRLF," "})
-                                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                                         oTLogReport:AddGroup(cTLogReport)
                                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                                         cError:=""
@@ -1173,7 +1173,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                                     if (!empty(cError))
                                                         cError:=cTools():StrReplace(cError,{CRLF," "})
-                                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                                        cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                                         oTLogReport:AddGroup(cTLogReport)
                                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                                         cError:=""
@@ -1320,7 +1320,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 lEnd:=oMsNewProcess:lEnd
 
                 if (lEnd)
-                    cTLogReport:="Process canceled by user"
+                    cTLogReport:="Process canceled by user:"
                     oTLogReport:AddGroup(cTLogReport)
                     oTLogReport:AddDetail(cTLogReport,"Process canceled by user ["+DtoC(Date())+"]["+Time()+"]")
                     exit
@@ -1481,7 +1481,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             CacheData():delSection("EvalBlock")
                             if (!empty(cError))
                                 cError:=cTools():StrReplace(cError,{CRLF," "})
-                                cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]"
+                                cTLogReport:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                 oTLogReport:AddGroup(cTLogReport)
                                 oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                 cError:=""
@@ -1528,7 +1528,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     CacheData():delSection("EvalBlock")
                                     if (!empty(cError))
                                         cError:=cTools():StrReplace(cError,{CRLF," "})
-                                        cTLogReport:="table : ["+cTargetAlias+"] foram Encontradas inconsistencias na linha ["+cTools():NToS((cTargetAlias)->(recNo()))+"] Processo:["+GetCBSource(bAfterUpdateRecNo)+"]"
+                                        cTLogReport:="table : ["+cTargetAlias+"] foram Encontradas inconsistencias na linha ["+cTools():NToS((cTargetAlias)->(recNo()))+"] Processo:["+GetCBSource(bAfterUpdateRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogReport)
                                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                                         cError:=""
@@ -1573,7 +1573,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 lEnd:=oMsNewProcess:lEnd
 
                 if (lEnd)
-                    cTLogReport:="Process canceled by user"
+                    cTLogReport:="Process canceled by user:"
                     oTLogReport:AddGroup(cTLogReport)
                     oTLogReport:AddDetail(cTLogReport,"Process canceled by user ["+DtoC(Date())+"]["+Time()+"]")
                     exit
@@ -1603,7 +1603,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     CacheData():delSection("EvalBlock")
                     if (!empty(cError))
                         cError:=cTools():StrReplace(cError,{CRLF," "})
-                        cTLogReport:="table : ["+cAlias+"] foram Encontradas inconsistencias no Processo: ["+GetCBSource(bAfterUpdateTable)+"]"
+                        cTLogReport:="table : ["+cAlias+"] foram Encontradas inconsistencias no Processo: ["+GetCBSource(bAfterUpdateTable)+"]:"
                         oTLogReport:AddGroup(cTLogReport)
                         oTLogReport:AddDetail(cTLogReport,cError,nMLCountSize)
                         cError:=""
@@ -2715,6 +2715,7 @@ static function TCSQLUpdateTable(;
         cTLogReport+="["+cSourceTable+"]",;
         cTLogReport+=" => ",;
         cTLogReport+="["+cTargetTable+"]",;
+        cTLogReport+=":",;
         oTLogReport:AddGroup(cTLogReport),;
         cTLogReportMsg:="TCSQLExec ["+cTools():NToS(nTCSQLExec)+"]",;
         oTLogReport:AddDetail(cTLogReport,cTLogReportMsg),;

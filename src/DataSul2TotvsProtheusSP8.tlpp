@@ -372,7 +372,7 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
     
     if (!empty(aPONM010LogFile).and.(len(aPONM010LogFile)>=2).and.(!aPONM010LogFile[1]))
         lPutMarcacoes:=.F.
-        cTLogReport:="Inconsistências na Inclusão das Marcações"
+        cTLogReport:="Inconsistências na Inclusão das Marcações:"
         aEval(aPONM010LogFile[2],{|cTLogDetail|oTLogReport:AddDetail(cTLogReport,cTLogDetail)})
     endif
 
@@ -397,11 +397,17 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
 
     local cFil as character
     local cMat as character
+    local cHora as character
+    local cSP8KeySeek as character
+
+    local dData as date
 
     local cTLogReport as character
     local cTLogDetail as character
 
     local nAT as numeric
+    local nHora as numeric
+    local nSP8Order:=RetOrder("SP8","P8_FILIAL+P8_MAT+DTOS(P8_DATA)+STR(P8_HORA,5,2)")
 
     local lFilter:=.T. as logical
 
@@ -411,16 +417,17 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
         if (empty(cLine))
             break
         endif
-        cLine:=subStr(cLine,1,39)
+        cLine:=subStr(cLine,1,45)
         nAT:=RAT(";",cLine)
         if (nAT>0)
             cLine:=substr(cLine,1,(nAT-1))
         endif
         aLine:=strToKArr2(cLine,";")
-        if (empty(aLine).or.(Len(aLine)<5))
+        if (empty(aLine).or.(Len(aLine)<6))
             break
         endif
         xFilter:=CToD(aLine[5])
+        dData:=xFilter
         lFilter:=((xFilter>=dDataDe).and.(xFilter<=dDataAte))
         if (!lFilter)
             break
@@ -442,8 +449,25 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
         SRA->(dbSetOrder(1))
         lFilter:=SRA->(MsSeek(cFil+cMat,.F.))
         if (!lFilter)
-            cTLogReport:="Matricula Não Localizada na Tabela SRA."
+            cTLogReport:="Matricula não localizada na Tabela SRA:"
             cTLogDetail:="Filial:["+cFil+"] Matricula:["+cMat+"]"
+            if (oTLogReport:FindDetail(cTLogReport,cTLogDetail)==0)
+                oTLogReport:AddDetail(cTLogReport,cTLogDetail)
+            endif
+            break
+        endif
+        nHora:=timeCalc():TimeToVal(timeCalc():SecsToTime(val(aLine[6])))
+        cHora:=Str(nHora,5,2)
+        //P8_FILIAL+P8_MAT+DTOS(P8_DATA)+STR(P8_HORA,5,2)
+        SP8->(dbSetOrder(nSP8Order))
+        cSP8KeySeek:=cFil
+        cSP8KeySeek+=cMat
+        cSP8KeySeek+=DToS(dData)
+        cSP8KeySeek+=cHora
+        lFilter:=SP8->(!dbSeek(cSP8KeySeek,.F.))
+        if (!lFilter)
+            cTLogReport:="Marcação já existente na tabela SP8:"
+            cTLogDetail:="Filial:["+cFil+"] Matricula:["+cMat+"] Data:["+DToC(dData)+"] Hora:["+cHora+"]"
             if (oTLogReport:FindDetail(cTLogReport,cTLogDetail)==0)
                 oTLogReport:AddDetail(cTLogReport,cTLogDetail)
             endif
