@@ -13,6 +13,8 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     local aAddIndex as array
 
+    local bSourceSetFilter as codeblock
+
     local cAlias:="SR3" as character
     local cIndexKey as character
     local cTableImport:="SR3" as character
@@ -27,6 +29,9 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R3_FILIAL+R3_MAT+DTOS(R3_DATA)+R3_SEQ+R3_TIPO+R3_PD"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R3_FILIAL,R3_MAT,R3_DATA,R3_SEQ,R3_TIPO,R3_PD")),",")
 
+    bSourceSetFilter:={|cLine|SR3SourceFilter(cLine,oTFIni)}
+    cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
+
     lSR3Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if ((lSR3Import).and.(!lEnd))
@@ -38,6 +43,8 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R7_FILIAL+R7_MAT+DTOS(R7_DATA)+R7_SEQ+R7_TIPO"))
         FWFreeArray(@aAddIndex)
         aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")),",")
+        bSourceSetFilter:={|cLine|SR3SourceFilter(cLine,oTFIni)}
+        cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
         lSR3Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
         if (lSR3Import)
             ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
@@ -59,3 +66,45 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     DelClassIntF()
 
 return(lSR3Import)
+
+static function SR3SourceFilter(cLine as character,oTFIni as object) as logical
+
+    local aLine as array
+
+    local nAT as numeric
+
+    local lFilter:=.T. as logical
+
+    local xFilter as variant
+
+    begin sequence
+        if (empty(cLine))
+            break
+        endif
+        cLine:=subStr(cLine,1,15)
+        nAT:=RAT(";",cLine)
+        if (nAT>0)
+            cLine:=substr(cLine,1,(nAT-1))
+        endif
+        aLine:=strToKArr2(cLine,";")
+        if (empty(aLine).or.(Len(aLine)<2))
+            break
+        endif
+        xFilter:=strTran(aLine[1],'"',"")
+        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        lFilter:=(xFilter==cEmpAnt)
+        if (!lFilter)
+            break
+        endif
+        xFilter:=aLine[2]
+        xFilter:=strTran(aLine[2],'"',"")
+        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
+        lFilter:=(!empty(xFilter))
+        if (!lFilter)
+            break
+        endif
+    end sequence
+
+    FWFreeArray(@aLine)
+
+return(lFilter)
