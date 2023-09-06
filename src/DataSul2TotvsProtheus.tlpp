@@ -116,8 +116,9 @@ static function Activate() as logical
             cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
         endif
 
-        cGetFileMask:="Arquivo de Configuração | DataSul2Protheus.ini"
-        cGetFileTitle:="Arquivo de Configuração DataSul2Protheus.ini"
+        cGetFileMask:=cTools():Accentuation("Arquivo de Configura#1#2o | DataSul2Protheus.ini","ccedil","atilde")
+        cGetFileTitle:=cTools():Accentuation("Arquivo de Configura#1#2o DataSul2Protheus.ini","ccedil","atilde")
+        
         nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
 
         cINIFile:=cGetFile(;
@@ -2372,8 +2373,9 @@ static procedure CFGFile()
     begin sequence
 
         cGetFileRoot:=GetValue("cRootPath")
-        cGetFileMask:="Arquivo de Configuração | *.ini"
-        cGetFileTitle:="Arquivo de Configuração *.ini"
+
+        cGetFileMask:=cTools():Accentuation("Arquivo de Configura#1#2o | *.ini","ccedil","atilde")
+        cGetFileTitle:=cTools():Accentuation("Arquivo de Configura#1#2o *.ini","ccedil","atilde")
         nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
         cINIFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
 
@@ -2749,7 +2751,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
             break
         endif
 
-        cGetFileTitle:="Diretorio de Configuração DataSul2Protheus.ini"
+        cGetFileTitle:=cTools():Accentuation("Diret#1rio de Configura#2#3o DataSul2Protheus.ini","oacute","ccedil","atilde")
         nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE+GETF_RETDIRECTORY)
         cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
 

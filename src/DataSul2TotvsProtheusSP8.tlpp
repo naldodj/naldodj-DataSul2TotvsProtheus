@@ -376,7 +376,7 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
         .T./*lProcFil*/,;//05 -> Processo por Filial
         .F./*lApoNLidas*/,;//06 -> Apontar quando nao Leu as Marcacoes para a Filial
         .T./*lForceR*/,;//07 -> Se deve Forcar o Reapontamento
-        @aPONM010Header,;//08 -> Cabeçalho do ExecAuto
+        @aPONM010Header,;//08 -> Cabecalho do ExecAuto
         @aPONM010Detail,;//09 -> Itens do ExecAuto
         3/*nOpcAuto*/,;
         "1"/*cProcessa*/,;//11 -> '1'->Leitura , '2'->Apontamento , '3'->Ambos
@@ -387,7 +387,7 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
     
     if (!empty(aPONM010LogFile).and.(len(aPONM010LogFile)>=2).and.(!aPONM010LogFile[1]))
         lPutMarcacoes:=.F.
-        cTLogGroup:="Inconsistências na Inclusão das Marcações:"
+        cTLogGroup:=cTools():Accentuation("Inconsist#1ncias na Inclus#2o das Marca#3#4es:","ecirc","atilde","ccedil","otilde")
         cTxtFind:="- Nao Foi Possivel Carregar as Marcacoes do Funcionario"
         cTxtReplace:="- Nao Foi Possivel Carregar as Marcacoes do Funcionario. Turno: "
         aEval(;
@@ -484,7 +484,7 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
         SRA->(dbSetOrder(1))
         lFilter:=SRA->(MsSeek(cFil+cMat,.F.))
         if (!lFilter)
-            cTLogGroup:="Matricula não localizada na Tabela SRA:"
+            cTLogGroup:=cTools():Accentuation("Matricula n#1o localizada na Tabela SRA:","atilde")
             cTLogDetail:="Filial:["+cFil+"] Matricula:["+cMat+"]"
             if (oTLogReport:FindDetail(cTLogGroup,cTLogDetail)==0)
                 oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
@@ -501,7 +501,7 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
         cSP8KeySeek+=cHora
         lFilter:=SP8->(!dbSeek(cSP8KeySeek,.F.))
         if (!lFilter)
-            cTLogGroup:=cTools():Accentuation("Marca#1#2o já existente na tabela SP8:","ccedil","atilde")
+            cTLogGroup:=cTools():Accentuation("Marca#1#2o j#3 existente na tabela SP8:","ccedil","atilde","aacute")
             cTLogDetail:="Filial:["+cFil+"] Matricula:["+cMat+"] Data:["+DToC(dData)+"] Hora:["+cHora+"]"
             if (oTLogReport:FindDetail(cTLogGroup,cTLogDetail)==0)
                 oTLogReport:AddDetail(cTLogGroup,cTLogDetail)

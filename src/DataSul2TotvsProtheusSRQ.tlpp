@@ -171,7 +171,7 @@ static function SRQGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
         if (!lSRVFound)
             oTLogReport:=SRQGetValue("SRQImportDataLogReport",nil)
             if (valType(oTLogReport)=="O")
-                cTReportGrp:="[Verba Não Localizada na tabela SRV]:"
+                cTReportGrp:=cTools():Accentuation("[Verba N#1o Localizada na tabela SRV]:","atilde")
                 cTReportMsg:="Verba ["+cRQPD+"]. Evento ["+cFindInTable+"]."
                 oTLogReport:AddGroup(cTReportGrp)
                 if (oTLogReport:FindDetail(cTReportGrp,cTReportMsg)==0)
@@ -185,8 +185,9 @@ static function SRQGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
         oTLogReport:=SRQGetValue("SRQImportDataLogReport",nil)
         if (valType(oTLogReport)=="O")
-            cTReportGrp:="[De/Para Não Localizado]:"
-            cTReportMsg:="Não Existe paridade de Verba Protheus para o Evento Datasul ["+if(Empty(cFindInTable),cEventoDataSul,cFindInTable)+"]."
+            cTReportGrp:=cTools():Accentuation("[De/Para N#1o Localizado]:","atilde")
+            cTReportMsg:=cTools():Accentuation("N#1o Existe paridade de Verba Protheus para o Evento Datasul [","atilde")
+            cTReportMsg+=if(Empty(cFindInTable),cEventoDataSul,cFindInTable)+"]."
             oTLogReport:AddGroup(cTReportGrp)
             if (oTLogReport:FindDetail(cTReportGrp,cTReportMsg)==0)
                oTLogReport:AddDetail(cTReportGrp,cTReportMsg)
