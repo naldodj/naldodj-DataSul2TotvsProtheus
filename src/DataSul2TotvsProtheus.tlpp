@@ -1458,23 +1458,26 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
 
-            cTLogDetail:="Inicio da Leitura/Processamento de Dados (Datasul):"
-            cTLogDetail+=" "
-            cTLogDetail+="Data: ["+DToC(oTimeRemaining:GetdStartTime())+"]"
+            cTLogDetail:="Data: ["+DToC(oTimeRemaining:GetdStartTime())+"]"
             cTLogDetail+=" "
             cTLogDetail+="Hora: ["+oTimeRemaining:GetcStartTime()+"]"
+            cTLogDetail+=" : "
+            cTLogDetail+="Inicio da Leitura/Processamento de Dados (Datasul)."
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
-            cTLogDetail:="Termino da Leitura/Processamento de Dados (Datasul):"
-            cTLogDetail+=" "
-            cTLogDetail+="Data: ["+DToC(oTimeRemaining:GetdEndTime())+"]"
+            cTLogDetail:="Data: ["+DToC(oTimeRemaining:GetdEndTime())+"]"
             cTLogDetail+=" "
             cTLogDetail+="Hora: ["+oTimeRemaining:GetcEndTime()+"]"
+            cTLogDetail+=" : "
+            cTLogDetail+="Termino da Leitura/Processamento de Dados (Datasul)."
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
-            cTLogDetail:="Tempo Medio de Processamento Leitura/Processamento de Dados (Datasul):
-            cTLogDetail+=" "
-            cTLogDetail+="Hora: ["+oTimeRemaining:GetcAverageTime()+"]"
+            cTLogDetail:="Hora: ["+oTimeRemaining:GetcAverageTime()+"]"
+            cTLogDetail+=" : "
+            cTLogDetail+="Tempo Medio de Processamento Leitura/Processamento de Dados (Datasul).
+            oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+
+            cTLogDetail:=oTLogReport:ThinLine()
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
             if ((lEnd).or.(lPreLoadTable))
@@ -1724,23 +1727,26 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
 
-            cTLogDetail:="Inicio da Atualizacao dos Dados (Protheus):"
-            cTLogDetail+=" "
-            cTLogDetail+="Data: ["+DToC(oTimeRemaining:GetdStartTime())+"]"
+            cTLogDetail:="Data: ["+DToC(oTimeRemaining:GetdStartTime())+"]"
             cTLogDetail+=" "
             cTLogDetail+="Hora: ["+oTimeRemaining:GetcStartTime()+"]"
+            cTLogDetail+=" : "
+            cTLogDetail+="Inicio da Atualizacao dos Dados (Protheus)."
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
-            cTLogDetail:="Termino da Atualizacao dos Dados (Protheus):"
-            cTLogDetail+=" "
-            cTLogDetail+="Data: ["+DToC(oTimeRemaining:GetdEndTime())+"]"
+            cTLogDetail:="Data: ["+DToC(oTimeRemaining:GetdEndTime())+"]"
             cTLogDetail+=" "
             cTLogDetail+="Hora: ["+oTimeRemaining:GetcEndTime()+"]"
+            cTLogDetail+=" : "
+            cTLogDetail+="Termino da Atualizacao dos Dados (Protheus)."
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
-            cTLogDetail:="Tempo Medio de Processamento Atualizacao dos Dados (Protheus):"
-            cTLogDetail+=" "
-            cTLogDetail+="Hora: ["+oTimeRemaining:GetcAverageTime()+"]"
+            cTLogDetail:="Hora: ["+oTimeRemaining:GetcAverageTime()+"]"
+            cTLogDetail+=" : "
+            cTLogDetail+="Tempo Medio de Processamento Atualizacao dos Dados (Protheus)."
+            oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+
+            cTLogDetail:=oTLogReport:ThinLine()
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
             if (valType(bAfterUpdateTable)=="B")
@@ -1749,11 +1755,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                 cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
 
-                cTLogDetail:="Inicio das Atualizacoes Complementares (bAfterUpdateTable):"
-                cTLogDetail+=" "
-                cTLogDetail+="Data: ["+DToC(Date())+"]"
+                cTLogDetail:="Data: ["+DToC(Date())+"]"
                 cTLogDetail+=" "
                 cTLogDetail+="Hora: ["+Time()+"]"
+                cTLogDetail+=" : "
+                cTLogDetail+="Inicio das Atualizacoes Complementares (bAfterUpdateTable)."
                 oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
                 (cTargetAlias)->(dbGoTop())
@@ -1792,13 +1798,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                 cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
 
-                cTLogDetail:="Termino das Atualizacoes Complementares (bAfterUpdateTable):"
-                cTLogDetail+=" "
-                cTLogDetail+="Data: ["+DToC(Date())+"]"
+                cTLogDetail:="Data: ["+DToC(Date())+"]"
                 cTLogDetail+=" "
                 cTLogDetail+="Hora: ["+Time()+"]"
-                cTLogDetail+=" "
+                cTLogDetail+=" : "
+                cTLogDetail+="Termino das Atualizacoes Complementares (bAfterUpdateTable)."
+                cTLogDetail+=" : "
                 cTLogDetail+="Decorridos: ["+ElapTime(cTime,Time())+"]"
+                oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+
+                cTLogDetail:=oTLogReport:ThinLine()
                 oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
             endif
@@ -2904,11 +2913,11 @@ static function TCSQLUpdateTable(;
     local cTLogDetail as character
 
     local bSetRegua:={|nRecCount|;
-        cTLogDetail:="Inicio do Update de Dados:",;
-        cTLogDetail+=" ",;
-        cTLogDetail+="Data: ["+DToC(Date())+"]",;
+        cTLogDetail:="Data: ["+DToC(Date())+"]",;
         cTLogDetail+=" ",;
         cTLogDetail+="Hora: ["+cTime+"]",;
+        cTLogDetail+=" : ",;
+        cTLogDetail+="Inicio do Update de Dados.",;
         oTLogReport:AddDetail(cTLogGroup,cTLogDetail),;
         oMsNewProcess:SetRegua2(nRecCount);
     } as codeblock
@@ -2948,12 +2957,12 @@ static function TCSQLUpdateTable(;
         @bOnError;
     )
 
-    cTLogDetail:="Termino do Update de Dados:"
-    cTLogDetail+=" "
-    cTLogDetail+="Data: ["+DToC(Date())+"]"
+    cTLogDetail:="Data: ["+DToC(Date())+"]"
     cTLogDetail+=" "
     cTLogDetail+="Hora: ["+Time()+"]"
-    cTLogDetail+=" "
+    cTLogDetail+=" : "
+    cTLogDetail+="Termino do Update de Dados."
+    cTLogDetail+=" : "
     cTLogDetail+="Decorridos: ["+ElapTime(cTime,Time())+"]"
     oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
