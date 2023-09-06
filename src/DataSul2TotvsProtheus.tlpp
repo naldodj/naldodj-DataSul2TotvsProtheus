@@ -1566,7 +1566,30 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     lAddNew:=(!lFound)
                     nRecProcCustom:=1
                     if (lCustomUpdate)
-                        lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(@bCustomUpdate,@cSourceAlias,@cTargetAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef,@oTLogReport,@nTmpAliasNextRecNo,@nTmpAliasOrder,@nRecProcCustom))},nil,.F.,nil,nil))
+                        lHasError:=(!EvalBlock():EvalBlock(;
+                            {||(cTargetAlias)->(;
+                                Eval(;
+                                    @bCustomUpdate,;
+                                    @cSourceAlias,;
+                                    @cTargetAlias,;
+                                    @lFound,;
+                                    @lAddNew,;
+                                    @cIndexKey,;
+                                    @cIndexID,;
+                                    @nFields,;
+                                    @aTargetFieldsDef,;
+                                    @oTLogReport,;
+                                    @nTmpAliasNextRecNo,;
+                                    @nTmpAliasOrder,;
+                                    @nRecProcCustom;
+                                );
+                            )},;
+                            nil,;
+                            .F.,;
+                            nil,;
+                            nil;
+                            );
+                        )
                         if (lHasError)
                             cError:=EvalBlockGetValue("ErrorDescription","")
                             cError+=EvalBlockGetValue("ErrorStack","")
@@ -1734,7 +1757,25 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
                 (cTargetAlias)->(dbGoTop())
-                lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bAfterUpdateTable,cTargetAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oProgress))},nil,.F.,nil,nil))
+                lHasError:=(!EvalBlock():EvalBlock(;
+                    {||;
+                        (cTargetAlias)->(;
+                            Eval(;
+                                bAfterUpdateTable,;
+                                cTargetAlias,;
+                                oTLogReport,;
+                                oMsNewProcess,;
+                                oTimeRemaining,;
+                                oProgress;
+                            );
+                        );
+                    },;
+                    nil,;
+                    .F.,;
+                    nil,;
+                    nil;
+                    );
+                )
                 if (lHasError)
                     cError:=EvalBlockGetValue("ErrorDescription","")
                     cError+=EvalBlockGetValue("ErrorStack","")
@@ -1756,11 +1797,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 cTLogDetail+="Data: ["+DToC(Date())+"]"
                 cTLogDetail+=" "
                 cTLogDetail+="Hora: ["+Time()+"]"
-                oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
-
-                cTLogDetail:="Decorridos:"
                 cTLogDetail+=" "
-                cTLogDetail+="Hora: ["+ElapTime(cTime,Time())+"]"
+                cTLogDetail+="Decorridos: ["+ElapTime(cTime,Time())+"]"
                 oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
             endif
@@ -2122,7 +2160,15 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
             if (lHasError)
                 break
             endif
-            aValueField[nSourceField][1]:=NormalizeData(@lHasError,aLine[nSourceFieldAT],@cType,@cSourceField,@lSourceTransform,@st_oHMbTransform,@oTFIni)
+            aValueField[nSourceField][1]:=NormalizeData(;
+                @lHasError,;
+                aLine[nSourceFieldAT],;
+                @cType,;
+                @cSourceField,;
+                @lSourceTransform,;
+                @st_oHMbTransform,;
+                @oTFIni;
+            )
             if (lHasError)
                 break
             endif
@@ -2713,7 +2759,8 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
             if (aDirectories[nDirectory][5]!="D")
                 loop
             endif
-            cDirectory:=cDirectoryClient+aDirectories[nDirectory][1]
+            cDirectory:=cDirectoryClient
+            cDirectory+=aDirectories[nDirectory][1]
             if (right(cDirectory,1)==".")
                 loop
             endif
@@ -2906,11 +2953,8 @@ static function TCSQLUpdateTable(;
     cTLogDetail+="Data: ["+DToC(Date())+"]"
     cTLogDetail+=" "
     cTLogDetail+="Hora: ["+Time()+"]"
-    oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
-
-    cTLogDetail:="Decorridos:"
     cTLogDetail+=" "
-    cTLogDetail+="Hora: ["+ElapTime(cTime,Time())+"]"
+    cTLogDetail+="Decorridos: ["+ElapTime(cTime,Time())+"]"
     oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
 return(nTCSQLExec)
