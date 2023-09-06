@@ -133,7 +133,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         endif
 
         oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-        MsAguarde({||oTLogReport:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+        MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
         oTLogReport:=FreeObj(oTLogReport)
 
         FWFreeArray(@aAddIndex)
@@ -327,7 +327,7 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
 
     local cTmpAliasKey as character
 
-    local cTLogReport as character
+    local cTLogGroup as character
     local cTLogDetail as character
     
     local cTxtTmp:="" as character
@@ -387,7 +387,7 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
     
     if (!empty(aPONM010LogFile).and.(len(aPONM010LogFile)>=2).and.(!aPONM010LogFile[1]))
         lPutMarcacoes:=.F.
-        cTLogReport:="Inconsistências na Inclusão das Marcações:"
+        cTLogGroup:="Inconsistências na Inclusão das Marcações:"
         cTxtFind:="- Nao Foi Possivel Carregar as Marcacoes do Funcionario"
         cTxtReplace:="- Nao Foi Possivel Carregar as Marcacoes do Funcionario. Turno: "
         aEval(;
@@ -396,17 +396,17 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
                 if((cTXTFind$cTLogDetail),;
                     (;
                         lTXTTmp:=.T.,;
-                        cTLogReport:=strTran(cTLogDetail,cTXTFind,cTxtReplace);
+                        cTLogGroup:=strTran(cTLogDetail,cTXTFind,cTxtReplace);
                     ),;
                     if((lTXTTmp),;
                         cTxtTmp+=cTLogDetail,;
-                        oTLogReport:AddDetail(cTLogReport,cTLogDetail);
+                        oTLogReport:AddDetail(cTLogGroup,cTLogDetail);
                     );
                 );
             };
         )
         if (lTXTTmp)
-            oTLogReport:AddDetail(cTLogReport,strTran(cTxtTmp,"  "," "))
+            oTLogReport:AddDetail(cTLogGroup,strTran(cTxtTmp,"  "," "))
             cTxtTmp:=""
         endif
     endif
@@ -431,7 +431,7 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
 
     local dData as date
 
-    local cTLogReport as character
+    local cTLogGroup as character
     local cTLogDetail as character
 
     local nAT as numeric
@@ -484,10 +484,10 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
         SRA->(dbSetOrder(1))
         lFilter:=SRA->(MsSeek(cFil+cMat,.F.))
         if (!lFilter)
-            cTLogReport:="Matricula não localizada na Tabela SRA:"
+            cTLogGroup:="Matricula não localizada na Tabela SRA:"
             cTLogDetail:="Filial:["+cFil+"] Matricula:["+cMat+"]"
-            if (oTLogReport:FindDetail(cTLogReport,cTLogDetail)==0)
-                oTLogReport:AddDetail(cTLogReport,cTLogDetail)
+            if (oTLogReport:FindDetail(cTLogGroup,cTLogDetail)==0)
+                oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
             endif
             break
         endif
@@ -501,10 +501,10 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
         cSP8KeySeek+=cHora
         lFilter:=SP8->(!dbSeek(cSP8KeySeek,.F.))
         if (!lFilter)
-            cTLogReport:=cTools():Accentuation("Marca#1#2o já existente na tabela SP8:","ccedil","atilde")
+            cTLogGroup:=cTools():Accentuation("Marca#1#2o já existente na tabela SP8:","ccedil","atilde")
             cTLogDetail:="Filial:["+cFil+"] Matricula:["+cMat+"] Data:["+DToC(dData)+"] Hora:["+cHora+"]"
-            if (oTLogReport:FindDetail(cTLogReport,cTLogDetail)==0)
-                oTLogReport:AddDetail(cTLogReport,cTLogDetail)
+            if (oTLogReport:FindDetail(cTLogGroup,cTLogDetail)==0)
+                oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
             endif
             break
         endif

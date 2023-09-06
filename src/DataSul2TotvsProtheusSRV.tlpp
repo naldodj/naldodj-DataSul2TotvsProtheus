@@ -57,7 +57,7 @@ static function SRVImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     end sequence    
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    MsAguarde({||oTLogReport:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+    MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
     oTLogReport:=FreeObj(oTLogReport)
 
     FWFreeArray(@aAddIndex)

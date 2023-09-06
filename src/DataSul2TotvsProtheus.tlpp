@@ -1472,7 +1472,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cTLogDetail+="Termino da Leitura/Processamento de Dados (Datasul)."
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
-            cTLogDetail:="Hora: ["+oTimeRemaining:GetcAverageTime()+"]"
+            cTLogDetail:=oTLogReport:ThinLine()
+            oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+
+            cTLogDetail:="["+oTimeRemaining:GetcTimeDiff()+"]"
+            cTLogDetail+=" : "
+            cTLogDetail+="Tempo de Processamento Leitura/Processamento de Dados (Datasul).
+            oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+
+            cTLogDetail:="["+oTimeRemaining:GetcAverageTime()+"]"
             cTLogDetail+=" : "
             cTLogDetail+="Tempo Medio de Processamento Leitura/Processamento de Dados (Datasul).
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
@@ -1741,6 +1749,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cTLogDetail+="Hora: ["+oTimeRemaining:GetcEndTime()+"]"
             cTLogDetail+=" : "
             cTLogDetail+="Termino da Atualizacao dos Dados (Protheus)."
+            oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+
+            cTLogDetail:=oTLogReport:ThinLine()
+            oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+
+            cTLogDetail:="["+oTimeRemaining:GetcTimeDiff()+"]"
+            cTLogDetail+=" : "
+            cTLogDetail+="Tempo de Processamento Atualizacao dos Dados (Protheus)."
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
             cTLogDetail:="Hora: ["+oTimeRemaining:GetcAverageTime()+"]"

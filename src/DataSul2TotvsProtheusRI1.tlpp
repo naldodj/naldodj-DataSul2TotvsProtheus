@@ -132,7 +132,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     dfv():Default(@cAlias,"RI1")
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
-    MsAguarde({||oTLogReport:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+    MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
     oTLogReport:=FreeObj(oTLogReport)
 
     DelClassIntF()
@@ -157,8 +157,8 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
     local cRecCount as character
     local cTimeRemaining as character
 
-    local cError as character
-    local cTLogReport as character
+    local cTLogGroup as character
+    local cTLogDetail as character
 
     local lFound as logical
     local lAddNew as logical
@@ -187,7 +187,7 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
     //RI1_FILIAL+RI1_MAT+RI1_BENEF+RI1_TABELA+DTOS(RI1_DINIPG)+DTOS(RI1_DFIMPG)
     RI1->(dbSetOrder(nRI1Order))
 
-    cTLogReport:="Não foi possível obter exclusividade no(s) Registro(s) da Tabela RI1:"
+    cTLogGroup:="Não foi possível obter exclusividade no(s) Registro(s) da Tabela RI1:"
 
     aRDSGetAdvFVal:=array(0)
     
@@ -235,11 +235,11 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
                 RI1->(MsUnLock())
                 FWFreeArray(@aRDSRetAdvFVal)
             else
-                cError:="Fil: ["+SRA->RA_FILIAL+"] "
-                cError:="Mat: ["+SRA->RA_MAT+"] "
-                cError:="Nome: ["+SRA->RA_NOME+"] "
-                cError:="RI1 RecNo: ["+cTools():NToS(RI1->(recNo()))+"] "
-                oTLogReport:AddDetail(cTLogReport,cError)
+                cTLogDetail:="Fil: ["+SRA->RA_FILIAL+"] "
+                cTLogDetail:="Mat: ["+SRA->RA_MAT+"] "
+                cTLogDetail:="Nome: ["+SRA->RA_NOME+"] "
+                cTLogDetail:="RI1 RecNo: ["+cTools():NToS(RI1->(recNo()))+"] "
+                oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
             endif
         endif
         oTimeRemaining:Calcule(.T.)
@@ -295,9 +295,9 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
     local cIncProc as character
     local cRecCount as character
     local cTimeRemaining as character
-
-    local cError as character
-    local cTLogReport as character
+    
+    local cTLogGroup as character
+    local cTLogDetail as character
 
     local lFound as logical
     local lAddNew as logical
@@ -321,7 +321,7 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
     //RI1_FILIAL+RI1_MAT+RI1_BENEF+RI1_TABELA+DTOS(RI1_DINIPG)+DTOS(RI1_DFIMPG)
     RI1->(dbSetOrder(nRI1Order))
 
-    cTLogReport:="Não foi possível obter exclusividade no(s) Registro(s) da Tabela RI1:"
+    cTLogGroup:="Não foi possível obter exclusividade no(s) Registro(s) da Tabela RI1:"
 
     aRDSGetAdvFVal:=array(0)
     
@@ -369,11 +369,11 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
                 RI1->(MsUnLock())
                 FWFreeArray(@aRDSRetAdvFVal)
             else
-                cError:="Fil: ["+SRA->RA_FILIAL+"] "
-                cError:="Mat: ["+SRA->RA_MAT+"] "
-                cError:="Nome: ["+SRA->RA_NOME+"] "
-                cError:="RI1 RecNo: ["+cTools():NToS(RI1->(recNo()))+"] "
-                oTLogReport:AddDetail(cTLogReport,cError)
+                cTLogDetail:="Fil: ["+SRA->RA_FILIAL+"] "
+                cTLogDetail:="Mat: ["+SRA->RA_MAT+"] "
+                cTLogDetail:="Nome: ["+SRA->RA_NOME+"] "
+                cTLogDetail:="RI1 RecNo: ["+cTools():NToS(RI1->(recNo()))+"] "
+                oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
             endif
         endif
         oTimeRemaining:Calcule(.T.)
