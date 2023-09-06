@@ -599,7 +599,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     (cTargetAlias)->(dbGoTop())
                 endif
             endif
-            MsProcess():MsAguarde({||(cTargetAlias)->(dbEval():Eval(cTargetAlias,{||++nAliasdbCount},{||!deleted().and.if(lChkFilial,FieldGet(nFieldFilial)==cAliasxFilial,.T.)},{||nAliasdbCount==0},nil,nil,.F.,{||dbGoTop()}))})
+            MsProcess():MsAguarde({||nAliasdbCount:=datasul2totvs.GetRecCount(RetSQLName(cTargetAlias),"D_E_L_E_T_=' '")})
             if (nAliasdbCount>0)
                 lImportData:=ApMsgNoYes("There is already data in this table. Do you want to update them?","Info")
                 if (!lImportData)
@@ -1531,7 +1531,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             oMsNewProcess:SetRegua2(if(lPercentage,nRecCount,Round(nRecCount/nIncProcStep,0)))
 
             oTimeRemaining:SetRemaining(nRecCountProc)
-            oTimeRemaining:Calcule(.F.)
+            if (nRecCountProc==0)
+                oTimeRemaining:Calcule(.F.)
+            endif
 
             (cTargetAlias)->(dbSetOrder(nIndexKey))
 

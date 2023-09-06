@@ -406,7 +406,7 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
             };
         )
         if (lTXTTmp)
-            oTLogReport:AddDetail(cTLogReport,cTxtTmp)
+            oTLogReport:AddDetail(cTLogReport,strTran(cTxtTmp,"  "," "))
             cTxtTmp:=""
         endif
     endif
