@@ -53,6 +53,11 @@ static method Activate() class Protheus
         lActivate:=datasul2totvs.Activate()
     endif
 
+    cacheData():Clean()
+    cacheHMData():Clean()
+    
+    CleanAllFilter()
+
     __SetCentury(if(lSetCentury,"ON","OFF"))
     SetVarNameLen(nSetVarNameLen)
 
