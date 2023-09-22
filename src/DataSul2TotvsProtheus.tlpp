@@ -2129,17 +2129,16 @@ static function readTableDefinition() as logical
         oFT:=FreeObj(oFT)
     endif
 
-    FWFreeArray(@aLineDef)
-    FWFreeArray(@aFieldsDef)
-
     if (valtype(oHMTablesImport)=="O")
         oHMTablesImport:Clean()
         oHMTablesImport:=FreeObj(oHMTablesImport)
     endif
 
-    if (valtype(aTablesImport)=="A")
-        FWFreeArray(@aTablesImport)
-    endif
+    FWFreeArray(@aLineDef)
+    FWFreeArray(@aFieldDef)
+    FWFreeArray(@aFieldsDef)
+    FWFreeArray(@aFieldDefTmp)
+    FWFreeArray(@aTablesImport)
 
     DelClassIntF()
 
