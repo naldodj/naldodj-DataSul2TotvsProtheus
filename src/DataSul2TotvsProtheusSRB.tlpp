@@ -25,7 +25,7 @@ static function SRBImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RB_FILIAL+RB_MAT+RB_COD"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RB_FILIAL,RB_MAT,RB_COD")),",")
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RB_FILIAL,RB_MAT,RB_COD")),",",.T.)
 
     bSourceSetFilter:={|cLine|SRBSourceFilter(cLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -67,7 +67,7 @@ static function SRBSourceFilter(cLine as character,oTFIni as object) as logical
         if (nAT>0)
             cLine:=substr(cLine,1,(nAT-1))
         endif
-        aLine:=strToKArr2(cLine,";")
+        aLine:=strToKArr2(cLine,";",.T.)
         if (empty(aLine).or.(Len(aLine)<2))
             break
         endif

@@ -74,7 +74,7 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=oSM7Import[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
         cAddIndex:=oSM7Import[#cItem][#"AddIndex"]
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",",.T.)
         bSM7Import:=oSM7Import[#cItem][#"bSM7Import"]
         bSourceSetFilter:=oSM7Import[#cItem][#"bSourceSetFilter"]
         bEnableFilterBlock:=oSM7Import[#cItem][#"bEnableFilterBlock"]
@@ -148,7 +148,7 @@ static function SM7SourceFilter(cLine as character,oTFIni as object) as logical
         if (nAT>0)
             cLine:=substr(cLine,1,(nAT-1))
         endif
-        aLine:=strToKArr2(cLine,";")
+        aLine:=strToKArr2(cLine,";",.T.)
         if (empty(aLine).or.(Len(aLine)<9))
             break
         endif

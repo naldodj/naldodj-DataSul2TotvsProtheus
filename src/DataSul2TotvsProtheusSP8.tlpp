@@ -104,7 +104,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         endif
 
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","P8_FILIAL+P8_MAT+P8_ORDEM+Dtos(P8_DATA)+Str(P8_HORA,5,2)"))
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","P8_FILIAL,P8_MAT,P8_ORDEM,P8_DATA,P8_HORA")),",")
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","P8_FILIAL,P8_MAT,P8_ORDEM,P8_DATA,P8_HORA")),",",.T.)
 
         bCustomUpdate:={;
             |;
@@ -292,7 +292,7 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
         
         endif
 
-        while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,NIL,NIL,.T.,NIL,NIL,NIL,NIL,.T.,.T.)))
+        while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,nil,nil,.T.,nil,nil,nil,nil,.T.,.T.)))
             lParamBox:=MsgYesNo("Deseja Abortar a Importacao?","Atencao!")
             if (lParamBox)
                 lParamBox:=.F.
@@ -451,7 +451,7 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
         if (nAT>0)
             cLine:=substr(cLine,1,(nAT-1))
         endif
-        aLine:=strToKArr2(cLine,";")
+        aLine:=strToKArr2(cLine,";",.T.)
         if (empty(aLine).or.(Len(aLine)<6))
             break
         endif

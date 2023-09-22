@@ -38,7 +38,7 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cPreLoadAlias:=allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadAlias",""))
     cPreLoadTableImport:=allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadTableImport",""))
     cPreLoadIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadIndexKey",""))
-    aPreLoadAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadAddIndex","")),",")
+    aPreLoadAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadAddIndex","")),",",.T.)
 
     lPreLoadTable:=(!empty(cPreLoadAlias))
     lPreLoadTable:=((lPreLoadTable).and.(!empty(cPreLoadTableImport)))
@@ -50,7 +50,7 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     endif
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RQ_FILIAL+RQ_MAT+RQ_ORQEM+RQ_SEQUENC"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RQ_FILIAL,RQ_MAT,RQ_ORQEM,RQ_SEQUENC")),",")
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RQ_FILIAL,RQ_MAT,RQ_ORQEM,RQ_SEQUENC")),",",.T.)
 
     cacheData():Set("datasul2totvsprotheus","SRQImportDataLogReport",oTLogReport)
 
@@ -207,11 +207,11 @@ static function SRQGetRQVerbas(cVarPD as character) as character
     local nPDs as numeric
     local nVar as numeric
     local nVars as numeric
-    aVarPD:=StrTokArr2(cVarPD,",")
+    aVarPD:=StrTokArr2(cVarPD,",",.T.)
     nVars:=Len(aVarPD)
     for nVar:=1 to nVars
         cPD:=allTrim(SRQGetValue(aVarPD[nVar],""))
-        aPDS:=StrTokArr2(cPD,",")
+        aPDS:=StrTokArr2(cPD,",",.T.)
         nPDs:=Len(aPDS)
         for nPD:=1 to nPDs
             cPD:=aPDS[nPD]
@@ -244,7 +244,7 @@ static function SRQSourceFilter(cLine as character,oTFIni as object) as logical
         if (nAT>0)
             cLine:=substr(cLine,1,(nAT-1))
         endif
-        aLine:=strToKArr2(cLine,";")
+        aLine:=strToKArr2(cLine,";",.T.)
         if (empty(aLine).or.(Len(aLine)<2))
             break
         endif

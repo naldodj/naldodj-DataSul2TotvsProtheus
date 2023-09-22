@@ -88,7 +88,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=oRI1Import[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
         cAddIndex:=oRI1Import[#cItem][#"AddIndex"]
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
+        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",",.T.)
         bRI1Import:=oRI1Import[#cItem][#"bRI1Import"]
         bSourceSetFilter:=oRI1Import[#cItem][#"bSourceSetFilter"]
         cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -431,7 +431,7 @@ static function RI1SourceFilter(cLine as character,oTFIni as object) as logical
         if (nAT>0)
             cLine:=substr(cLine,1,(nAT-1))
         endif
-        aLine:=strToKArr2(cLine,";")
+        aLine:=strToKArr2(cLine,";",.T.)
         if (empty(aLine).or.(Len(aLine)<2))
             break
         endif

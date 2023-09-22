@@ -34,7 +34,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cPreLoadAlias:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAlias",""))
     cPreLoadTableImport:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadTableImport",""))
     cPreLoadIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadIndexKey",""))
-    aPreLoadAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAddIndex","")),",")
+    aPreLoadAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAddIndex","")),",",.T.)
 
     lPreLoadTable:=(!empty(cPreLoadAlias))
     lPreLoadTable:=((lPreLoadTable).and.(!empty(cPreLoadTableImport)))
@@ -46,7 +46,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     endif
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","PJ_FILIAL+PJ_TURNO+PJ_SEMANA+PJ_DIA"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","PJ_FILIAL,PJ_TURNO,PJ_SEMANA,PJ_DIA")),",")
+    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","PJ_FILIAL,PJ_TURNO,PJ_SEMANA,PJ_DIA")),",",.T.)
 
     lSPJImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
