@@ -155,12 +155,12 @@ static function Activate() as logical
             break
         endif
 
-        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait! Loading ["+cINIFile+"]")
+        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait! Loading ["+cINIFile+"]",nil,.F.)
         if (!lActivate)
             break
         endif
 
-        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait")
+        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait",nil,.T.)
         if (!lActivate)
             break
         endif
@@ -429,7 +429,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local cError as character
     local cField as character
-    local cLineUTF8 as character
 
     local cSourceAlias:=getNextAlias() as character
     local cTargetAlias:=cAlias as character
@@ -437,24 +436,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local cTargetAliasRealName as character
 
     local cType as character
-
-    local cCHR128 as character
-    local cCHR135 as character
-    local cCHR144 as character
-    local cCHR162 as character
-    local cCHR163 as character
-    local cCHR182 as character
-    local cCHR194 as character
-    local cCHR195 as character
-    local cCHR198 as character
-    local cCHR199 as character
-    local cCHR201 as character
-    local cCHR205 as character
-    local cCHR214 as character
-    local cCHR227 as character
-    local cCHR231 as character
-    local cCHR243 as character
-    local cCHR250 as character
 
     local cLine as character
     local cRootPath as character
@@ -803,25 +784,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         FWFreeArray(@aTargetStruct)
 
         lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkEncode","0"))=="1")
-        if (lChkEncode)
-            cCHR128:=chr(128)
-            cCHR135:=chr(135)
-            cCHR144:=chr(144)
-            cCHR162:=chr(162)
-            cCHR163:=chr(163)
-            cCHR182:=chr(182)
-            cCHR194:=chr(194)
-            cCHR195:=chr(195)
-            cCHR198:=chr(198)
-            cCHR199:=chr(199)
-            cCHR201:=chr(201)
-            cCHR205:=chr(205)
-            cCHR214:=chr(214)
-            cCHR227:=chr(227)
-            cCHR231:=chr(231)
-            cCHR243:=chr(243)
-            cCHR250:=chr(250)
-        endif
 
         bAddTLogReport:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAddTLogReport","{|cAlias,cTableImport,oTLogReport|.F.}")))
         bDeleteIfEmpty:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bDeleteIfEmpty","{|cAlias|.F.}")))
@@ -914,28 +876,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     endif
 
                     if (lChkEncode)
-                        if (lTablesEncodeUTF8)
-                            cLineUTF8:=DecodeUTF8(cLine)
-                        else
-                            cLineUTF8:=""
-                        endif
-                        if (empty(cLineUTF8))
-                            cLine:=cTools():StrReplace(;
-                                cLine,;
-                                {cCHR144,cCHR201},;
-                                {cCHR214,cCHR205},;
-                                {cCHR199,cCHR195},;
-                                {cCHR128,cCHR199},;
-                                {cCHR182,cCHR194},;
-                                {cCHR135,cCHR231},;
-                                {cCHR198,cCHR227},;
-                                {cCHR162,cCHR243},;
-                                {cCHR163,cCHR250};
-                            )
-                        else
-                            cLine:=cLineUTF8
-                            cLineUTF8:=""
-                        endif
+                        cLine:=Accentuation(cLine,lTablesEncodeUTF8)
                     endif
 
                     aLine:=strTokArr2(cLine,";",.T.)
@@ -1360,7 +1301,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                         (cSourceAlias)->(dbCommitAll())
                                     endif
                                     if (right(cDeleteIfEmpty,1)==",")
-                                        cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
+                                        cDeleteIfEmpty:=SubStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
                                     endif
                                     nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                                     cDeleteIfEmpty:=""
@@ -1425,7 +1366,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         (cSourceAlias)->(dbCommitAll())
                     endif
                     if (right(cDeleteIfEmpty,1)==",")
-                        cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
+                        cDeleteIfEmpty:=SubStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
                     endif
                     nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                     cDeleteIfEmpty:=""
@@ -1460,7 +1401,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             if (nDeleteIfEmpty>0)
                 if (right(cDeleteIfEmpty,1)==",")
-                    cDeleteIfEmpty:=subStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
+                    cDeleteIfEmpty:=SubStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
                 endif
                 nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
                 cDeleteIfEmpty:=""
@@ -1987,13 +1928,13 @@ return(lreadIniFile)
 
 static function readTableDefinition() as logical
 
+    local aLineDef as array
     local aFieldDef as array
-    local aFieldDefTmp as array
     local aFieldsDef:=array(0) as array
+    local aFieldDefTmp as array
     local aTablesImport as array
 
     local cLine as character
-    local cLineUTF8 as character
 
     local cTable as character
     local cRootPath as character
@@ -2006,6 +1947,8 @@ static function readTableDefinition() as logical
 
     local nField as numeric
     local nFields as numeric
+
+    local nAT as numeric
 
     local nft_fRecNo as numeric
     local nft_fHandle as numeric
@@ -2044,7 +1987,7 @@ static function readTableDefinition() as logical
 
         oFT:=uft():New()
 
-        MsProcess():MsProcTxt(cFileTablesDefinition)
+        MsProcess():MsProcTxt(cFileTablesDefinition,.T.)
 
         nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)
         lreadTableDefinition:=(nft_fHandle>=0)
@@ -2061,6 +2004,52 @@ static function readTableDefinition() as logical
 
         while (!oFT:ft_fEof())
             cLine:=oFT:ft_fReadLN()
+            if ("-"!=Left(cLine,1))
+                oFT:ft_fSkip()
+                loop
+            endif
+            aLineDef:=strTokArr2(cLine," ",.F.)
+            exit
+        end while
+
+        lreadTableDefinition:=(!empty(aLineDef).and.(len(aLineDef)==DTS_DBS_ALEN))
+        if (!lreadTableDefinition)
+            ApMsgAlert("Could not get structure for tables","Attention")
+            break
+        endif
+
+        nAT:=1
+        
+        aLineDef[DTS_DBS_NAME]:={;
+            nAT,;
+            (Len(aLineDef[DTS_DBS_NAME])+1);
+        }
+
+        nAT+=aLineDef[DTS_DBS_NAME][2]
+        
+        aLineDef[DTS_DBS_TYPE]:={;
+            nAT,;
+            (Len(aLineDef[DTS_DBS_TYPE])+1);
+        }
+        
+        nAT+=aLineDef[DTS_DBS_TYPE][2]
+
+        aLineDef[DTS_DBS_FLG]:={;
+            nAT,;
+            (Len(aLineDef[DTS_DBS_FLG])+1);
+        }
+        
+        nAT+=aLineDef[DTS_DBS_FLG][2]
+
+        aLineDef[DTS_DBS_FORMAT]:={;
+            nAT,;
+            Len(aLineDef[DTS_DBS_FORMAT]);
+        }
+
+        oFT:ft_fGoTop()
+
+        while (!oFT:ft_fEof())
+            cLine:=oFT:ft_fReadLN()
             begin sequence
                 if (empty(cLine))
                     break
@@ -2069,7 +2058,7 @@ static function readTableDefinition() as logical
                 if ("Table:"==Left(cLine,6))
                     cTable:=strTran(cLine,"Table:","")
                     cTable:=allTrim(cTable)
-                    MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]")
+                    MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.T.)
                     lSkipTable:=(!oHMTablesImport:Get(cTable))
                     if (lSkipTable)
                         break
@@ -2079,7 +2068,7 @@ static function readTableDefinition() as logical
                     endif
                     aSize(aFieldsDef,0)
                     while (!oFT:ft_fEof())
-                        MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]")
+                        MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.T.)
                         cLine:=oFT:ft_fReadLN()
                         if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
                             oFT:ft_fDelete()
@@ -2093,29 +2082,17 @@ static function readTableDefinition() as logical
                             oFT:ft_fGoTo(nft_fRecNo-1)
                             break
                         endif
-                        cLine:=cTools():StrReplace(cLine,{"  "," "})
-                        cLineUTF8:=DecodeUTF8(cLine)
-                        if (empty(cLineUTF8))
-                            cLine:=OemToAnsi(cLine)
-                        else
-                            cLine:=cLineUTF8
-                        endif
-                        cLineUTF8:=""
-                        aFieldDef:=strTokArr2(cLine," ",.F.)
+                        cLine:=Accentuation(cLine,.T.)
+                        aFieldDef:=Array(DTS_DBS_ALEN)
+                        aFieldDef[DTS_DBS_NAME]:=allTrim(SubStr(cLine,aLineDef[DTS_DBS_NAME][1],aLineDef[DTS_DBS_NAME][2]))
+                        aFieldDef[DTS_DBS_TYPE]:=allTrim(SubStr(cLine,aLineDef[DTS_DBS_TYPE][1],aLineDef[DTS_DBS_TYPE][2]))
+                        aFieldDef[DTS_DBS_FLG]:=allTrim(SubStr(cLine,aLineDef[DTS_DBS_FLG][1],aLineDef[DTS_DBS_FLG][2]))
+                        aFieldDef[DTS_DBS_FORMAT]:=allTrim(SubStr(cLine,aLineDef[DTS_DBS_FORMAT][1],aLineDef[DTS_DBS_FORMAT][2]))
                         cLine:=""
-                        if (len(aFieldDef)!=DTS_DBS_ALEN)
-                            aFieldDefTmp:=array(DTS_DBS_ALEN)
-                            aFieldDefTmp[DTS_DBS_NAME]:=aFieldDef[DTS_DBS_NAME]
-                            aFieldDefTmp[DTS_DBS_TYPE]:=aFieldDef[DTS_DBS_TYPE]
-                            aFieldDefTmp[DTS_DBS_FLG]:=""//DTS_DBS_FLG
-                            aFieldDefTmp[DTS_DBS_FORMAT]:=aFieldDef[DTS_DBS_FLG]
-                            aFieldDef:=aClone(aFieldDefTmp)
-                            FWFreeArray(@aFieldDefTmp)
-                        endif
                         nTypeReplicate:=AT("[",aFieldDef[DTS_DBS_TYPE])
                         lTypeReplicate:=(nTypeReplicate>0)
                         if (lTypeReplicate)
-                            nFields:=val(subStr(aFieldDef[DTS_DBS_TYPE],(nTypeReplicate+1),(AT("]",aFieldDef[DTS_DBS_TYPE])-1)))
+                            nFields:=val(SubStr(aFieldDef[DTS_DBS_TYPE],(nTypeReplicate+1),(AT("]",aFieldDef[DTS_DBS_TYPE])-1)))
                             aAdd(aFieldsDef,aClone(aFieldDef))
                             if (nFields>1)
                                 aFieldDefTmp:=aClone(aFieldDef)
@@ -2152,6 +2129,7 @@ static function readTableDefinition() as logical
         oFT:=FreeObj(oFT)
     endif
 
+    FWFreeArray(@aLineDef)
     FWFreeArray(@aFieldsDef)
 
     if (valtype(oHMTablesImport)=="O")
@@ -2191,7 +2169,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
         cSourceField:=aTargetField[2]
         lSourceTransform:=("@"==Left(cSourceField,1))
         if (lSourceTransform)
-            cSourceField:=subStr(cSourceField,2)
+            cSourceField:=SubStr(cSourceField,2)
         endif
         aSourceField:=strToKArr2(cSourceField,"+",.T.)
         nSourceFields:=len(aSourceField)
@@ -2421,8 +2399,8 @@ static procedure CFGFile()
             if (valType(st_oHMbTransform)=="O")
                 st_oHMbTransform:Clean()
             endif
-            MsProcess():MsAguarde({||datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait! Loading ["+cINIFile+"]")
-            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait")
+            MsProcess():MsAguarde({||datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait! Loading ["+cINIFile+"]",nil,.F.)
+            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait",nil,.T.)
         endif
 
     end sequence
@@ -2889,8 +2867,8 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
                 st_oHMbTransform:Clean()
             endif
             cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
-            MsProcess():MsAguarde({||datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait")
-            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait")
+            MsProcess():MsAguarde({||datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait",nil,.F.)
+            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait",nil,.T.)
         endif
     endif
 
@@ -3007,3 +2985,63 @@ static function TCSQLUpdateTable(;
     oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
 return(nTCSQLExec)
+
+static function Accentuation(cText as character,lTablesEncodeUTF8 as logical) as character
+
+    local cCHR128 as character
+    local cCHR135 as character
+    local cCHR144 as character
+    local cCHR162 as character
+    local cCHR163 as character
+    local cCHR182 as character
+    local cCHR194 as character
+    local cCHR195 as character
+    local cCHR198 as character
+    local cCHR199 as character
+    local cCHR201 as character
+    local cCHR205 as character
+    local cCHR214 as character
+    local cCHR227 as character
+    local cCHR231 as character
+    local cCHR243 as character
+    local cCHR250 as character
+
+    local cTextNew as character
+
+    if (lTablesEncodeUTF8)
+        cTextNew:=DecodeUTF8(cText)
+    endif
+
+    if (empty(cTextNew))
+        cCHR128:=chr(128)
+        cCHR135:=chr(135)
+        cCHR144:=chr(144)
+        cCHR162:=chr(162)
+        cCHR163:=chr(163)
+        cCHR182:=chr(182)
+        cCHR194:=chr(194)
+        cCHR195:=chr(195)
+        cCHR198:=chr(198)
+        cCHR199:=chr(199)
+        cCHR201:=chr(201)
+        cCHR205:=chr(205)
+        cCHR214:=chr(214)
+        cCHR227:=chr(227)
+        cCHR231:=chr(231)
+        cCHR243:=chr(243)
+        cCHR250:=chr(250)
+        cTextNew:=cTools():StrReplace(;
+            cText,;
+            {cCHR144,cCHR201},;
+            {cCHR214,cCHR205},;
+            {cCHR199,cCHR195},;
+            {cCHR128,cCHR199},;
+            {cCHR182,cCHR194},;
+            {cCHR135,cCHR231},;
+            {cCHR198,cCHR227},;
+            {cCHR162,cCHR243},;
+            {cCHR163,cCHR250};
+        )
+    endif
+
+return(cTextNew)
