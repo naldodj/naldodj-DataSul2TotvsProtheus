@@ -2071,6 +2071,7 @@ static function readTableDefinition() as logical
                         MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.T.)
                         cLine:=oFT:ft_fReadLN()
                         if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
+                            cLine:=""
                             oFT:ft_fDelete()
                             oFT:ft_fSkip()
                             loop
