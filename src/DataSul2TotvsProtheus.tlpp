@@ -1989,7 +1989,8 @@ static function readTableDefinition() as logical
 
         MsProcess():MsProcTxt(cFileTablesDefinition,.T.)
 
-        nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)
+        MsgRun(cFileTablesDefinition,"Wait...",{||nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)})
+        
         lreadTableDefinition:=(nft_fHandle>=0)
         if (!lreadTableDefinition)
             oFT:ft_fUse()
@@ -2467,14 +2468,25 @@ static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logi
             bSet24:={||lOK:=.F.,oTDlg:End()}
 
             aButtons:=array(0)
-            bNotepadCFGFile:={||MsProcess():MsAguarde({||datasul2totvs.NotepadCFGFile(cINIFile)},"Abrindo no NotepadCFGFile","Aguarde...")}
-            aAdd(aButtons,{"NotepadCFGFile",bNotepadCFGFile,OemToAnsi("Abir no NotepadCFGFile"),OemtoAnsi("Abir no NotepadCFGFile")})
+            bNotepadCFGFile:={||MsProcess():MsAguarde({||datasul2totvs.NotepadCFGFile(cINIFile)},"Abrindo no Notepad","Aguarde...")}
+            aAdd(aButtons,{"NotepadCFGFile",bNotepadCFGFile,OemToAnsi("Abir no Notepad"),OemtoAnsi("Abir no Notepad")})
             bRestoreCFGFile:={||MsProcess():MsAguarde({||datasul2totvs.RestoreCFGFile(cINIFile,@cMemoEdit,@oTMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
             aAdd(aButtons,{"RestoreCFGFile",bRestoreCFGFile,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
 
         ACTIVATE MSDIALOG oTDlg CENTERED ON INIT EnchoiceBar(oTDlg,bSet15,bSet24,nil,@aButtons)
 
     end sequence
+
+    FreeObj(@oTDlg)
+    FreeObj(@oTFont)
+    FreeObj(@oTPanel)
+    FreeObj(@oTMemoEdit)
+
+    FWFreeArray(@aButtons)
+    FWFreeArray(@aAdvSize)
+    FWFreeArray(@aObjSize)
+    FWFreeArray(@aObjCoords)
+    FWFreeArray(@aInfoAdvSize)
 
     return(lOk)
 
