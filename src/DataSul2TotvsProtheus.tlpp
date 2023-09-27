@@ -1142,7 +1142,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
                                     cDeleteIfEmpty+=","
                                     nDeleteIfEmpty++
-                                    break
                                 endif
                             endif
 
