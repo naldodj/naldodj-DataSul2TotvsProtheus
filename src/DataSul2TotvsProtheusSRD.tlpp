@@ -466,18 +466,44 @@ return(lSRVFound)
 static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as character
 
     local cRDPD as character
+    local cTable as character
+    local cDatarq as character
+    local cRoteiro as character
     local cFindInTable as character
+    local cCutsomTable as character
 
     local cTReportGrp as character
     local cTReportMsg as character
 
     local lSRVFound as logical
+    local lFindInCustomTable as logical
 
     local nSRDPD:=getSX3Cache("RD_PD","X3_TAMANHO")
 
     local oTLogReport as object
 
-    cFindInTable:=datasul2totvs.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.,.T.)
+    cRoteiro:=SRDGetValue("RD_ROTEIR","")
+    cDatarq:=SRDGetValue("RD_DATARQ","")
+
+    cTable:="TabelaVerbasSRV"
+    if (!empty(cRoteiro))
+        cCutsomTable:=(cTable+cRoteiro)
+        lFindInCustomTable:=oTFIni:ExistSection(cCutsomTable)
+        if ((lFindInCustomTable).and.(cRoteiro=="FOL").and.!empty(cDatarq))
+            lFindInCustomTable:=(;
+                (Right(cDatarq,2)=="12");
+                .and.;
+                (Left(DTOS(SRA->RA_DEMISSA),6)!=cDatarq);
+            )
+        endif
+        if (lFindInCustomTable)
+            cFindInTable:=datasul2totvs.findInTable(oTFIni,cCutsomTable,cEventoDataSul,.T.,.T.)
+        endif
+    endif
+
+    if (empty(cFindInTable))
+        cFindInTable:=datasul2totvs.findInTable(oTFIni,cTable,cEventoDataSul,.T.,.T.)
+    endif
 
     cRDPD:=Left(cFindInTable,nSRDPD)
 

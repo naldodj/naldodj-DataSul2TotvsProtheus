@@ -864,6 +864,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             TCSrvMap(cSourceAlias,nil,.F.)
 
+            if (lTypeReplicate)
+                for nField:=1 to nFields
+                    nReplicates:=GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)
+                    if (nReplicates>0)
+                        exit
+                    endif
+                next nField                            
+            endif
+
             while (!oFT:ft_fEof())
 
                 nft_fRecNo:=oFT:ft_fRecNo()
@@ -882,7 +891,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     aLine:=strTokArr2(cLine,";",.T.)
 
                     lAppend:=.T.
-
+                    lHasError:=.F.
+                    
                     if ((lChkFilial).or.(lEnableFilterBlock).or.(lAddFieldTmp))
 
                         for nField:=1 to nFields
@@ -935,8 +945,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
                                         oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
                                     endif
-                                    lAppend:=.F.
-                                    exit
+                                    lAppend:=((!lHasError).and.(lTypeReplicate).and.((nReplicates>0).and.(lTypeReplicateRow)))
+                                    if (!lAppend)
+                                        exit
+                                    endif
                                 endif
                             endif
                             if ((lChkFilial).and.(cField==cFieldFilial))
@@ -960,7 +972,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     endif
                                 endif
                                 if (!lAppend)
-                                    exit
+                                    lAppend:=((!lHasError).and.(lTypeReplicate).and.((nReplicates>0).and.(lTypeReplicateRow)))
+                                    if (!lAppend)
+                                        exit
+                                    endif
                                 endif
                             endif
                         next nField
@@ -971,310 +986,73 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         break
                     endif
 
-                    if (lAppend)
-
-                        (cSourceAlias)->(dbAppend(.F.))
-
-                        ldbCommit:=(++nCommitBuffer>=1024)
-
-                        if (lSeekTable)
-                            cAllSeekIndexKey:=cSeekIndexKey
+                    if (!lAppend)
+                        lAppend:=((!lHasError).and.(lTypeReplicate).and.((nReplicates>0).and.(lTypeReplicateRow)))
+                        if (!lAppend)
+                            break
                         endif
+                    endif
 
-                        for nField:=1 to nFields
+                    (cSourceAlias)->(dbAppend(.F.))
 
-                            cField:=aTargetFieldsDef[nField][1]
+                    ldbCommit:=(++nCommitBuffer>=1024)
 
-                            if (lTypeReplicate)
-                                nReplicates:=GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)
-                                if (nReplicates>0)
-                                    lTypeReplicate:=.F.
-                                endif
-                            endif
+                    if (lSeekTable)
+                        cAllSeekIndexKey:=cSeekIndexKey
+                    endif
 
-                            if ((!lChkFilial).and.(cField==cFieldFilial))
+                    for nField:=1 to nFields
 
-                                xValue:=cAliasxFilial
+                        cField:=aTargetFieldsDef[nField][1]
 
-                            else
+                        if ((!lChkFilial).and.(cField==cFieldFilial))
 
-                                if ((nReplicates>0).and.(!lTypeReplicateRow).and.(GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0))
+                            xValue:=cAliasxFilial
 
-                                    nReplicate:=0
+                        else
 
-                                    while (((++nReplicate)<=nReplicates))
+                            if ((nReplicates>0).and.(!lTypeReplicateRow).and.(GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0))
 
-                                        lHasError:=.F.
+                                nReplicate:=0
 
-                                        if (nReplicate==1)
-
-                                            xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
-
-                                        else
-
-                                            aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
-                                            aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
-
-                                            xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
-
-                                            FWFreeArray(@aTargetFieldsDefReplicate)
-
-                                        endif
-
-                                        if (lHasError)
-
-                                            cError:=EvalBlockGetValue("ErrorDescription","")
-                                            cError+=EvalBlockGetValue("ErrorStack","")
-                                            DelSection("EvalBlock")
-
-                                            if (!empty(cError))
-                                                cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
-                                                cError:=""
-                                                cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
-                                                oTLogReport:AddGroup(cTLogGroup)
-                                                oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
-                                                cTLogDetail:=""
-                                                oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
-                                                lEnd:=oMsNewProcess:lEnd:=.T.
-                                                lAppend:=.F.
-                                                break
-                                            endif
-
-                                        endif
-
-                                        if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
-                                            loop
-                                        endif
-
-                                        (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
-
-                                    end while
-
-                                    loop
-
-                                else
+                                while (((++nReplicate)<=nReplicates))
 
                                     lHasError:=.F.
 
-                                    xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+                                    if (nReplicate==1)
 
-                                endif
+                                        xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
 
-                                if (lHasError)
-
-                                    cError:=EvalBlockGetValue("ErrorDescription","")
-                                    cError+=EvalBlockGetValue("ErrorStack","")
-                                    DelSection("EvalBlock")
-
-                                    if (!empty(cError))
-                                        cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
-                                        cError:=""
-                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
-                                        oTLogReport:AddGroup(cTLogGroup)
-                                        oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
-                                        oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
-                                        cTLogDetail:=""
-                                        lEnd:=oMsNewProcess:lEnd:=.T.
-                                        lAppend:=.F.
-                                        break
-                                    endif
-
-                                endif
-
-                            endif
-
-                            if (empty(xValue))
-                                if (lHasError)
-                                    cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
-                                    oTLogReport:AddGroup(cTLogGroup)
-                                    cTLogDetail:="Estrutura da Linha diferente da estrutura de Dados"
-                                    oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
-                                    oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
-                                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
-                                    if (lDeleteIfEmpty)
-                                        (cSourceAlias)->(dbDelete())
-                                        cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
-                                        cDeleteIfEmpty+=","
-                                        nDeleteIfEmpty++
-                                        break
-                                    endif
-                                    exit
-                                endif
-                                if (!lUpdateEmptyValue)
-                                    loop
-                                endif
-                            endif
-
-                            if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
-                                loop
-                            endif
-
-                            (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
-
-                            if ((lSeekTable).and.(!empty(cAllSeekIndexKey)))
-                                if (cField$cAllSeekIndexKey)
-                                    cAllSeekIndexKey:=cTools():StrReplace(cAllSeekIndexKey,{cField,""})
-                                endif
-                                if (empty(cTools():StrReplace(cAllSeekIndexKey,{"+",""})))
-                                    cAllSeekIndexKey:=""
-                                    lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
-                                endif
-                            endif
-
-                        next nField
-
-                        lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
-
-                        lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
-                        if (lDeleteIfEmpty)
-                            (cSourceAlias)->(dbDelete())
-                            cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
-                            cDeleteIfEmpty+=","
-                            nDeleteIfEmpty++
-                        endif
-
-                        if (!lDeleteIfEmpty)
-
-                            if (lEnableFilterBlock)
-                                lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cSourceAlias)->(!Eval(bEnableFilterBlock,cSourceAlias))},nil,.F.,nil,nil))
-                                if ((!lHasError).and.(lFilterBlock))
-                                    (cSourceAlias)->(dbDelete())
-                                    cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
-                                    cDeleteIfEmpty+=","
-                                    nDeleteIfEmpty++
-                                endif
-                            endif
-
-                            if (lSeekTable)
-
-                                lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
-
-                                if (lSeekTableFound)
-
-                                    if ((lUpdateTableFields).and.(lLock:=MySoftLock(cSeekTable)))
-
-                                        lLock:=(cSeekTable)->(MyRecLock(cSeekTable,.F.))
-
-                                        if (lLock)
-
-                                            for nField:=1 to nUpdateTableSource
-
-                                                cField:=aUpdateTableSource[nField]
-
-                                                if ((oHMTargetFieldsDef:Get(cField,@nTargetFieldAT)).and.(nTargetFieldAT>0))
-
-                                                    lHasError:=.F.
-                                                    xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldAT],@aFieldsDef,@oHMSourceFieldsDef,@cType))
-
-                                                    if (lHasError)
-
-                                                        cError:=EvalBlockGetValue("ErrorDescription","")
-                                                        cError+=EvalBlockGetValue("ErrorStack","")
-                                                        DelSection("EvalBlock")
-
-                                                        if (!empty(cError))
-                                                            cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
-                                                            cError:=""
-                                                            cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
-                                                            oTLogReport:AddGroup(cTLogGroup)
-                                                            oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
-                                                            cTLogDetail:=""
-                                                            lEnd:=oMsNewProcess:lEnd:=.T.
-                                                            break
-                                                        endif
-
-                                                    endif
-
-                                                    cField:=aUpdateTableFields[nField]
-                                                    xValue:=NormalizeData(@lHasError,xValue,cType,cField,.T.,@st_oHMbTransform,@oTFIni)
-
-                                                    if (lHasError)
-
-                                                        cError:=EvalBlockGetValue("ErrorDescription","")
-                                                        cError+=EvalBlockGetValue("ErrorStack","")
-                                                        DelSection("EvalBlock")
-
-                                                        if (!empty(cError))
-                                                            cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
-                                                            cError:=""
-                                                            cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
-                                                            oTLogReport:AddGroup(cTLogGroup)
-                                                            oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
-                                                            cTLogDetail:=""
-                                                            lEnd:=oMsNewProcess:lEnd:=.T.
-                                                            (cSeekTable)->(MsUnLock())
-                                                            break
-                                                        endif
-
-                                                    endif
-
-                                                endif
-
-                                                (cSeekTable)->(FieldPut(FieldPos(cField),xValue))
-
-                                            next nField
-
-                                            (cSeekTable)->(MsUnLock())
-
-                                        endif
-
-                                    endif
-
-                                endif
-
-                            endif
-                        
-                        endif
-
-                        if ((nReplicates>0).and.(lTypeReplicateRow))
-
-                            (cSourceAlias)->(dbCommitAll())
-
-                            aReplicateValues:=(cSourceAlias)->(aUtils():RegToArray(cSourceAlias,recNo(),aTargetReplicateFields,.F.,.F.,@aTargetReplicateFieldsPos))
-                            nReplicate:=1
-
-                            while (((++nReplicate)<=nReplicates))
-
-                                lAppend:=.T.
-
-                                (cSourceAlias)->(dbAppend(.F.))
-                                ldbCommit:=(++nCommitBuffer>=1024)
-
-                                for nField:=1 to nFields
-
-                                    cField:=aTargetFieldsDef[nField][1]
-
-                                    if (GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0)
+                                    else
 
                                         aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
                                         aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
+
                                         xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
 
                                         FWFreeArray(@aTargetFieldsDefReplicate)
 
-                                    else
-
-                                        if (!oHMTargetReplicateFields:Get(cField,@nReplicateValuesAT))
-                                            loop
-                                        endif
-
-                                        if (aScan(aNoReplicateValues,{|x|(x==cField)})==0)
-                                            xValue:=aReplicateValues[nReplicateValuesAT]
-                                        else
-                                            xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef,@cType))
-                                        endif
-
                                     endif
 
-                                    if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
-                                        lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
-                                        if ((!lHasError).and.(!lAppend))
-                                            (cSourceAlias)->(dbDelete())
-                                            cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
-                                            cDeleteIfEmpty+=","
-                                            nDeleteIfEmpty++
-                                            exit
+                                    if (lHasError)
+
+                                        cError:=EvalBlockGetValue("ErrorDescription","")
+                                        cError+=EvalBlockGetValue("ErrorStack","")
+                                        DelSection("EvalBlock")
+
+                                        if (!empty(cError))
+                                            cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                            cError:=""
+                                            cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                            oTLogReport:AddGroup(cTLogGroup)
+                                            oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
+                                            cTLogDetail:=""
+                                            oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
+                                            lEnd:=oMsNewProcess:lEnd:=.T.
+                                            lAppend:=.F.
+                                            break
                                         endif
+
                                     endif
 
                                     if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
@@ -1283,38 +1061,270 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                     (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
 
-                                next nField
+                                end while
 
-                                lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
+                                loop
 
-                                if (lAppend)
-                                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
-                                    if (lDeleteIfEmpty)
+                            else
+
+                                lHasError:=.F.
+
+                                xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
+
+                            endif
+
+                            if (lHasError)
+
+                                cError:=EvalBlockGetValue("ErrorDescription","")
+                                cError+=EvalBlockGetValue("ErrorStack","")
+                                DelSection("EvalBlock")
+
+                                if (!empty(cError))
+                                    cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                    cError:=""
+                                    cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                    oTLogReport:AddGroup(cTLogGroup)
+                                    oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
+                                    oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
+                                    cTLogDetail:=""
+                                    lEnd:=oMsNewProcess:lEnd:=.T.
+                                    break
+                                endif
+
+                            endif
+
+                        endif
+
+                        if (empty(xValue))
+                            if (lHasError)
+                                cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                oTLogReport:AddGroup(cTLogGroup)
+                                cTLogDetail:="Estrutura da Linha diferente da estrutura de Dados"
+                                oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+                                oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
+                                lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
+                                if (lDeleteIfEmpty)
+                                    (cSourceAlias)->(dbDelete())
+                                    cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
+                                    cDeleteIfEmpty+=","
+                                    nDeleteIfEmpty++
+                                    break
+                                endif
+                                exit
+                            endif
+                            if (!lUpdateEmptyValue)
+                                loop
+                            endif
+                        endif
+
+                        if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
+                            loop
+                        endif
+
+                        (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
+
+                        if ((lSeekTable).and.(!empty(cAllSeekIndexKey)))
+                            if (cField$cAllSeekIndexKey)
+                                cAllSeekIndexKey:=cTools():StrReplace(cAllSeekIndexKey,{cField,""})
+                            endif
+                            if (empty(cTools():StrReplace(cAllSeekIndexKey,{"+",""})))
+                                cAllSeekIndexKey:=""
+                                lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
+                            endif
+                        endif
+
+                    next nField
+
+                    lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
+
+                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
+                    if (lDeleteIfEmpty)
+                        (cSourceAlias)->(dbDelete())
+                        cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
+                        cDeleteIfEmpty+=","
+                        nDeleteIfEmpty++
+                    endif
+
+                    if (!lDeleteIfEmpty)
+
+                        if (lEnableFilterBlock)
+                            lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cSourceAlias)->(!Eval(bEnableFilterBlock,cSourceAlias))},nil,.F.,nil,nil))
+                            if ((!lHasError).and.(lFilterBlock))
+                                (cSourceAlias)->(dbDelete())
+                                cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
+                                cDeleteIfEmpty+=","
+                                nDeleteIfEmpty++
+                            endif
+                        endif
+
+                        if (lSeekTable)
+
+                            lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
+
+                            if (lSeekTableFound)
+
+                                if ((lUpdateTableFields).and.(lLock:=MySoftLock(cSeekTable)))
+
+                                    lLock:=(cSeekTable)->(MyRecLock(cSeekTable,.F.))
+
+                                    if (lLock)
+
+                                        for nField:=1 to nUpdateTableSource
+
+                                            cField:=aUpdateTableSource[nField]
+
+                                            if ((oHMTargetFieldsDef:Get(cField,@nTargetFieldAT)).and.(nTargetFieldAT>0))
+
+                                                lHasError:=.F.
+                                                xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nTargetFieldAT],@aFieldsDef,@oHMSourceFieldsDef,@cType))
+
+                                                if (lHasError)
+
+                                                    cError:=EvalBlockGetValue("ErrorDescription","")
+                                                    cError+=EvalBlockGetValue("ErrorStack","")
+                                                    DelSection("EvalBlock")
+
+                                                    if (!empty(cError))
+                                                        cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                                        cError:=""
+                                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                                        oTLogReport:AddGroup(cTLogGroup)
+                                                        oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
+                                                        cTLogDetail:=""
+                                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        break
+                                                    endif
+
+                                                endif
+
+                                                cField:=aUpdateTableFields[nField]
+                                                xValue:=NormalizeData(@lHasError,xValue,cType,cField,.T.,@st_oHMbTransform,@oTFIni)
+
+                                                if (lHasError)
+
+                                                    cError:=EvalBlockGetValue("ErrorDescription","")
+                                                    cError+=EvalBlockGetValue("ErrorStack","")
+                                                    DelSection("EvalBlock")
+
+                                                    if (!empty(cError))
+                                                        cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                                        cError:=""
+                                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                                        oTLogReport:AddGroup(cTLogGroup)
+                                                        oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
+                                                        cTLogDetail:=""
+                                                        lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        (cSeekTable)->(MsUnLock())
+                                                        break
+                                                    endif
+
+                                                endif
+
+                                            endif
+
+                                            (cSeekTable)->(FieldPut(FieldPos(cField),xValue))
+
+                                        next nField
+
+                                        (cSeekTable)->(MsUnLock())
+
+                                    endif
+
+                                endif
+
+                            endif
+
+                        endif
+                    
+                    endif
+
+                    if ((nReplicates>0).and.(lTypeReplicateRow))
+
+                        (cSourceAlias)->(dbCommitAll())
+
+                        aReplicateValues:=(cSourceAlias)->(aUtils():RegToArray(cSourceAlias,recNo(),aTargetReplicateFields,.F.,.F.,@aTargetReplicateFieldsPos))
+                        nReplicate:=1
+
+                        while (((++nReplicate)<=nReplicates))
+
+                            lAppend:=.T.
+
+                            (cSourceAlias)->(dbAppend(.F.))
+                            ldbCommit:=(++nCommitBuffer>=1024)
+
+                            for nField:=1 to nFields
+
+                                cField:=aTargetFieldsDef[nField][1]
+
+                                if (GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0)
+
+                                    aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
+                                    aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
+                                    xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
+
+                                    FWFreeArray(@aTargetFieldsDefReplicate)
+
+                                else
+
+                                    if (!oHMTargetReplicateFields:Get(cField,@nReplicateValuesAT))
+                                        loop
+                                    endif
+
+                                    if (aScan(aNoReplicateValues,{|x|(x==cField)})==0)
+                                        xValue:=aReplicateValues[nReplicateValuesAT]
+                                    else
+                                        xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef,@cType))
+                                    endif
+
+                                endif
+
+                                if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
+                                    lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
+                                    if ((!lHasError).and.(!lAppend))
                                         (cSourceAlias)->(dbDelete())
                                         cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
                                         cDeleteIfEmpty+=","
                                         nDeleteIfEmpty++
+                                        exit
                                     endif
                                 endif
 
-                                if ((nDeleteIfEmpty>=1024).or.((ldbCommit).and.(nDeleteIfEmpty>0)))
-                                    if (!ldbCommit)
-                                        (cSourceAlias)->(dbCommitAll())
-                                    endif
-                                    if (right(cDeleteIfEmpty,1)==",")
-                                        cDeleteIfEmpty:=SubStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
-                                    endif
-                                    nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
-                                    cDeleteIfEmpty:=""
-                                    nDeleteIfEmpty:=0
-                                    TCRefresh(cFWTemporaryTableRealName)
+                                if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
+                                    loop
                                 endif
 
-                            end while
+                                (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
 
-                            FwFreeArray(@aReplicateValues)
+                            next nField
 
-                        endif
+                            lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
+
+                            if (lAppend)
+                                lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
+                                if (lDeleteIfEmpty)
+                                    (cSourceAlias)->(dbDelete())
+                                    cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
+                                    cDeleteIfEmpty+=","
+                                    nDeleteIfEmpty++
+                                endif
+                            endif
+
+                            if ((nDeleteIfEmpty>=1024).or.((ldbCommit).and.(nDeleteIfEmpty>0)))
+                                if (!ldbCommit)
+                                    (cSourceAlias)->(dbCommitAll())
+                                endif
+                                if (right(cDeleteIfEmpty,1)==",")
+                                    cDeleteIfEmpty:=SubStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
+                                endif
+                                nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
+                                cDeleteIfEmpty:=""
+                                nDeleteIfEmpty:=0
+                                TCRefresh(cFWTemporaryTableRealName)
+                            endif
+
+                        end while
+
+                        FwFreeArray(@aReplicateValues)
 
                     endif
 
