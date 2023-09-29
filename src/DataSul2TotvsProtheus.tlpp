@@ -1228,6 +1228,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                         if ((nReplicates>0).and.(lTypeReplicateRow))
 
+                            (cSourceAlias)->(dbCommitAll())
+
                             aReplicateValues:=(cSourceAlias)->(aUtils():RegToArray(cSourceAlias,recNo(),aTargetReplicateFields,.F.,.F.,@aTargetReplicateFieldsPos))
                             nReplicate:=1
 
