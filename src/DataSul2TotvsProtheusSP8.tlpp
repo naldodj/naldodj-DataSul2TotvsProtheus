@@ -89,7 +89,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
                 );
             }
             nSizeMat:=getSX3Cache("RA_MAT","X3_TAMANHO")
-            bSourceSetFilter:={|cLine|SP8SourceFilter(cLine,oTFIni,dDataDe,dDataAte,cMatDe,cMatAte,nSizeMat,cFilDe,cFilAte,oTLogReport)}
+            bSourceSetFilter:={|aLine|SP8SourceFilter(aLine,oTFIni,dDataDe,dDataAte,cMatDe,cMatAte,nSizeMat,cFilDe,cFilAte,oTLogReport)}
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -420,9 +420,7 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
 
 return(lPutMarcacoes)
 
-static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as date,dDataAte as date,cMatDe as character,cMatAte as character,nSizeMat as numeric,cFilDe as character,cFilAte as character,oTLogReport as object) as logical
-
-    local aLine as array
+static function SP8SourceFilter(aLine as array,oTFIni as object,dDataDe as date,dDataAte as date,cMatDe as character,cMatAte as character,nSizeMat as numeric,cFilDe as character,cFilAte as character,oTLogReport as object) as logical
 
     local cFil as character
     local cMat as character
@@ -434,7 +432,6 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
     local cTLogGroup as character
     local cTLogDetail as character
 
-    local nAT as numeric
     local nHora as numeric
     local nSP8Order:=RetOrder("SP8","P8_FILIAL+P8_MAT+DTOS(P8_DATA)+STR(P8_HORA,5,2)")
 
@@ -443,15 +440,6 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
     local xFilter as variant
 
     begin sequence
-        if (empty(cLine))
-            break
-        endif
-        cLine:=subStr(cLine,1,45)
-        nAT:=RAT(";",cLine)
-        if (nAT>0)
-            cLine:=substr(cLine,1,(nAT-1))
-        endif
-        aLine:=strToKArr2(cLine,";",.T.)
         if (empty(aLine).or.(Len(aLine)<6))
             break
         endif
@@ -509,7 +497,5 @@ static function SP8SourceFilter(cLine as character,oTFIni as object,dDataDe as d
             break
         endif
     end sequence
-
-    FWFreeArray(@aLine)
 
 return(lFilter)

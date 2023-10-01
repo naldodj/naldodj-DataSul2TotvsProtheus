@@ -27,7 +27,7 @@ static function SR8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R8_FILIAL,R8_MAT,R8_DATAINI,R8_TIPO,R8_TIPOAFA")),",",.T.)
 
-    bSourceSetFilter:={|cLine|SR8SourceFilter(cLine,oTFIni)}
+    bSourceSetFilter:={|aLine|SR8SourceFilter(aLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
 
     lSR8Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
@@ -125,26 +125,13 @@ static function SR8GetSEQ() as character
 
 return(cR8SEQ)
 
-static function SR8SourceFilter(cLine as character,oTFIni as object) as logical
-
-    local aLine as array
-
-    local nAT as numeric
+static function SR8SourceFilter(aLine as array,oTFIni as object) as logical
 
     local lFilter:=.T. as logical
 
     local xFilter as variant
 
     begin sequence
-        if (empty(cLine))
-            break
-        endif
-        cLine:=subStr(cLine,1,15)
-        nAT:=RAT(";",cLine)
-        if (nAT>0)
-            cLine:=substr(cLine,1,(nAT-1))
-        endif
-        aLine:=strToKArr2(cLine,";",.T.)
         if (empty(aLine).or.(Len(aLine)<2))
             break
         endif
@@ -162,7 +149,5 @@ static function SR8SourceFilter(cLine as character,oTFIni as object) as logical
             break
         endif
     end sequence
-
-    FWFreeArray(@aLine)
 
 return(lFilter)

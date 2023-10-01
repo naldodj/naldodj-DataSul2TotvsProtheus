@@ -54,7 +54,7 @@ static method Activate() class Protheus
         lActivate:=datasul2totvs.Activate()
     endif
 
-    MsProcess():MsAguarde({||cacheData():Clean(),cacheHMData():Clean()},"Releasing temporary files and workspace memory...","Wait...")
+    FWMsgRun(nil,{||cacheData():Clean(),cacheHMData():Clean()},"Wait...","Releasing temporary files and workspace memory...")
 
     try
         //Tenta Resetar todos os filtros
@@ -90,6 +90,7 @@ static function Activate() as logical
 
     local lActivate as logical
     local lSendDataToServer as logical
+    local lRedefineBottom:=FwIsInCallStack("DNA.MAIN.EXEC.EXECUTE") as logical
 
     local nSection as numeric
     local nSections as numeric
@@ -122,7 +123,7 @@ static function Activate() as logical
         )
 
         if (lSendDataToServer)
-            MsProcess():MsAguarde({||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.F.)},"Sending Data To Server","Wait!")
+            FWMsgRun(nil,{||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.F.)},"Wait!","Sending Data To Server")
         elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
             cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
         endif
@@ -155,12 +156,12 @@ static function Activate() as logical
             break
         endif
 
-        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait! Loading ["+cINIFile+"]",nil,.F.)
+        FWMsgRun(nil,{||lActivate:=datasul2totvs.readIniFile(@cINIFile)},"Wait! Loading Settings","Loading ["+cINIFile+"]")
         if (!lActivate)
             break
         endif
 
-        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait",nil,.T.)
+        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...",nil,.T.)
         if (!lActivate)
             break
         endif
@@ -186,6 +187,10 @@ static function Activate() as logical
         nLeft:=oFWDefSize:aWindSize[2]
         nBottom:=oFWDefSize:aWindSize[3]
         nRight:=oFWDefSize:aWindSize[4]
+
+        if (lRedefineBottom)
+            nBottom-=50
+        endif
 
         oTMenuOptions:=Array(#)
 
@@ -229,6 +234,13 @@ static function Activate() as logical
 
         DEFINE MSDIALOG oTDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
+            if (lRedefineBottom)
+                oTDlg:nTop+=7
+                oTDlg:nLeft+=5
+                oTDlg:nRight+=0
+                oTDlg:nBottom-=11
+            endif
+
             MENU oTMenu IMAGE "" OF oTDlg
                 MENUITEM cCadastro
                 MENU
@@ -269,7 +281,7 @@ static function Activate() as logical
                 MENUITEM "Tools"
                 MENU
                     bTMenuAction:={||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.T.)}
-                    MENUITEM "Send data to the server" ACTION MsProcess():MsAguarde(bTMenuAction,"Sending Data To Server","Wait!")
+                    MENUITEM "Send data to the server" ACTION FWMsgRun(nil,bTMenuAction,"Wait!","Sending Data To Server")
                     MENUITEM "Settings" ACTION CFGFile()
                 ENDMENU
                 MENU
@@ -277,12 +289,13 @@ static function Activate() as logical
                 ENDMENU
             ENDMENU
 
-            oTMenu:align:=CONTROL_ALIGN_LEFT
+            oTMenu:align:=CONTROL_ALIGN_ALLCLIENT
             oTDlg:SetMenu(oTMenu)
+            oTDlg:lCentered:=(!lRedefineBottom)
 
-        ACTIVATE DIALOG oTDlg CENTERED
+        ACTIVATE DIALOG oTDlg
 
-        MsProcess():MsAguarde({||oTMenuOptions:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
+        FWMsgRun(nil,{||oTMenuOptions:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
         if (valType(oTMenuOptions)=="O")
             oTMenuOptions:=FreeObj(oTMenuOptions)
         endif
@@ -294,7 +307,7 @@ static function Activate() as logical
     end sequence
 
     if (valType(oTFIni)=="O")
-        MsProcess():MsAguarde({||oTFIni:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
+        FWMsgRun(nil,{||oTFIni:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
         if (valType(oTFIni)=="O")
             oTFIni:=FreeObj(oTFIni)
         endif
@@ -304,14 +317,14 @@ static function Activate() as logical
     FWFreeArray(@aSections)
     FWFreeArray(@aProperties)
 
-    MsProcess():MsAguarde({||DelSection()},"Releasing temporary files and workspace memory...","Wait...")
+    FWMsgRun(nil,{||DelSection()},"Wait...","Releasing temporary files and workspace memory...")
 
     if (findFunction("RstPosAlias"))
         RstPosAlias()
     endif
 
     if (valType(st_oHMbTransform)=="O")
-        MsProcess():MsAguarde({||st_oHMbTransform:Clean()},"Releasing temporary files and workspace memory...","Wait...")
+        FWMsgRun(nil,{||st_oHMbTransform:Clean()},"Wait...","Releasing temporary files and workspace memory...")
         st_oHMbTransform:=FreeObj(st_oHMbTransform)
     endif
 
@@ -423,10 +436,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local bUpdateMemoVirtual as codeblock
     local bTargetIgnoreFields as codeblock
 
+    local bSourceGetLine as codeblock
     local bSourceSetFilter as codeblock
     local bEnableFilterBlock as codeblock
     local bEnableFilterBlockMem as codeblock
 
+    local cCRLF:=CRLF as character
     local cError as character
     local cField as character
 
@@ -479,6 +494,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local lAddNew as logical
     local lAppend as logical
     local ldbCommit as logical
+    local lSetRegua:=.T. as logical
     local lHasError:=.F. as logical
     local lChkFilial as logical
     local lChkEncode as logical
@@ -512,6 +528,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local nStartLine as numeric
 
     local nRecProc:=0 as numeric
+    local nSetRegua:=0 as numeric
     local nRecCount as numeric
     local nRecProcPerc as numeric
     local nRecCountProc as numeric
@@ -546,7 +563,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local oFT as object
     local oTFIni as object
-    local oProgress as object
+    local oProgress:=txtProgress():New() as object
 
     local oTimeRemaining as object
 
@@ -594,7 +611,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     (cTargetAlias)->(dbGoTop())
                 endif
             endif
-            MsProcess():MsAguarde({||nAliasdbCount:=datasul2totvs.GetRecCount(RetSQLName(cTargetAlias),"D_E_L_E_T_=' '")})
+            FWMsgRun(nil,{||nAliasdbCount:=datasul2totvs.GetRecCount(RetSQLName(cTargetAlias),"D_E_L_E_T_=' '")},"Wait...","Verifying records in the DBMS")
             if (nAliasdbCount>0)
                 lImportData:=ApMsgNoYes("There is already data in this table. Do you want to update them?","Info")
                 if (!lImportData)
@@ -750,13 +767,18 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             bEnableFilterBlockMem:=GetValue(cTableImport+"EnableFilterBlockMem",{||.T.})
         endif
 
+        lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkEncode","0"))=="1")
+        lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
+
         oFT:=uft():New()
+        bSourceGetLine:={|cLine,nLine,nFileSize,nBufferSize,nBytesRead|GetLineFromSource(cSourceFile,cLine,nLine,nFileSize,nBufferSize,nBytesRead,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
+        oFT:ft_fSetGetLine(bSourceGetLine)
         if (valtype(GetValue(cTableImport+"SourceSetFilter",nil))=="B")
             bSourceSetFilter:=GetValue(cTableImport+"SourceSetFilter")
             oFT:ft_fSetFilter(bSourceSetFilter)
         endif
 
-        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Wait. Loading Data File.","Loading:["+cSourceFile+"]")
+        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Wait. Loading Data File.","Loading:["+cSourceFile+"]",nil,.T.)
 
         lImportData:=(nft_fHandle>=0)
         if (!lImportData)
@@ -782,8 +804,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         FWFreeArray(@aField)
         FWFreeArray(@aTargetStruct)
-
-        lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkEncode","0"))=="1")
 
         bAddTLogReport:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAddTLogReport","{|cAlias,cTableImport,oTLogReport|.F.}")))
         bDeleteIfEmpty:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bDeleteIfEmpty","{|cAlias|.F.}")))
@@ -813,8 +833,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             nIncProcStep:=Int(val(allTrim(oTFIni:GetPropertyValue("General","IncProcStep","1"))))
         endif
         nIncProcStep:=Min(Max(nIncProcStep,1),1000)
-
-        lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
 
         begin sequence
 
@@ -860,8 +878,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             oTimeRemaining:=timeRemaining():New(nRecCountProc)
 
-            oProgress:=txtProgress():New()
-
             TCSrvMap(cSourceAlias,nil,.F.)
 
             if (lTypeReplicate)
@@ -876,19 +892,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             while (!oFT:ft_fEof())
 
                 nft_fRecNo:=oFT:ft_fRecNo()
-                cLine:=oFT:ft_fReadLN()
+                aLine:=oFT:ft_fReadLN()
 
                 begin sequence
 
-                    if (empty(cLine))
+                    if (empty(aLine))
                         break
                     endif
-
-                    if (lChkEncode)
-                        cLine:=Accentuation(cLine,lTablesEncodeUTF8)
-                    endif
-
-                    aLine:=strTokArr2(cLine,";",.T.)
 
                     lAppend:=.T.
                     lHasError:=.F.
@@ -925,13 +935,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     cError+=EvalBlockGetValue("ErrorStack","")
                                     DelSection("EvalBlock")
                                     if (!empty(cError))
-                                        cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                        cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                         cError:=""
                                         cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogGroup)
                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                         cTLogDetail:=""
+                                        cLine:=""
+                                        aEval(aLine,{|e|cLine+=e+";"})
                                         oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
+                                        cLine:=""
                                         lEnd:=oMsNewProcess:lEnd:=.T.
                                         lAppend:=.F.
                                         break
@@ -943,7 +956,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                         oTLogReport:AddGroup(cTLogGroup)
                                         cTLogDetail:="Estrutura da Linha diferente da estrutura de Dados"
                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+                                        cLine:=""
+                                        aEval(aLine,{|e|cLine+=e+";"})
                                         oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
+                                        cLine:=""
                                     endif
                                     lAppend:=((!lHasError).and.(lTypeReplicate).and.((nReplicates>0).and.(lTypeReplicateRow)))
                                     if (!lAppend)
@@ -961,13 +977,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     cError+=EvalBlockGetValue("ErrorStack","")
                                     DelSection("EvalBlock")
                                     if (!empty(cError))
-                                        cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                        cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                         cError:=""
                                         cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogGroup)
                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                         cTLogDetail:=""
+                                        cLine:=""
+                                        aEval(aLine,{|e|cLine+=e+";"})
                                         oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
+                                        cLine:=""
                                         cError:=""
                                     endif
                                 endif
@@ -1041,13 +1060,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                         DelSection("EvalBlock")
 
                                         if (!empty(cError))
-                                            cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                            cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                             cError:=""
                                             cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                             oTLogReport:AddGroup(cTLogGroup)
                                             oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                             cTLogDetail:=""
+                                            cLine:=""
+                                            aEval(aLine,{|e|cLine+=e+";"})
                                             oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
+                                            cLine:=""
                                             lEnd:=oMsNewProcess:lEnd:=.T.
                                             lAppend:=.F.
                                             break
@@ -1080,12 +1102,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 DelSection("EvalBlock")
 
                                 if (!empty(cError))
-                                    cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                    cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                     cError:=""
                                     cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                     oTLogReport:AddGroup(cTLogGroup)
                                     oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
+                                    cLine:=""
+                                    aEval(aLine,{|e|cLine+=e+";"})
                                     oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
+                                    cLine:=""
                                     cTLogDetail:=""
                                     lEnd:=oMsNewProcess:lEnd:=.T.
                                     break
@@ -1101,7 +1126,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 oTLogReport:AddGroup(cTLogGroup)
                                 cTLogDetail:="Estrutura da Linha diferente da estrutura de Dados"
                                 oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+                                cLine:=""
+                                aEval(aLine,{|e|cLine+=e+";"})
                                 oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
+                                cLine:=""
                                 lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
                                 if (lDeleteIfEmpty)
                                     (cSourceAlias)->(dbDelete())
@@ -1185,7 +1213,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                                     DelSection("EvalBlock")
 
                                                     if (!empty(cError))
-                                                        cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                                        cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                                         cError:=""
                                                         cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                                         oTLogReport:AddGroup(cTLogGroup)
@@ -1207,7 +1235,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                                     DelSection("EvalBlock")
 
                                                     if (!empty(cError))
-                                                        cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                                        cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                                         cError:=""
                                                         cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                                         oTLogReport:AddGroup(cTLogGroup)
@@ -1239,8 +1267,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     endif
 
                     if ((nReplicates>0).and.(lTypeReplicateRow))
-
-                        (cSourceAlias)->(dbCommitAll())
 
                         aReplicateValues:=(cSourceAlias)->(aUtils():RegToArray(cSourceAlias,recNo(),aTargetReplicateFields,.F.,.F.,@aTargetReplicateFieldsPos))
                         nReplicate:=1
@@ -1481,11 +1507,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         );
                     },;
                     "Wait...",;
-                    "Updating data from table "+cTargetAliasRealName;
+                    "Updating data from table "+cTargetAliasRealName,;
+                    nil,;
+                    .T.;
                 )
             endif
 
-            MsProcess():MsAguarde({||nAliasdbCount:=datasul2totvs.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
+            FWMsgRun(nil,{||nAliasdbCount:=datasul2totvs.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
 
             nRecCount:=Min(nAliasdbCount,(cSourceAlias)->(recCount()))
 
@@ -1579,7 +1607,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             cError+=EvalBlockGetValue("ErrorStack","")
                             DelSection("EvalBlock")
                             if (!empty(cError))
-                                cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                 cError:=""
                                 cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
                                 oTLogReport:AddGroup(cTLogGroup)
@@ -1627,7 +1655,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     cError+=EvalBlockGetValue("ErrorStack","")
                                     DelSection("EvalBlock")
                                     if (!empty(cError))
-                                        cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                                        cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                         cError:=""
                                         cTLogGroup:="table : ["+cTargetAlias+"] foram Encontradas inconsistencias na linha ["+cTools():NToS((cTargetAlias)->(recNo()))+"] Processo:["+GetCBSource(bAfterUpdateRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogGroup)
@@ -1776,7 +1804,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     cError+=EvalBlockGetValue("ErrorStack","")
                     DelSection("EvalBlock")
                     if (!empty(cError))
-                        cTLogDetail:=cTools():StrReplace(cError,{CRLF," "})
+                        cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                         cError:=""
                         cTLogGroup:="table : ["+cAlias+"] foram Encontradas inconsistencias no Processo: ["+GetCBSource(bAfterUpdateTable)+"]:"
                         oTLogReport:AddGroup(cTLogGroup)
@@ -2000,8 +2028,8 @@ static function readTableDefinition() as logical
 
         MsProcess():MsProcTxt(cFileTablesDefinition,.T.)
 
-        MsgRun(cFileTablesDefinition,"Wait...",{||nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)})
-        
+        FWMsgRun(nil,{||nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)},"Wait...",cFileTablesDefinition)
+
         lreadTableDefinition:=(nft_fHandle>=0)
         if (!lreadTableDefinition)
             oFT:ft_fUse()
@@ -2060,6 +2088,8 @@ static function readTableDefinition() as logical
 
         oFT:ft_fGoTop()
 
+        MsProcess():SetRegua(oFT:ft_fLastRec(),.T.)
+
         while (!oFT:ft_fEof())
             cLine:=oFT:ft_fReadLN()
             begin sequence
@@ -2071,6 +2101,7 @@ static function readTableDefinition() as logical
                     cTable:=strTran(cLine,"Table:","")
                     cTable:=allTrim(cTable)
                     MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.T.)
+                    ProcessMessages()
                     lSkipTable:=(!oHMTablesImport:Get(cTable))
                     if (lSkipTable)
                         break
@@ -2080,7 +2111,6 @@ static function readTableDefinition() as logical
                     endif
                     aSize(aFieldsDef,0)
                     while (!oFT:ft_fEof())
-                        MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.T.)
                         cLine:=oFT:ft_fReadLN()
                         if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
                             cLine:=""
@@ -2089,6 +2119,8 @@ static function readTableDefinition() as logical
                             loop
                         endif
                         if ("Table:"==Left(cLine,6))
+                            MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.T.)
+                            ProcessMessages()
                             SetValue(cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
                             nft_fRecNo:=oFT:ft_fRecNo()
@@ -2402,7 +2434,7 @@ static procedure CFGFile()
             endif
             oTFIni:=GetValue("readIniFile")
             if (valType(oTFIni)=="O")
-                MsProcess():MsAguarde({||oTFIni:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
+                FWMsgRun(nil,{||oTFIni:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
                 if (valType(oTFIni)=="O")
                     oTFIni:=FreeObj(oTFIni)
                 endif
@@ -2411,8 +2443,8 @@ static procedure CFGFile()
             if (valType(st_oHMbTransform)=="O")
                 st_oHMbTransform:Clean()
             endif
-            MsProcess():MsAguarde({||datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait! Loading ["+cINIFile+"]",nil,.F.)
-            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait",nil,.T.)
+            FWMsgRun(nil,{||datasul2totvs.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","Loading ["+cINIFile+"]")
+            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...",nil,.T.)
         endif
 
     end sequence
@@ -2890,8 +2922,8 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
                 st_oHMbTransform:Clean()
             endif
             cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
-            MsProcess():MsAguarde({||datasul2totvs.readIniFile(@cINIFile)},"Loading Settings","Wait",nil,.F.)
-            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait",nil,.T.)
+            FWMsgRun(nil,{||datasul2totvs.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","Loading ["+cINIFile+"]")
+            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...",nil,.T.)
         endif
     endif
 
@@ -2970,7 +3002,7 @@ static function TCSQLUpdateTable(;
             cMsProcTXT+="["+cTools():NToS(Min(nMaxRecNo,nMinRecNoPlus))+"] ",;
             cMsProcTXT+="out of ",;
             cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]",;
-            MsProcess():MsProcTxt(cMsProcTXT),;
+            MsProcess():MsProcTxt(cMsProcTXT,.T.),;
             oMsNewProcess:IncRegua2(cMsProcTXT);
     } as codeblock
     local bOnError:={|cQueryFull,cSourceTable,cTargetTable,nTCSQLExec,cTCSQLError|;
@@ -3068,3 +3100,44 @@ static function Accentuation(cText as character,lTablesEncodeUTF8 as logical) as
     endif
 
 return(cTextNew)
+
+static function GetLineFromSource(cSourceFile as character,cLine as character,nLine as numeric,nFileSize as numeric,nBufferSize as numeric,nBytesRead as numeric,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character) as array
+    
+    local aLine as array
+    local cLineMsg as character
+    local nLineSiz as numeric
+    local nIncProc as numeric
+    
+    if (lChkEncode)
+        cLine:=Accentuation(cLine,lTablesEncodeUTF8)
+    endif
+    
+    aLine:=strTokArr2(cLine,";",.T.)
+
+    if ((lSetRegua).and.(nSetRegua==0).and.(!Empty(aLine)))
+        lSetRegua:=.F.
+        nLineSiz:=0
+        aEval(aLine,{|e|nLineSiz+=(Len(e)+1+(nBufferSize/nFileSize))})
+        nSetRegua:=nLineSiz
+        nSetRegua:=Int(nFileSize/nSetRegua)
+        MsProcess():SetRegua(nSetRegua,.T.)
+    endif
+
+    cLineMsg:="["+oProgress:Eval()+"] Loading:["+cSourceFile+"]"
+    cLineMsg+=cCRLF
+    cLineMsg+=cCRLF
+    cLineMsg+="Bytes  Processados ["+StrZero(Min(nFileSize,nBytesRead),16)+"/"+StrZero(nFileSize,16)+"]"
+    nIncProc:=if((nBytesRead>=nFileSize),100,((nBytesRead/nFileSize)*100))
+    cLineMsg+="["+cTools():NToS(nIncProc)+"%]"
+    cLineMsg+=cCRLF
+    cLineMsg+="Linhas Processadas ["+StrZero(Min(nSetRegua,nLine),16)+"/"+StrZero(nSetRegua,16)+"]"
+    nIncProc:=if((nLine>=nSetRegua),100,((nLine/nSetRegua)*100))
+    cLineMsg+="["+cTools():NToS(nIncProc)+"%]"
+    
+    MsProcess():MsProcTxt(cLineMsg,.T.)
+
+    if (Mod(Int(nIncProc),10)==0)
+        ProcessMessages()
+    endif
+
+return(aLine)

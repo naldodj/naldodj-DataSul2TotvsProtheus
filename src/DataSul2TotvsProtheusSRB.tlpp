@@ -27,7 +27,7 @@ static function SRBImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RB_FILIAL+RB_MAT+RB_COD"))
     aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RB_FILIAL,RB_MAT,RB_COD")),",",.T.)
 
-    bSourceSetFilter:={|cLine|SRBSourceFilter(cLine,oTFIni)}
+    bSourceSetFilter:={|aLine|SRBSourceFilter(aLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
 
     lSRBImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
@@ -48,26 +48,13 @@ static function SRBImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
 return(lSRBImport)
 
-static function SRBSourceFilter(cLine as character,oTFIni as object) as logical
-
-    local aLine as array
-
-    local nAT as numeric
+static function SRBSourceFilter(aLine as array,oTFIni as object) as logical
 
     local lFilter:=.T. as logical
 
     local xFilter as variant
 
     begin sequence
-        if (empty(cLine))
-            break
-        endif
-        cLine:=subStr(cLine,1,15)
-        nAT:=RAT(";",cLine)
-        if (nAT>0)
-            cLine:=substr(cLine,1,(nAT-1))
-        endif
-        aLine:=strToKArr2(cLine,";",.T.)
         if (empty(aLine).or.(Len(aLine)<2))
             break
         endif
@@ -85,7 +72,5 @@ static function SRBSourceFilter(cLine as character,oTFIni as object) as logical
             break
         endif
     end sequence
-
-    FWFreeArray(@aLine)
 
 return(lFilter)

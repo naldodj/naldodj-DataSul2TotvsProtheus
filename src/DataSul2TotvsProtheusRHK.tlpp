@@ -65,7 +65,7 @@ static function RHKImportData(oMsNewProcess as object,lEnd as logical,lPercentag
             );
         }
         oRHKImport[#cItem][#"bEnableFilterBlockMem"]:=bEnableFilterBlockMem
-        bSourceSetFilter:={|cLine|RHKSourceFilter(cLine,oTFIni)}
+        bSourceSetFilter:={|aLine|RHKSourceFilter(aLine,oTFIni)}
         oRHKImport[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter
     endif
 
@@ -133,26 +133,13 @@ static function RHKImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
 return(lRHKImport)
 
-static function RHKSourceFilter(cLine as character,oTFIni as object) as logical
-
-    local aLine as array
-
-    local nAT as numeric
+static function RHKSourceFilter(aLine as array,oTFIni as object) as logical
 
     local lFilter:=.T. as logical
 
     local xFilter as variant
 
     begin sequence
-        if (empty(cLine))
-            break
-        endif
-        cLine:=subStr(cLine,1,59)
-        nAT:=RAT(";",cLine)
-        if (nAT>0)
-            cLine:=substr(cLine,1,(nAT-1))
-        endif
-        aLine:=strToKArr2(cLine,";",.T.)
         if (empty(aLine).or.(Len(aLine)<9))
             break
         endif
@@ -179,7 +166,5 @@ static function RHKSourceFilter(cLine as character,oTFIni as object) as logical
             break
         endif
     end sequence
-
-    FWFreeArray(@aLine)
 
 return(lFilter)
