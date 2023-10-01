@@ -1381,6 +1381,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     cIncProc+=cTimeRemaining
                     cIncProc+="::["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
                     oMsNewProcess:IncRegua1(cIncProc)
+                    ProcessMessages()
                 endif
 
                 lEnd:=oMsNewProcess:lEnd
@@ -1467,6 +1468,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cTLogDetail+="Hora: ["+oTimeRemaining:GetcEndTime()+"]"
             cTLogDetail+=" : "
             cTLogDetail+="Termino da Leitura/Processamento de Dados (Datasul)."
+            cTLogDetail+=" : "
+            cTLogDetail+="Decorridos: ["+oTimeRemaining:GetcTimeDiff()+"]"
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
             cTLogDetail:=oTLogReport:ThinLine()
@@ -1695,6 +1698,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         cIncProc+=cTimeRemaining
                         cIncProc+="::["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
                         oMsNewProcess:IncRegua2(cIncProc)
+                        ProcessMessages()
                     endif
 
                     lEnd:=oMsNewProcess:lEnd
@@ -1748,6 +1752,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cTLogDetail+="Hora: ["+oTimeRemaining:GetcEndTime()+"]"
             cTLogDetail+=" : "
             cTLogDetail+="Termino da Atualizacao dos Dados (Protheus)."
+            cTLogDetail+=" : "
+            cTLogDetail+="Decorridos: ["+oTimeRemaining:GetcTimeDiff()+"]"
             oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
 
             cTLogDetail:=oTLogReport:ThinLine()
@@ -2026,8 +2032,6 @@ static function readTableDefinition() as logical
 
         oFT:=uft():New()
 
-        MsProcess():MsProcTxt(cFileTablesDefinition,.T.)
-
         FWMsgRun(nil,{||nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)},"Wait...",cFileTablesDefinition)
 
         lreadTableDefinition:=(nft_fHandle>=0)
@@ -2119,7 +2123,7 @@ static function readTableDefinition() as logical
                             loop
                         endif
                         if ("Table:"==Left(cLine,6))
-                            MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.T.)
+                            MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.F.)
                             ProcessMessages()
                             SetValue(cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
@@ -3003,7 +3007,8 @@ static function TCSQLUpdateTable(;
             cMsProcTXT+="out of ",;
             cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]",;
             MsProcess():MsProcTxt(cMsProcTXT,.T.),;
-            oMsNewProcess:IncRegua2(cMsProcTXT);
+            oMsNewProcess:IncRegua2(cMsProcTXT),;
+            ProcessMessages();
     } as codeblock
     local bOnError:={|cQueryFull,cSourceTable,cTargetTable,nTCSQLExec,cTCSQLError|;
         cTLogDetail:="TCSQLExec ["+cTools():NToS(nTCSQLExec)+"]",;
