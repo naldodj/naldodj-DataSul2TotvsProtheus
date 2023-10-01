@@ -3122,7 +3122,9 @@ static function GetLineFromSource(cSourceFile as character,cLine as character,nL
     if ((lSetRegua).and.(nSetRegua==0).and.(!Empty(aLine)))
         lSetRegua:=.F.
         nLineSiz:=0
-        aEval(aLine,{|e|nLineSiz+=(Len(e)+1+(nBufferSize/nFileSize))})
+        nSetRegua:=(nBufferSize/nFileSize)
+        aEval(aLine,{|e|nLineSiz+=(Len(e)+1+nSetRegua)})
+        nLineSiz-=1
         nSetRegua:=nLineSiz
         nSetRegua:=Int(nFileSize/nSetRegua)
         MsProcess():SetRegua(nSetRegua,.T.)
