@@ -354,14 +354,14 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     cMsgProcImportData+=Upper(FWSX2Util():GetX2Name(cAlias,.F.))
     cMsgProcImportData+=" :: ["+DToC(Date())+"]["+Time()+"]"
 
-    oTFont:=TFont():New("Courier New",nil,16,nil,.T.)
+    oTFont:=TFont():New("Courier New",nil,14,nil,.F.)
     bProcImportData:={||;
         datasul2totvs.ProcRedefine(;
             oMSNewProcess,;
             @oTFont,;
             0,;
-            650,;
-            650,;
+            850,;
+            850,;
             .T.,;
             .T.,;
             lPercentage,;
@@ -1374,12 +1374,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                     cIncProc:="["+oProgress:Eval()+"] "
-                    cIncProc+="Processing Record: "
+                    cIncProc+="Processing Record ["
                     cIncProc+=cTools():NToS(nRecProc)
                     cIncProc+="/"
                     cIncProc+=cRecCount
+                    cIncProc+="] :: "
+                    cIncProc+="Table ["+cFWTemporaryTableRealName+"]"
                     cIncProc+=cTimeRemaining
-                    cIncProc+="::["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
+                    cIncProc+=" :: ["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
                     oMsNewProcess:IncRegua1(cIncProc)
                     ProcessMessages()
                 endif
@@ -1492,8 +1494,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 break
             endif
 
+            cTargetAliasRealName:=RetSQLName(cTargetAlias)
             if (allTrim(oTFIni:GetPropertyValue(cTableImport,"TCSQLUpdateTable","0"))=="1")
-                cTargetAliasRealName:=RetSQLName(cTargetAlias)
                 MsProcess():MsAguarde(;
                     {||;
                         datasul2totvs.TCSQLUpdateTable(;
@@ -1691,12 +1693,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                         cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                         cIncProc:="["+oProgress:Eval()+"] "
-                        cIncProc+="Updating Record: "
+                        cIncProc+="Updating Record ["
                         cIncProc+=cTools():NToS(nRecProc)
                         cIncProc+="/"
                         cIncProc+=cRecCount
+                        cIncProc+="] :: "
+                        cIncProc+="Table ["+cTargetAliasRealName+"]"
                         cIncProc+=cTimeRemaining
-                        cIncProc+="::["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
+                        cIncProc+=" :: ["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
                         oMsNewProcess:IncRegua2(cIncProc)
                         ProcessMessages()
                     endif
