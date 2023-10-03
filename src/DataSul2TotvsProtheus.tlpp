@@ -1381,7 +1381,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     cIncProc+="] :: "
                     cIncProc+="Table ["+cFWTemporaryTableRealName+"]"
                     cIncProc+=cTimeRemaining
-                    cIncProc+=" :: ["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
+                    cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
                     oMsNewProcess:IncRegua1(cIncProc)
                     ProcessMessages()
                 endif
@@ -1700,7 +1700,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         cIncProc+="] :: "
                         cIncProc+="Table ["+cTargetAliasRealName+"]"
                         cIncProc+=cTimeRemaining
-                        cIncProc+=" :: ["+cTools():NToS(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)))+"%]"
+                        cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
                         oMsNewProcess:IncRegua2(cIncProc)
                         ProcessMessages()
                     endif
