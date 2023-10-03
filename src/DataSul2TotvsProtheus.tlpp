@@ -771,7 +771,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
 
         oFT:=uft():New()
-        bSourceGetLine:={|cLine,nLine,nFileSize,nBufferSize,nBytesRead|GetLineFromSource(cSourceFile,cLine,nLine,nFileSize,nBufferSize,nBytesRead,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
+        bSourceGetLine:={|cLine,nLine,nFileSize,nBufferSize,nBytesRead|GetLineFromSource(cLine,nLine,nFileSize,nBufferSize,nBytesRead,cSourceFile,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
         oFT:ft_fSetGetLine(bSourceGetLine)
         if (valtype(GetValue(cTableImport+"SourceSetFilter",nil))=="B")
             bSourceSetFilter:=GetValue(cTableImport+"SourceSetFilter")
@@ -3110,7 +3110,7 @@ static function Accentuation(cText as character,lTablesEncodeUTF8 as logical) as
 
 return(cTextNew)
 
-static function GetLineFromSource(cSourceFile as character,cLine as character,nLine as numeric,nFileSize as numeric,nBufferSize as numeric,nBytesRead as numeric,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character) as array
+static function GetLineFromSource(cLine as character,nLine as numeric,nFileSize as numeric,nBufferSize as numeric,nBytesRead as numeric,cSourceFile as character,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character) as array
     
     local aLine as array
     local cLineMsg as character
