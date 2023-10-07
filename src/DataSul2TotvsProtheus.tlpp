@@ -71,6 +71,8 @@ return(lActivate)
 
 static function Activate() as logical
 
+    local aMenu as array
+    local aMenuItems as array
     local aStack:={"DATASUL2TOTVS.ACTIVATE","ACTIVATE","U_DATASUL2TOTVSPROTHEUS"} as array
     local aSections as array
     local aProperties as array
@@ -194,43 +196,22 @@ static function Activate() as logical
 
         oTMenuOptions:=Array(#)
 
-        cSection:="Register"
-        oTMenuOptions[#cSection]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"][#"01"]:="SRJ"
-        oTMenuOptions[#cSection][#"Alias"][#"02"]:="SR6"
-*       oTMenuOptions[#cSection][#"Alias"][#"03"]:="SPJ"
-        oTMenuOptions[#cSection][#"Alias"][#"04"]:="RCE"
-        oTMenuOptions[#cSection][#"Alias"][#"05"]:="SQB"
-        oTMenuOptions[#cSection][#"Alias"][#"06"]:="SRV"
+        aMenu:=aClone(oTFIni:GetAllProperties("Menu"))
+        nSections:=Len(aMenu)
+        for nSection:=1 to nSections
+            cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
+            aMenuItems:=strToKArr2(oTFIni:GetPropertyValue("Menu",cSection),",",.T.)
+            oTMenuOptions[#cSection]:=Array(#)
+            oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+            nProperties:=Len(aMenuItems)
+            for nProperty:=1 to nProperties
+                oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuItems[nProperty]
+            next nProperty
+            FWFreeArray(@aMenuItems)
+        next nSection
 
-        cSection:="Employee"
-        oTMenuOptions[#cSection]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"][#"01"]:="SRA"
-        oTMenuOptions[#cSection][#"Alias"][#"02"]:="SRB"
-        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SRQ"
-
-        cSection:="Employee Transaction History"
-        oTMenuOptions[#cSection]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"][#"01"]:="SR3"
-        oTMenuOptions[#cSection][#"Alias"][#"02"]:="SRF"
-        oTMenuOptions[#cSection][#"Alias"][#"03"]:="SR8"
-        oTMenuOptions[#cSection][#"Alias"][#"04"]:="SRD"
-
-        cSection:="Employee Benefits"
-        oTMenuOptions[#cSection]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"][#"01"]:="RI1"
-        oTMenuOptions[#cSection][#"Alias"][#"02"]:="SM7"
-        oTMenuOptions[#cSection][#"Alias"][#"03"]:="RHK"
-        oTMenuOptions[#cSection][#"Alias"][#"04"]:="RHL"
-
-        cSection:="Employee Punch Marking"
-        oTMenuOptions[#cSection]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
-        oTMenuOptions[#cSection][#"Alias"][#"01"]:="SP8"
+        FWFreeArray(@aMenuItems)
+        FWFreeArray(@aMenu)
 
         DEFINE MSDIALOG oTDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
 
