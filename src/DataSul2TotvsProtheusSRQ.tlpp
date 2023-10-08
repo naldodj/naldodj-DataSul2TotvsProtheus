@@ -232,7 +232,8 @@ static function SRQSourceFilter(aLine as array,oTFIni as object) as logical
     local xFilter as variant
 
     begin sequence
-        if (empty(aLine).or.(Len(aLine)<2))
+        lFilter:=(Len(aLine)>=2)
+        if (!lFilter)
             break
         endif
         xFilter:=strTran(aLine[1],'"',"")
@@ -245,9 +246,6 @@ static function SRQSourceFilter(aLine as array,oTFIni as object) as logical
         xFilter:=strTran(aLine[2],'"',"")
         xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
         lFilter:=(!empty(xFilter))
-        if (!lFilter)
-            break
-        endif
     end sequence
 
 return(lFilter)

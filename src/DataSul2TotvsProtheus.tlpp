@@ -290,19 +290,19 @@ static function Activate() as logical
 
         FWMsgRun(nil,{||oTMenuOptions:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
         if (valType(oTMenuOptions)=="O")
-            oTMenuOptions:=FreeObj(oTMenuOptions)
+            FreeObj(@oTMenuOptions)
         endif
 
-        oTMenuItem:=FreeObj(oTMenuItem)
-        oTMenu:=FreeObj(oTMenu)
-        oTDlg:=FreeObj(oTDlg)
+        FreeObj(@oTMenuItem)
+        FreeObj(@oTMenu)
+        FreeObj(@oTDlg)
 
     end sequence
 
     if (valType(oTFIni)=="O")
         FWMsgRun(nil,{||oTFIni:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
         if (valType(oTFIni)=="O")
-            oTFIni:=FreeObj(oTFIni)
+            FreeObj(@oTFIni)
         endif
     endif
 
@@ -318,7 +318,7 @@ static function Activate() as logical
 
     if (valType(st_oHMbTransform)=="O")
         FWMsgRun(nil,{||st_oHMbTransform:Clean()},"Wait...","Releasing temporary files and workspace memory...")
-        st_oHMbTransform:=FreeObj(st_oHMbTransform)
+        FreeObj(@st_oHMbTransform)
     endif
 
     DelClassIntF()
@@ -387,11 +387,11 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
 
     oParameters:FreeObj()
     if (valType(oParameters)=="O")
-        oParameters:=FreeObj(oParameters)
+        FreeObj(@oParameters)
     endif
 
-    oTFont:=FreeObj(oTFont)
-    oMSNewProcess:=FreeObj(oMSNewProcess)
+    FreeObj(@oTFont)
+    FreeObj(@oMSNewProcess)
 
     FWFreeArray(@aByRef)
 
@@ -453,8 +453,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local cNoReplicateValues as character
 
-    local cDeleteIfEmpty:="" as character
-
     local cSVFilAnt:=&("cFilAnt") as character
 
     local cRecCount as character
@@ -501,6 +499,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local lTypeReplicate:=.F. as logical
     local lDeleteIfEmpty as logical
     local lSeekTableFound as logical
+    local lTCSQLUpdateTable as logical
     local lTypeReplicateRow as logical
     local lTablesEncodeUTF8 as logical
     local lAfterUpdateRecNo:=.F. as logical
@@ -509,7 +508,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local lUpdateTableFields:=.F. as logical
     local lEnableFilterBlock as logical
 
-    local lDeleted:=Set(_SET_DELETED,"ON")
+    local lDeleted:=Set(_SET_DELETED,"ON") as logical
 
     local nField as numeric
     local nFields as numeric
@@ -751,7 +750,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         next nField
 
         oHMTargetStruct:Clean()
-        oHMTargetStruct:=FreeObj(oHMTargetStruct)
+        FreeObj(@oHMTargetStruct)
 
         lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"EnableFilterBlock","0"))=="1")
         if (lEnableFilterBlock)
@@ -785,14 +784,25 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             break
         endif
 
-        oFWTemporaryTable:=FWTemporaryTable():New(@cSourceAlias,@aTargetStruct)
-        oFWTemporaryTable:AddIndex("01",aAddIndex)
-        oFWTemporaryTable:Create()
+        lTCSQLUpdateTable:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"TCSQLUpdateTable","0"))=="1")
+
+        if (lTCSQLUpdateTable)
+            oFWTemporaryTable:=FWTemporaryTable():New(@cSourceAlias,@aTargetStruct)
+            oFWTemporaryTable:AddIndex("01",aAddIndex)
+            oFWTemporaryTable:Create()
+            cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
+            SetValue("import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
+        else
+            cFWTemporaryTableRealName:=criaTrab(nil,.F.)
+            dbCreate(cFWTemporaryTableRealName,aTargetStruct,"SQLITE_MEM")
+            dbUseArea(.T.,"SQLITE_MEM",cFWTemporaryTableRealName,cSourceAlias,.F.,.F.)
+            dbSelectArea(cSourceAlias)
+            INDEX ON &(cIndexKey) TAG &(cFWTemporaryTableRealName+"1") TO &(cFWTemporaryTableRealName+"1")
+        endif                
+
+        (cSourceAlias)->(dbSetOrder(1))
 
         SetValue("import"+cTableImport+"Alias",cSourceAlias)
-        SetValue("import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
-
-        cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
         SetValue("import"+cTableImport+"Table",cFWTemporaryTableRealName)
 
         FWFreeArray(@aField)
@@ -871,7 +881,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             oTimeRemaining:=timeRemaining():New(nRecCountProc)
 
-            TCSrvMap(cSourceAlias,nil,.F.)
+            *TCSrvMap(cSourceAlias,nil,.F.)
 
             if (lTypeReplicate)
                 for nField:=1 to nFields
@@ -895,6 +905,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     lAppend:=.T.
                     lHasError:=.F.
+                    lSeekTableFound:=.F.
                     
                     if ((lChkFilial).or.(lEnableFilterBlock).or.(lAddFieldTmp))
 
@@ -1126,8 +1137,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
                                 if (lDeleteIfEmpty)
                                     (cSourceAlias)->(dbDelete())
-                                    cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
-                                    cDeleteIfEmpty+=","
                                     nDeleteIfEmpty++
                                     break
                                 endif
@@ -1150,7 +1159,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             endif
                             if (empty(cTools():StrReplace(cAllSeekIndexKey,{"+",""})))
                                 cAllSeekIndexKey:=""
-                                lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
+                                if (!lSeekTableFound)
+                                    lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
+                                endif
                             endif
                         endif
 
@@ -1161,8 +1172,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
                     if (lDeleteIfEmpty)
                         (cSourceAlias)->(dbDelete())
-                        cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
-                        cDeleteIfEmpty+=","
                         nDeleteIfEmpty++
                     endif
 
@@ -1172,15 +1181,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cSourceAlias)->(!Eval(bEnableFilterBlock,cSourceAlias))},nil,.F.,nil,nil))
                             if ((!lHasError).and.(lFilterBlock))
                                 (cSourceAlias)->(dbDelete())
-                                cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
-                                cDeleteIfEmpty+=","
                                 nDeleteIfEmpty++
                             endif
                         endif
 
                         if (lSeekTable)
 
-                            lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
+                            if (!lSeekTableFound)
+                                lSeekTableFound:=(cSeekTable)->(MsSeek((cSourceAlias)->(&(cSeekIndexKey)),.F.))
+                            endif
 
                             if (lSeekTableFound)
 
@@ -1301,8 +1310,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
                                     if ((!lHasError).and.(!lAppend))
                                         (cSourceAlias)->(dbDelete())
-                                        cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
-                                        cDeleteIfEmpty+=","
                                         nDeleteIfEmpty++
                                         exit
                                     endif
@@ -1322,23 +1329,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
                                 if (lDeleteIfEmpty)
                                     (cSourceAlias)->(dbDelete())
-                                    cDeleteIfEmpty+=(cSourceAlias)->(cTools():NToS(RecNo()))
-                                    cDeleteIfEmpty+=","
                                     nDeleteIfEmpty++
                                 endif
-                            endif
-
-                            if ((nDeleteIfEmpty>=1024).or.((ldbCommit).and.(nDeleteIfEmpty>0)))
-                                if (!ldbCommit)
-                                    (cSourceAlias)->(dbCommitAll())
-                                endif
-                                if (right(cDeleteIfEmpty,1)==",")
-                                    cDeleteIfEmpty:=SubStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
-                                endif
-                                nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
-                                cDeleteIfEmpty:=""
-                                nDeleteIfEmpty:=0
-                                TCRefresh(cFWTemporaryTableRealName)
                             endif
 
                         end while
@@ -1394,19 +1386,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     (cSourceAlias)->(dbCommitAll())
                 endif
 
-                if ((nDeleteIfEmpty>=1024).or.((ldbCommit).and.(nDeleteIfEmpty>0)))
-                    if (!ldbCommit)
-                        (cSourceAlias)->(dbCommitAll())
-                    endif
-                    if (right(cDeleteIfEmpty,1)==",")
-                        cDeleteIfEmpty:=SubStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
-                    endif
-                    nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
-                    cDeleteIfEmpty:=""
-                    nDeleteIfEmpty:=0
-                    TCRefresh(cFWTemporaryTableRealName)
-                endif
-
                 if (ldbCommit)
                     ldbCommit:=.F.
                 endif
@@ -1422,7 +1401,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             if (lPercentage)
                 oHMIncProcStep:Clean()
-                oHMIncProcStep:=FreeObj(oHMIncProcStep)
+                FreeObj(@oHMIncProcStep)
             endif
 
             cLine:=""
@@ -1432,22 +1411,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 (cSourceAlias)->(dbCommitAll())
             endif
 
-            if (nDeleteIfEmpty>0)
-                if (right(cDeleteIfEmpty,1)==",")
-                    cDeleteIfEmpty:=SubStr(cDeleteIfEmpty,1,(Len(cDeleteIfEmpty)-1))
-                endif
-                nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE R_E_C_N_O_ IN ("+cDeleteIfEmpty+")")
-                cDeleteIfEmpty:=""
-                nDeleteIfEmpty:=0
-                TCRefresh(cFWTemporaryTableRealName)
-            endif
-
-            nDeleteIfEmpty:=TCSQLExec("DELETE FROM "+cFWTemporaryTableRealName+" WHERE D_E_L_E_T_='*'")
-            TCRefresh(cFWTemporaryTableRealName)
-
             oFT:ft_fUse()
             oFT:FreeObj()
-            oFT:=FreeObj(oFT)
+            FreeObj(@oFT)
 
             cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
 
@@ -1487,8 +1453,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 break
             endif
 
+            if (nDeleteIfEmpty>0)
+                if (lTCSQLUpdateTable)
+                    FWMsgRun(nil,{||nDeleteIfEmpty:=SQLDelete(cFWTemporaryTableRealName,"D_E_L_E_T_='*'"),TCRefresh(cFWTemporaryTableRealName)},"Wait...","Removing deleted Records...")
+                else
+                    FWMsgRun(nil,{||__dbPack()},"Wait...","Removing deleted Records...")
+                endif
+            endif
+
             cTargetAliasRealName:=RetSQLName(cTargetAlias)
-            if (allTrim(oTFIni:GetPropertyValue(cTableImport,"TCSQLUpdateTable","0"))=="1")
+            if (lTCSQLUpdateTable)
                 MsProcess():MsAguarde(;
                     {||;
                         datasul2totvs.TCSQLUpdateTable(;
@@ -1511,9 +1485,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 )
             endif
 
-            FWMsgRun(nil,{||nAliasdbCount:=datasul2totvs.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
-
-            nRecCount:=Min(nAliasdbCount,(cSourceAlias)->(recCount()))
+            if (lTCSQLUpdateTable)
+                FWMsgRun(nil,{||nAliasdbCount:=datasul2totvs.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
+                nRecCount:=Min(nAliasdbCount,(cSourceAlias)->(recCount()))
+            else
+                nRecCount:=(cSourceAlias)->(recCount())
+            endif
 
             nRecCountProc:=nRecCount
 
@@ -1836,8 +1813,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         if (!lPreLoadTable)
             (cSourceAlias)->(dbCloseArea())
-            oFWTemporaryTable:Delete()
-            oFWTemporaryTable:=FreeObj(oFWTemporaryTable)
+            if (valType(oFWTemporaryTable)=="O")
+                oFWTemporaryTable:Delete()
+                FreeObj(@oFWTemporaryTable)
+            endif
         endif
 
     end sequence
@@ -1846,56 +1825,56 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     DelSection("EvalBlock")
 
-    oProgress:=FreeObj(oProgress)
-    oTimeRemaining:=FreeObj(oTimeRemaining)
+    FreeObj(@oProgress)
+    FreeObj(@oTimeRemaining)
 
     if (valType(oFT)=="O")
         oFT:ft_fUse()
         oFT:FreeObj()
-        oFT:=FreeObj(oFT)
+        FreeObj(@oFT)
     endif
 
     if (Type("oPVTHMSR8Seq")=="O")
         oPVTHMSR8Seq:Clean()
-        oPVTHMSR8Seq:=FreeObj(oPVTHMSR8Seq)
+        FreeObj(@oPVTHMSR8Seq)
     endif
 
     if (Type("oPVTHMSRDSeq")=="O")
         oPVTHMSRDSeq:Clean()
-        oPVTHMSRDSeq:=FreeObj(oPVTHMSRDSeq)
+        FreeObj(@oPVTHMSRDSeq)
     endif
 
     if (type("oPVTHMFindSRVPD")=="O")
         oPVTHMFindSRVPD:Clean()
-        oPVTHMFindSRVPD:=FreeObj(oPVTHMFindSRVPD)
+        FreeObj(@oPVTHMFindSRVPD)
     endif
 
     if (valtype(oHMSourceFieldsDef)=="O")
         oHMSourceFieldsDef:Clean()
-        oHMSourceFieldsDef:=FreeObj(oHMSourceFieldsDef)
+        FreeObj(@oHMSourceFieldsDef)
     endif
 
     if (valtype(oHMTargetFieldsDef)=="O")
         oHMTargetFieldsDef:Clean()
-        oHMTargetFieldsDef:=FreeObj(oHMTargetFieldsDef)
+        FreeObj(@oHMTargetFieldsDef)
     endif
 
     if (valtype(oHMTargetFieldsPos)=="O")
         oHMTargetFieldsPos:Clean()
-        oHMTargetFieldsPos:=FreeObj(oHMTargetFieldsPos)
+        FreeObj(@oHMTargetFieldsPos)
     endif
 
     if (lMemoVirutal)
         if (valtype(oHMMemoVirutal)=="O")
             oHMMemoVirutal:Clean()
-            oHMMemoVirutal:=FreeObj(oHMMemoVirutal)
+            FreeObj(@oHMMemoVirutal)
         endif
     endif
 
     if (lPercentage)
         if (valtype(oHMIncProcStep)=="O")
             oHMIncProcStep:Clean()
-            oHMIncProcStep:=FreeObj(oHMIncProcStep)
+            FreeObj(@oHMIncProcStep)
         endif
     endif
 
@@ -1904,7 +1883,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         FWFreeArray(@aTargetReplicateFieldsPos)
         if (valtype(oHMTargetReplicateFields)=="O")
             oHMTargetReplicateFields:Clean()
-            oHMTargetReplicateFields:=FreeObj(oHMTargetReplicateFields)
+            FreeObj(@oHMTargetReplicateFields)
         endif
     endif
 
@@ -2034,7 +2013,7 @@ static function readTableDefinition() as logical
         lreadTableDefinition:=(nft_fHandle>=0)
         if (!lreadTableDefinition)
             oFT:ft_fUse()
-            oFT:=FreeObj(oFT)
+            FreeObj(@oFT)
             ApMsgAlert("Could not open the file: "+cFileTablesDefinition,"Attention")
             break
         endif
@@ -2172,12 +2151,12 @@ static function readTableDefinition() as logical
     if (valType(oFT)=="O")
         oFT:ft_fUse()
         oFT:FreeObj()
-        oFT:=FreeObj(oFT)
+        FreeObj(@oFT)
     endif
 
     if (valtype(oHMTablesImport)=="O")
         oHMTablesImport:Clean()
-        oHMTablesImport:=FreeObj(oHMTablesImport)
+        FreeObj(@oHMTablesImport)
     endif
 
     FWFreeArray(@aLineDef)
@@ -2444,7 +2423,7 @@ static procedure CFGFile()
             if (valType(oTFIni)=="O")
                 FWMsgRun(nil,{||oTFIni:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
                 if (valType(oTFIni)=="O")
-                    oTFIni:=FreeObj(oTFIni)
+                    FreeObj(@oTFIni)
                 endif
             endif
             DelSection("datasul2totvsprotheus")

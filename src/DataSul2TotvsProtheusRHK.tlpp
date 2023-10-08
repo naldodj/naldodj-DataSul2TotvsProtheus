@@ -140,12 +140,7 @@ static function RHKSourceFilter(aLine as array,oTFIni as object) as logical
     local xFilter as variant
 
     begin sequence
-        if (empty(aLine).or.(Len(aLine)<9))
-            break
-        endif
-        xFilter:=strTran(aLine[1],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
-        lFilter:=(xFilter==cEmpAnt)
+        lFilter:=(Len(aLine)>=9)
         if (!lFilter)
             break
         endif
@@ -159,12 +154,15 @@ static function RHKSourceFilter(aLine as array,oTFIni as object) as logical
         if (!lFilter)
             break
         endif
-        xFilter:=aLine[5]
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaTiposDeBeneficioRHK_TPPLAN",xFilter,.T.,.T.)
-        lFilter:=(!empty(xFilter))
+        xFilter:=strTran(aLine[1],'"',"")
+        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        lFilter:=(xFilter==cEmpAnt)
         if (!lFilter)
             break
         endif
+        xFilter:=aLine[5]
+        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaTiposDeBeneficioRHK_TPPLAN",xFilter,.T.,.T.)
+        lFilter:=(!empty(xFilter))
     end sequence
 
 return(lFilter)

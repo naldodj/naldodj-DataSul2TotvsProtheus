@@ -73,7 +73,7 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical,lPercentag
                 IF((cField=="RD_DATARQ"),;
                     ((xValue>=cCompetenciaDe).and.(xValue<=cCompetenciaAte)),;
                     IF((cField=="RD_PD"),;
-                        (!empty(xValue).and.(SRDFindSRVPD(xValue))),;
+                        (!empty(xValue).and.(SRDFindSRVPD(xValue,.F.))),;
                         IF(;
                             (cField=="RD_MAT"),;
                             ((xValue>=cMatDe).and.(xValue<=cMatAte)),;
@@ -322,8 +322,8 @@ static function SRDGetRVTipo(cRDPD) as character
     if (empty(cRDPD))
         cRDPD:=SRDGetValue("RD_PD","")
     endif
-    if (SRDFindSRVPD(cRDPD))
-        cRVTipo:=SRV->RV_TIPO
+    if (SRDFindSRVPD(cRDPD,.F.))
+        cRVTipo:=PosAlias("SRV",cRDPD,fFilFunc("SRV"),"RV_TIPO",1,.F.)
     endif
     if (empty(cRVTipo))
         cRVTipo:="V"
@@ -409,7 +409,7 @@ static function SRDGetSEQ() as character
 
 return(cRDSEQ)
 
-static function SRDFindSRVPD(cRDPD as character) as logical
+static function SRDFindSRVPD(cRDPD as character,lMsGoTo as logical) as logical
 
     static c_stHMFindSRVPDKey as character
 
@@ -445,7 +445,7 @@ static function SRDFindSRVPD(cRDPD as character) as logical
     if (!oPVTHMFindSRVPD:Get(cSRVKeySeek,@nSRVRecNo))
         nSRVOrder:=RetOrder("SRV","RV_FILIAL+RV_COD")
         SRV->(dbSetOrder(nSRVOrder))
-        lSRVFound:=SRV->(MsSeek(cSRVKeySeek,.F.))
+        lSRVFound:=SRV->(PosAlias("SRV",cRDPD,cSRVFilial,nil,nSRVOrder,.T.))
         if (lSRVFound)
             nSRVRecNo:=SRV->(RecNo())
         else
@@ -454,10 +454,13 @@ static function SRDFindSRVPD(cRDPD as character) as logical
         oPVTHMFindSRVPD:Set(cSRVKeySeek,nSRVRecNo)
     else
         lSRVFound:=(nSRVRecNo>0)
-        if (lSRVFound)
-            SRV->(MsGoTo(nSRVRecNo))
-        else
-            PutfileInEof("SRV")
+        DEFAULT lMsGoTo:=.F.
+        if (lMsGoTo)
+            if (lSRVFound)
+                SRV->(MsGoTo(nSRVRecNo))
+            else
+                PutfileInEof("SRV")
+            endif
         endif
     endif
 
@@ -509,7 +512,7 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
     if (!Empty(cRDPD))
 
-        lSRVFound:=SRDFindSRVPD(cRDPD)
+        lSRVFound:=SRDFindSRVPD(cRDPD,.F.)
 
         if (!lSRVFound)
             oTLogReport:=SRDGetValue("SRDImportDataLogReport",nil)
@@ -548,12 +551,7 @@ static function SRDSourceFilter(aLine as array,oTFIni as object,cCompetenciaDe a
     local xFilter as variant
 
     begin sequence
-        if (empty(aLine).or.(Len(aLine)<5))
-            break
-        endif
-        xFilter:=strTran(aLine[1],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
-        lFilter:=(xFilter==cEmpAnt)
+        lFilter:=(Len(aLine)>=5)
         if (!lFilter)
             break
         endif
@@ -572,12 +570,15 @@ static function SRDSourceFilter(aLine as array,oTFIni as object,cCompetenciaDe a
         if (!lFilter)
             break
         endif
-        xFilter:=strTran(aLine[2],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
-        lFilter:=((xFilter>=cFilDe).and.(xFilter<=cFilAte))
+        xFilter:=strTran(aLine[1],'"',"")
+        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        lFilter:=(xFilter==cEmpAnt)
         if (!lFilter)
             break
         endif
+        xFilter:=strTran(aLine[2],'"',"")
+        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
+        lFilter:=((xFilter>=cFilDe).and.(xFilter<=cFilAte))
     end sequence
 
 return(lFilter)
