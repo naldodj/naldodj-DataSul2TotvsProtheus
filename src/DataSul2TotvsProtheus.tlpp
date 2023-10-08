@@ -18,8 +18,8 @@ namespace datasul2totvs
 #include "execin.th"
 EXECIN CLASS datasul2totvs
 
-static function GetValue(xGet as variant,xDefault as variant) as variant
-return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
+static function GetValue(xVar as variant,xDefault as variant) as variant
+return(cacheData():Get("datasul2totvsprotheus",xVar,xDefault))
 
 static function SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
@@ -31,8 +31,20 @@ static function DelSection(xSection as variant) as variant
     dfv():Default(@xSection,"datasul2totvsprotheus")
 return(cacheData():delSection(xSection))
 
-static function EvalBlockGetValue(xGet as variant,xDefault as variant) as variant
-return(cacheData():Get("EvalBlock",xGet,xDefault))
+static function EvalBlockGetValue(xVar as variant,xDefault as variant) as variant
+return(cacheData():Get("EvalBlock",xVar,xDefault))
+
+static function GetHMValue(xVar as variant,xDefault as variant) as variant
+return(cacheHMData():Get(xVar,xDefault))
+
+static function SetHMValue(xVar as variant,xValue as variant) as variant
+return(cacheHMData():Set(xVar,xValue))
+
+static function DelHMValue(xVar as variant) as variant
+return(cacheHMData():Del(xVar))
+
+static function CleanHMData() as variant
+return(cacheHMData():Clean())
 
 class Protheus
     static method Activate() as logical
@@ -298,7 +310,7 @@ static function Activate() as logical
     FWFreeArray(@aSections)
     FWFreeArray(@aProperties)
 
-    FWMsgRun(nil,{||DelSection()},"Wait...","Releasing temporary files and workspace memory...")
+    FWMsgRun(nil,{||DelSection(),CleanHMData()},"Wait...","Releasing temporary files and workspace memory...")
 
     if (findFunction("RstPosAlias"))
         RstPosAlias()
@@ -2333,39 +2345,46 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
         xValue:=cValToChar(xValue)
     endif
 
-    if (oTFIni:ExistSection(cTable))
-        dfv():Default(@lUseDFV,.T.)
+    dfv():Default(@lUseDFV,.T.)
+
+    if ((oTFIniTable:=GetHMValue(cTable,nil))!=nil)
+        xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
+        if ((lUseDFV).and.(empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
+            xTmp:=oTFIniTable:GetPropertyValue(cTable,"__DFV__","")
+        endif
+        xValue:=xTmp
+    elseif (oTFIni:ExistSection(cTable))
         if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
             dfv():Default(@lTableInFile,.F.)
             if (lTableInFile)
-                oTFIniTable:=GetValue(cTable,nil)
-                if (oTFIniTable==nil)
-                    cRootPath:=GetValue("cRootPath")
-                    cINIFile:=cRootPath
-                    cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
-                    oTFIniTable:=TFIni():New(cINIFile,"#")
-                    SetValue(cTable,oTFIniTable)
-                endif
+                cRootPath:=GetValue("cRootPath")
+                cINIFile:=cRootPath
+                cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
+                oTFIniTable:=TFIni():New(cINIFile,"#")
+                SetHMValue(cTable,oTFIniTable)
                 xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
                 if ((lUseDFV).and.(empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
                     xTmp:=oTFIniTable:GetPropertyValue(cTable,"__DFV__","")
                 endif
                 xValue:=xTmp
             else
-                oTFIniTable:=GetValue(cTable,nil)
-                if (oTFIniTable==nil)
-                    cRootPath:=GetValue("cRootPath")
-                    cINIFile:=cRootPath
-                    cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
-                    oTFIniTable:=TFIni():New(cINIFile,"#")
-                    SetValue(cTable,oTFIniTable)
+                cRootPath:=GetValue("cRootPath")
+                cINIFile:=cRootPath
+                cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
+                oTFIniTable:=TFIni():New(cINIFile,"#")
+                SetValue(cTable,oTFIniTable)
+                xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
+                if ((lUseDFV).and.(empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
+                    xTmp:=oTFIniTable:GetPropertyValue(cTable,"__DFV__","")
                 endif
-                xValue:=FindInTable(oTFIniTable,cTable,xValue,lTableInFile,lUseDFV)
+                xValue:=xTmp
             endif
-        elseif ((oTFIni:GetATProperty(cTable,xValue)>0))
-            xValue:=oTFIni:GetPropertyValue(cTable,xValue,"")
-        elseif ((lUseDFV).and.(oTFIni:GetATProperty(cTable,"__DFV__")>0))
-            xValue:=oTFIni:GetPropertyValue(cTable,"__DFV__","")
+        else
+            xTmp:=oTFIni:GetPropertyValue(cTable,xValue,"")
+            if ((lUseDFV).and.(empty(xTmp)).and.((oTFIni:GetATProperty(cTable,"__DFV__")>0)))
+                xTmp:=oTFIni:GetPropertyValue(cTable,"__DFV__","")
+            endif
+            xValue:=xTmp
         endif
     endif
 
