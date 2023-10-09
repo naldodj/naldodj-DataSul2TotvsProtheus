@@ -1357,6 +1357,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     oTimeRemaining:Calcule(.F.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                    cTimeRemaining+="[+/-]"
                     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                     cIncProc:="["+oProgress:Eval()+"] "
                     cIncProc+="Processing Record ["
@@ -1661,6 +1662,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         oTimeRemaining:Calcule(.F.)
                         cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                         cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                        cTimeRemaining+="[+/-]"
                         cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                         cIncProc:="["+oProgress:Eval()+"] "
                         cIncProc+="Updating Record ["
