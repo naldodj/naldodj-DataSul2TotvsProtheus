@@ -1455,7 +1455,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             if (nDeleteIfEmpty>0)
                 if (lTCSQLUpdateTable)
-                    FWMsgRun(nil,{||nDeleteIfEmpty:=SQLDelete(cFWTemporaryTableRealName,"D_E_L_E_T_='*'"),TCRefresh(cFWTemporaryTableRealName)},"Wait...","Removing deleted Records...")
+                    FWMsgRun(nil,{||nDeleteIfEmpty:=dbEval():SQLDelete(cFWTemporaryTableRealName,"D_E_L_E_T_='*'"),TCRefresh(cFWTemporaryTableRealName)},"Wait...","Removing deleted Records...")
                 else
                     FWMsgRun(nil,{||__dbPack()},"Wait...","Removing deleted Records...")
                 endif
