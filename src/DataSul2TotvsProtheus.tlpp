@@ -9,8 +9,6 @@
 #define ANIMATE_COUNT    1
 #define ANIMATE_SLEEP    100
 
-#define __HB_GIF89__ .F.
-
 #include "totvs.ch"
 #include "shell.ch"
 
@@ -347,18 +345,6 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     local oParameters:=Array(#) as object
     local oMSNewProcess as object
 
-    if (__HB_GIF89__)
-        
-        private ohb_GIF89 as object
-        private ohb_GIF89Bmp as object
-        private ohb_GIF89Dlg as object
-    
-        private aPictures:=array(0)
-        private nTotalFrames
-        private nCurrentFrame:=0
-
-    endif
-
     cMsgProcImportData:="Importing :: "
     cMsgProcImportData+=cAlias
     cMsgProcImportData+=" :: "
@@ -406,13 +392,6 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     oParameters:FreeObj()
     if (valType(oParameters)=="O")
         FreeObj(@oParameters)
-    endif
-
-    if (__HB_GIF89__)
-        FWFreeArray(@aPictures)
-        FreeObj(@ohb_GIF89)
-        FreeObj(@ohb_GIF89Bmp)
-        FreeObj(@ohb_GIF89Dlg)
     endif
 
     FreeObj(@oTFont)
@@ -1379,9 +1358,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 oTimeRemaining:nProgress:=nRecProc
 
                 if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
-                    if (__HB_GIF89__)
-                        PlayGif(@ohb_GIF89Bmp,@aPictures,@nCurrentFrame,@nTotalFrames)
-                    endif
                     oTimeRemaining:Calcule(.F.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
@@ -1687,9 +1663,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     oTimeRemaining:nProgress:=nRecProc
 
                     if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
-                        if (__HB_GIF89__)
-                            PlayGif(@ohb_GIF89Bmp,@aPictures,@nCurrentFrame,@nTotalFrames)
-                        endif
                         oTimeRemaining:Calcule(.F.)
                         cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                         cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
@@ -2403,35 +2376,8 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
 return(xValue)
 
 static function ProcRedefine(oProcess as object,oTFont as object,nLeft as numeric,nWidth as numeric,nCTLFLeft as numeric,loTDlgF as logical,loTDlgW as logical,lPercentage as logical,lFastMode as logical) as logical
-    
-    local cResName:="dna_clock_00.gif"
-    local cGIFFile:=(GetTempPath()+cResName) as character
-
     local lProcRedefine as logical
-
-    if (!file(cGIFFile))
-        Resource2File(cResName,cGIFFile)
-    endif
-
     lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oTFont,@nLeft,@nWidth,@nCTLFLeft,@loTDlgF,@loTDlgW,lPercentage,lFastMode)
-
-    if (__HB_GIF89__)
-
-        ohb_GIF89:=u_hbGIF89()
-        ohb_GIF89:LoadGIF(@cGIFFile,nil,@aPictures)
-    
-        nTotalFrames:=Len(aPictures)
-
-        ohb_GIF89Dlg:=oProcess:oDlg
-
-        @053.5,(nWidth/3) BITMAP ohb_GIF89Bmp FILE cGIFFile OF ohb_GIF89Dlg SIZE 016,016 NOBORDER WHEN .F. PIXEL
-
-        ohb_GIF89Bmp:lAutoSize:=.F.
-        ohb_GIF89Bmp:lStretch:=.T.
-        ohb_GIF89Bmp:Align:=CONTROL_ALIGN_CENTER
-
-    endif
-
     return(lProcRedefine)
 
 Static Function PlayGif(ohb_GIF89Bmp,aPictures,nCurrentFrame,nTotalFrames)

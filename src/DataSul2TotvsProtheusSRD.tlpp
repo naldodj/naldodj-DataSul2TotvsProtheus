@@ -149,6 +149,11 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         oPVTHMFindSRVPD:=FreeObj(oPVTHMFindSRVPD)
     endif
 
+    if (type("oPVTHMSRVTipo")=="O")
+        oPVTHMSRVTipo:Clean()
+        oPVTHMSRVTipo:=FreeObj(oPVTHMSRVTipo)
+    endif
+
     DelClassIntF()
 
 return(lSRDImport)
@@ -319,15 +324,16 @@ return(lParamBox)
 static function SRDGetRVTipo(cRDPD) as character
     local cRVTipo as character
     local nRDHoras as numeric
+    local nSRVRecNo as numeric
     if (empty(cRDPD))
         cRDPD:=SRDGetValue("RD_PD","")
     endif
-    if (SRDFindSRVPD(cRDPD,.F.))
-        cRVTipo:=PosAlias("SRV",cRDPD,fFilFunc("SRV"),"RV_TIPO",1,.F.)
+    if (SRDFindSRVPD(cRDPD,.F.,@nSRVRecNo))
+        oPVTHMSRVTipo:Get(nSRVRecNo,@cRVTipo)
     endif
     if (empty(cRVTipo))
         cRVTipo:="V"
-    else
+    elseif (cRVTipo!="V")
         nRDHoras:=SRDGetValue("RD_HORAS",0)
         if ((cRVTipo$"H|D").and.(empty(nRDHoras)))
             cRVTipo:="V"
@@ -367,8 +373,6 @@ static function SRDGetSEQ() as character
         cHMSRDKeepKey+=SRDGetValue("RD_FILIAL")
         cHMSRDKeepKey+=SRDGetValue("RD_MAT")
         cHMSRDKeepKey+=SRDGetValue("RD_DATARQ")
-        cHMSRDKeepKey+=SRDGetValue("RD_ROTEIR")
-        cHMSRDKeepKey+=SRDGetValue("RD_PROCES")
 
         if (type("oPVTHMSRDSeq")!="O")
             _SetNamedPRVT("oPVTHMSRDSeq",THashMap():New(),cStack)
@@ -409,7 +413,7 @@ static function SRDGetSEQ() as character
 
 return(cRDSEQ)
 
-static function SRDFindSRVPD(cRDPD as character,lMsGoTo as logical) as logical
+static function SRDFindSRVPD(cRDPD as character,lMsGoTo as logical,nSRVRecNo as numeric) as logical
 
     static c_stHMFindSRVPDKey as character
 
@@ -423,7 +427,6 @@ static function SRDFindSRVPD(cRDPD as character,lMsGoTo as logical) as logical
     local lSRVFound as logical
 
     local nSRVOrder as numeric
-    local nSRVRecNo as numeric
 
     cSRVFilial:=fFilFunc("SRV")
 
@@ -433,21 +436,24 @@ static function SRDFindSRVPD(cRDPD as character,lMsGoTo as logical) as logical
     cHMFindSRVPDKey:=&("cEmpAnt")
     cHMFindSRVPDKey+=cSRVFilial
 
-    if (type("oPVTHMFindSRVPD")!="O")
+    if (type("oPVTHMSRVTipo")!="O")
+        _SetNamedPRVT("oPVTHMSRVTipo",THashMap():New(),cStack)
         _SetNamedPRVT("oPVTHMFindSRVPD",THashMap():New(),cStack)
     endif
 
     if (c_stHMFindSRVPDKey!=cHMFindSRVPDKey)
         c_stHMFindSRVPDKey:=cHMFindSRVPDKey
+        oPVTHMSRVTipo:Clean()
         oPVTHMFindSRVPD:Clean()
     endif
 
     if (!oPVTHMFindSRVPD:Get(cSRVKeySeek,@nSRVRecNo))
         nSRVOrder:=RetOrder("SRV","RV_FILIAL+RV_COD")
         SRV->(dbSetOrder(nSRVOrder))
-        lSRVFound:=SRV->(PosAlias("SRV",cRDPD,cSRVFilial,nil,nSRVOrder,.T.))
+        lSRVFound:=SRV->(MsSeek(cSRVFilial+cRDPD,.F.))
         if (lSRVFound)
             nSRVRecNo:=SRV->(RecNo())
+            oPVTHMSRVTipo:Set(nSRVRecNo,SRV->RV_TIPO)
         else
             nSRVRecNo:=0
         endif
@@ -458,8 +464,6 @@ static function SRDFindSRVPD(cRDPD as character,lMsGoTo as logical) as logical
         if (lMsGoTo)
             if (lSRVFound)
                 SRV->(MsGoTo(nSRVRecNo))
-            else
-                PutfileInEof("SRV")
             endif
         endif
     endif
