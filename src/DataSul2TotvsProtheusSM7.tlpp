@@ -74,7 +74,7 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=oSM7Import[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
         cAddIndex:=oSM7Import[#cItem][#"AddIndex"]
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",",.T.)
+        aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
         bSM7Import:=oSM7Import[#cItem][#"bSM7Import"]
         bSourceSetFilter:=oSM7Import[#cItem][#"bSourceSetFilter"]
         bEnableFilterBlock:=oSM7Import[#cItem][#"bEnableFilterBlock"]
@@ -118,12 +118,12 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     FWFreeArray(@aAddIndex)
 
     MsAguarde({||oSM7Import:Clean()},"Releasing temporary files and workspace memory...","Wait...")
-    oSM7Import:=FreeObj(oSM7Import)
+    FreeObj(@oSM7Import)
 
     dfv():Default(@cAlias,"SM7")
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
-    oTLogReport:=FreeObj(oTLogReport)
+    FreeObj(@oTLogReport)
 
     DelClassIntF()
 

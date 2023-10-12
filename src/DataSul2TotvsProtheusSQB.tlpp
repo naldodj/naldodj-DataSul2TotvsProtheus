@@ -29,7 +29,7 @@ static function SQBImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","QB_FILIAL+QB_DEPTO+QB_CC"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","QB_FILIAL,QB_DEPTO,QB_CC")),",",.T.)
+    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","QB_FILIAL,QB_DEPTO,QB_CC")),",")
 
     lSQBImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
@@ -41,7 +41,7 @@ static function SQBImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
-    oTLogReport:=FreeObj(oTLogReport)
+    FreeObj(@oTLogReport)
 
     FWFreeArray(@aAddIndex)
 

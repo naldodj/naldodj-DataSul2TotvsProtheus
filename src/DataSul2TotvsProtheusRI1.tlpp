@@ -88,7 +88,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=oRI1Import[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
         cAddIndex:=oRI1Import[#cItem][#"AddIndex"]
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",",.T.)
+        aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
         bRI1Import:=oRI1Import[#cItem][#"bRI1Import"]
         bSourceSetFilter:=oRI1Import[#cItem][#"bSourceSetFilter"]
         cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -128,12 +128,12 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     FWFreeArray(@aAddIndex)
 
     MsAguarde({||oRI1Import:Clean()},"Releasing temporary files and workspace memory...","Wait...")
-    oRI1Import:=FreeObj(oRI1Import)
+    FreeObj(@oRI1Import)
 
     dfv():Default(@cAlias,"RI1")
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
-    oTLogReport:=FreeObj(oTLogReport)
+    FreeObj(@oTLogReport)
 
     DelClassIntF()
 
@@ -265,11 +265,11 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
 
     MsAguarde({||oRI1TABELA:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
     if (valType(oRI1TABELA)=="O")
-        oRI1TABELA:=FreeObj(oRI1TABELA)
+        FreeObj(@oRI1TABELA)
     endif
 
-    oProgress:=FreeObj(oProgress)
-    oTimeRemaining:=FreeObj(oTimeRemaining)
+    FreeObj(@oProgress)
+    FreeObj(@oTimeRemaining)
 
     FWFreeArray(@aRDSGetAdvFVal)
     FWFreeArray(@aRDSRetAdvFVal)
@@ -399,11 +399,11 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
 
     MsAguarde({||oRI1TABELA:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
     if (valType(oRI1TABELA)=="O")
-        oRI1TABELA:=FreeObj(oRI1TABELA)
+        FreeObj(@oRI1TABELA)
     endif
 
-    oProgress:=FreeObj(oProgress)
-    oTimeRemaining:=FreeObj(oTimeRemaining)
+    FreeObj(@oProgress)
+    FreeObj(@oTimeRemaining)
 
     FWFreeArray(@aRDSGetAdvFVal)
     FWFreeArray(@aRDSRetAdvFVal)

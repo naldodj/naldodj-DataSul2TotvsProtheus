@@ -27,7 +27,7 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     oTFIni:SetPropertyValue(cTableImport,"TCSQLUpdateTable","0")
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R3_FILIAL+R3_MAT+DTOS(R3_DATA)+R3_SEQ+R3_TIPO+R3_PD"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R3_FILIAL,R3_MAT,R3_DATA,R3_SEQ,R3_TIPO,R3_PD")),",",.T.)
+    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R3_FILIAL,R3_MAT,R3_DATA,R3_SEQ,R3_TIPO,R3_PD")),",")
 
     bSourceSetFilter:={|aLine|SR3SourceFilter(aLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -42,7 +42,7 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cTableImport:="SR7"
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R7_FILIAL+R7_MAT+DTOS(R7_DATA)+R7_SEQ+R7_TIPO"))
         FWFreeArray(@aAddIndex)
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")),",",.T.)
+        aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")),",")
         bSourceSetFilter:={|aLine|SR3SourceFilter(aLine,oTFIni)}
         cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
         lSR3Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
@@ -55,7 +55,7 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
-    oTLogReport:=FreeObj(oTLogReport)
+    FreeObj(@oTLogReport)
 
     FWFreeArray(@aAddIndex)
 

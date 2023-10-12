@@ -78,7 +78,7 @@ static function RHKImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=oRHKImport[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
         cAddIndex:=oRHKImport[#cItem][#"AddIndex"]
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",",.T.)
+        aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
         bRHKImport:=oRHKImport[#cItem][#"bRHKImport"]
         bSourceSetFilter:=oRHKImport[#cItem][#"bSourceSetFilter"]
         bEnableFilterBlock:=oRHKImport[#cItem][#"bEnableFilterBlock"]
@@ -122,12 +122,12 @@ static function RHKImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     FWFreeArray(@aAddIndex)
 
     MsAguarde({||oRHKImport:Clean()},"Releasing temporary files and workspace memory...","Wait...")
-    oRHKImport:=FreeObj(oRHKImport)
+    FreeObj(@oRHKImport)
 
     dfv():Default(@cAlias,"RHK")
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
-    oTLogReport:=FreeObj(oTLogReport)
+    FreeObj(@oTLogReport)
 
     DelClassIntF()
 

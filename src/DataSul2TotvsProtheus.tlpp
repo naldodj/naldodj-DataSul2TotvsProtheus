@@ -216,7 +216,7 @@ static function Activate() as logical
         nSections:=Len(aMenu)
         for nSection:=1 to nSections
             cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
-            aMenuItems:=strToKArr2(oTFIni:GetPropertyValue("Menu",cSection),",",.T.)
+            aMenuItems:=cTools():StrTokArray(oTFIni:GetPropertyValue("Menu",cSection),",")
             oTMenuOptions[#cSection]:=Array(#)
             oTMenuOptions[#cSection][#"Alias"]:=Array(#)
             nProperties:=Len(aMenuItems)
@@ -669,7 +669,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cTmpFields:=allTrim(oTFIni:GetPropertyValue(cTableImport+"_addTmpField","TmpFields",""))
             lAddFieldTmp:=(!Empty(cTmpFields))
             if (lAddFieldTmp)
-                aSourceTmpFields:=strToKArr2(cTmpFields,",",.T.)
+                aSourceTmpFields:=cTools():StrTokArray(cTmpFields,",")
                 nFields:=Len(aSourceTmpFields)
                 if (nFields>0)
                     aSourceTmpFldStruct:=array(0)
@@ -729,7 +729,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         if (lTypeReplicate)
             cNoReplicateValues:=allTrim(oTFIni:GetPropertyValue(cTableImport,"NoReplicateValues",""))
-            aNoReplicateValues:=strToKArr2(cNoReplicateValues,",",.T.)
+            aNoReplicateValues:=cTools():StrTokArray(cNoReplicateValues,",")
             aTargetReplicateFields:=array(0)
             oHMTargetReplicateFields:=THashMap():New()
         endif
@@ -826,9 +826,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 if (lSeekTable)
                     (cSeekTable)->(dbSetOrder(nSeekTableIndex))
                     cUpdateTableFields:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableFields",""))
-                    aUpdateTableFields:=strToKArr2(cUpdateTableFields,",",.T.)
+                    aUpdateTableFields:=cTools():StrTokArray(cUpdateTableFields,",")
                     cUpdateTableSource:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableSource",""))
-                    aUpdateTableSource:=strToKArr2(cUpdateTableSource,",",.T.)
+                    aUpdateTableSource:=cTools():StrTokArray(cUpdateTableSource,",")
                     nUpdateTableSource:=len(aUpdateTableFields)
                     lUpdateTableFields:=((nUpdateTableSource>0).and.(nUpdateTableSource==len(aUpdateTableSource)))
                 endif
@@ -1373,7 +1373,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     cIncProc+=cTimeRemaining
                     cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
                     oMsNewProcess:IncRegua1(cIncProc)
-                    ProcessMessages()
                 endif
 
                 lEnd:=oMsNewProcess:lEnd
@@ -1678,7 +1677,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         cIncProc+=cTimeRemaining
                         cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
                         oMsNewProcess:IncRegua2(cIncProc)
-                        ProcessMessages()
                     endif
 
                     lEnd:=oMsNewProcess:lEnd
@@ -2034,7 +2032,7 @@ static function readTableDefinition() as logical
                 oFT:ft_fSkip()
                 loop
             endif
-            aLineDef:=strTokArr2(cLine," ",.F.)
+            aLineDef:=cTools():StrTokArray(cLine," ")
             exit
         end while
 
@@ -2087,7 +2085,6 @@ static function readTableDefinition() as logical
                     cTable:=strTran(cLine,"Table:","")
                     cTable:=allTrim(cTable)
                     MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.T.)
-                    ProcessMessages()
                     lSkipTable:=(!oHMTablesImport:Get(cTable))
                     if (lSkipTable)
                         break
@@ -2106,7 +2103,6 @@ static function readTableDefinition() as logical
                         endif
                         if ("Table:"==Left(cLine,6))
                             MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.F.)
-                            ProcessMessages()
                             SetValue(cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
                             nft_fRecNo:=oFT:ft_fRecNo()
@@ -2201,7 +2197,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
         if (lSourceTransform)
             cSourceField:=SubStr(cSourceField,2)
         endif
-        aSourceField:=strToKArr2(cSourceField,"+",.T.)
+        aSourceField:=cTools():StrTokArray(cSourceField,"+")
         nSourceFields:=len(aSourceField)
         aValueField:=Array(nSourceFields,2)
         for nSourceField:=1 to nSourceFields
@@ -3003,8 +2999,7 @@ static function TCSQLUpdateTable(;
             cMsProcTXT+="out of ",;
             cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]",;
             MsProcess():MsProcTxt(cMsProcTXT,.T.),;
-            oMsNewProcess:IncRegua2(cMsProcTXT),;
-            ProcessMessages();
+            oMsNewProcess:IncRegua2(cMsProcTXT);
     } as codeblock
     local bOnError:={|cQueryFull,cSourceTable,cTargetTable,nTCSQLExec,cTCSQLError|;
         cTLogDetail:="TCSQLExec ["+cTools():NToS(nTCSQLExec)+"]",;
@@ -3113,7 +3108,7 @@ static function GetLineFromSource(cLine as character,nLine as numeric,nFileSize 
         cLine:=Accentuation(cLine,lTablesEncodeUTF8)
     endif
     
-    aLine:=strTokArr2(cLine,";",.T.)
+    aLine:=cTools():StrTokArray(cLine,";")
 
     if ((lSetRegua).and.(nSetRegua==0).and.(!Empty(aLine)))
         lSetRegua:=.F.
@@ -3136,11 +3131,7 @@ static function GetLineFromSource(cLine as character,nLine as numeric,nFileSize 
     cLineMsg+="Linhas Processadas ["+StrZero(Min(nSetRegua,nLine),16)+"/"+StrZero(nSetRegua,16)+"]"
     nIncProc:=if((nLine>=nSetRegua),100,((nLine/nSetRegua)*100))
     cLineMsg+="["+cTools():NToS(nIncProc)+"%]"
-    
-    MsProcess():MsProcTxt(cLineMsg,.T.)
 
-    if (Mod(Int(nIncProc),10)==0)
-        ProcessMessages()
-    endif
+    MsProcess():MsProcTxt(cLineMsg,.T.)
 
 return(aLine)

@@ -104,7 +104,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         endif
 
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","P8_FILIAL+P8_MAT+P8_ORDEM+Dtos(P8_DATA)+Str(P8_HORA,5,2)"))
-        aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","P8_FILIAL,P8_MAT,P8_ORDEM,P8_DATA,P8_HORA")),",",.T.)
+        aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","P8_FILIAL,P8_MAT,P8_ORDEM,P8_DATA,P8_HORA")),",")
 
         bCustomUpdate:={;
             |;
@@ -134,7 +134,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
         oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
         MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
-        oTLogReport:=FreeObj(oTLogReport)
+        FreeObj(@oTLogReport)
 
         FWFreeArray(@aAddIndex)
 
@@ -142,7 +142,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     if (valtype(oSP8Pergunte)=="O")
         oSP8Pergunte:Clear()
-        oSP8Pergunte:=FreeObj(oSP8Pergunte)
+        FreeObj(@oSP8Pergunte)
     endif
 
     DelClassIntF()

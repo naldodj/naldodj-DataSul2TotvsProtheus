@@ -25,7 +25,7 @@ static function SRBImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RB_FILIAL+RB_MAT+RB_COD"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RB_FILIAL,RB_MAT,RB_COD")),",",.T.)
+    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RB_FILIAL,RB_MAT,RB_COD")),",")
 
     bSourceSetFilter:={|aLine|SRBSourceFilter(aLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -40,7 +40,7 @@ static function SRBImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
-    oTLogReport:=FreeObj(oTLogReport)
+    FreeObj(@oTLogReport)
 
     FWFreeArray(@aAddIndex)
 

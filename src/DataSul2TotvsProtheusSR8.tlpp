@@ -25,7 +25,7 @@ static function SR8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R8_FILIAL,R8_MAT,R8_DATAINI,R8_TIPO,R8_TIPOAFA")),",",.T.)
+    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R8_FILIAL,R8_MAT,R8_DATAINI,R8_TIPO,R8_TIPOAFA")),",")
 
     bSourceSetFilter:={|aLine|SR8SourceFilter(aLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -40,13 +40,13 @@ static function SR8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
-    oTLogReport:=FreeObj(oTLogReport)
+    FreeObj(@oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
     if (type("oPVTHMSR8Seq")=="O")
         oPVTHMSR8Seq:Clean()
-        oPVTHMSR8Seq:=FreeObj(oPVTHMSR8Seq)
+        FreeObj(@oPVTHMSR8Seq)
     endif
 
     DelClassIntF()

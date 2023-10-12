@@ -34,7 +34,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cPreLoadAlias:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAlias",""))
     cPreLoadTableImport:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadTableImport",""))
     cPreLoadIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadIndexKey",""))
-    aPreLoadAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAddIndex","")),",",.T.)
+    aPreLoadAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAddIndex","")),",")
 
     lPreLoadTable:=(!empty(cPreLoadAlias))
     lPreLoadTable:=((lPreLoadTable).and.(!empty(cPreLoadTableImport)))
@@ -46,7 +46,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     endif
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","PJ_FILIAL+PJ_TURNO+PJ_SEMANA+PJ_DIA"))
-    aAddIndex:=strToKArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","PJ_FILIAL,PJ_TURNO,PJ_SEMANA,PJ_DIA")),",",.T.)
+    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","PJ_FILIAL,PJ_TURNO,PJ_SEMANA,PJ_DIA")),",")
 
     lSPJImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
@@ -58,7 +58,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         oFWTemporaryTable:=cacheData():Get("datasul2totvsprotheus","import"+cPreLoadTableImport+"FWTemporaryTable")
         if (valType(oFWTemporaryTable)=="O")
             oFWTemporaryTable:Delete()
-            oFWTemporaryTable:=FreeObj(oFWTemporaryTable)
+            FreeObj(@oFWTemporaryTable)
         endif
     endif
 
@@ -70,7 +70,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")
-    oTLogReport:=FreeObj(oTLogReport)
+    FreeObj(@oTLogReport)
 
     FWFreeArray(@aAddIndex)
 
