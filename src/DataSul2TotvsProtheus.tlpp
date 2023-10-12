@@ -435,6 +435,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local bSourceGetLine as codeblock
     local bSourceSetFilter as codeblock
+    local bSourceAppendLine as codeblock
     local bEnableFilterBlock as codeblock
     local bEnableFilterBlockMem as codeblock
 
@@ -560,6 +561,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local oFT as object
     local oTFIni as object
     local oProgress:=txtProgress():New() as object
+
+    local oSourceJSONLine:=JSONObject():New()
 
     local oTimeRemaining as object
 
@@ -766,9 +769,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkEncode","0"))=="1")
         lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
 
-        oFT:=uft():New()
+        oFT:=ftDb():New("SQLITE_TMP")
         bSourceGetLine:={|cLine,nLine,nFileSize,nBufferSize,nBytesRead|GetLineFromSource(cLine,nLine,nFileSize,nBufferSize,nBytesRead,cSourceFile,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
         oFT:ft_fSetGetLine(bSourceGetLine)
+        bSourceAppendLine:={|nRecNoAT,uLine|oSourceJSONLine["Line"]:=uLine,oSourceJSONLine:ToJSON()}
+        oFT:ft_fSetAppend(bSourceAppendLine)
         if (valtype(GetValue(cTableImport+"SourceSetFilter",nil))=="B")
             bSourceSetFilter:=GetValue(cTableImport+"SourceSetFilter")
             oFT:ft_fSetFilter(bSourceSetFilter)
@@ -885,8 +890,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             oTimeRemaining:=timeRemaining():New(nRecCountProc)
 
-            *TCSrvMap(cSourceAlias,nil,.F.)
-
             if (lTypeReplicate)
                 for nField:=1 to nFields
                     nReplicates:=GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)
@@ -896,10 +899,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 next nField                            
             endif
 
+            bSourceGetLine:={|nRecNoAT,uLine|oSourceJSONLine:FromJSON(uLine),oSourceJSONLine["Line"]}
+
             while (!oFT:ft_fEof())
 
                 nft_fRecNo:=oFT:ft_fRecNo()
-                aLine:=oFT:ft_fReadLN()
+                aLine:=oFT:ft_fReadLN(bSourceGetLine)
 
                 begin sequence
 
@@ -1398,7 +1403,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     exit
                 endif
 
-                oFT:ft_fDelete()
                 oFT:ft_fSkip()
 
             end while
@@ -1831,6 +1835,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     FreeObj(@oProgress)
     FreeObj(@oTimeRemaining)
+    FreeObj(@oSourceJSONLine)
 
     if (valType(oFT)=="O")
         oFT:ft_fUse()
