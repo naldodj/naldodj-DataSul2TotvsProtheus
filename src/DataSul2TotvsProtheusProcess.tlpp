@@ -1,7 +1,57 @@
+
+#include "execin.th"
+EXECIN CLASS DTS2PTProc
+
 #include "totvs.ch"
 using namespace datasul2totvs
 function u_datasul2totvsProtheus() as logical
-    local lDatasul2TotvsProtheus as logical
-    lDatasul2TotvsProtheus:=Protheus():Activate()
-    DelClassIntF()
+    local cPDWFile:="\dna\auth\datasul2totvsProtheus.auth"
+    local lDatasul2TotvsProtheus:=.F. as logical
+    lDatasul2TotvsProtheus:=DNAChkAuth()
+    if (lDatasul2TotvsProtheus)
+        lDatasul2TotvsProtheus:=Protheus():Activate()
+        if (File(cPDWFile).and.(getComputerName()$"DNA-CSDJ-01"))
+            DNAAuth():Execute("RemoveAuth",cPDWFile)
+        endif
+    endif
 return(lDatasul2TotvsProtheus)
+
+static function DNAChkAuth() as logical
+    
+    local cPDWFile:="\dna\auth\datasul2totvsProtheus.auth"
+    local cPathAuth:="C:\GitHub\naldodj-DataSul2TotvsProtheus\auth\autorize.auth"
+
+    local lChkAuth:=.F. as logical
+
+    local oError as object
+
+    try
+        lChkAuth:=DNAAuth():Execute("CheckAuth",cPathAuth,cPDWFile)
+    catch oError
+        lChkAuth:=.F.
+        FreeObj(@oError)
+    endtry
+
+    DelClassIntF()
+
+return(lChkAuth)
+
+static function DNAAuthorizeUse() as logical
+
+    local cPDWFile:="\dna\auth\datasul2totvsProtheus.auth"
+    local cPathAuth:="C:\GitHub\naldodj-DataSul2TotvsProtheus\auth\autorize.auth"
+
+    local lChkAuth:=.F. as logical
+
+    local oError as object
+
+    try
+        lChkAuth:=DNAAuth():Execute("Authorize",cPathAuth,cPDWFile)
+    catch oError
+        lChkAuth:=.F.
+        FreeObj(@oError)
+    endtry
+
+    DelClassIntF()
+
+return(lChkAuth)
