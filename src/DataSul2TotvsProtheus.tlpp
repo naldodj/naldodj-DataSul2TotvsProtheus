@@ -5,10 +5,6 @@
 
 #define DTS_DBS_ALEN   4
 
-#define ANIMATE_DELAY    5
-#define ANIMATE_COUNT    1
-#define ANIMATE_SLEEP    100
-
 #include "totvs.ch"
 #include "shell.ch"
 
@@ -63,12 +59,27 @@ static method Activate() class Protheus
 
     private cCadastro:="TOTVS :: DataSul To Protheus" as character
 
-    lActivate:=((FWIsAdmin(__cUserID)).and.(GetNewPar("TOTVSDS2PT",.T.)))
-    if (!lActivate)
-        ApMsgAlert("User without administrative privileges")
-    else
+    begin sequence
+
+        lActivate:=((FWIsAdmin(__cUserID)).and.(GetNewPar("TOTVSDS2PT",.T.)))
+        if (!lActivate)
+            if (getComputerName()$"DNA-CSDJ-01")
+                lActivate:=DNAMainExec():Execute("dna.main.exec.MyIsAdmin")
+            endif
+            if (!lActivate)
+                ApMsgAlert("User without administrative privileges")
+                break
+            endif
+        endif
+        
+        lActivate:=DTS2PTProc():Execute("DNAChkAuth")
+        if (!lActivate)
+            break
+        endif
+
         lActivate:=datasul2totvs.Activate()
-    endif
+
+    end sequence
 
     FWMsgRun(nil,{||cacheData():Clean(),cacheHMData():Clean()},"Wait...","Releasing temporary files and workspace memory...")
 
@@ -128,6 +139,11 @@ static function Activate() as logical
     begin sequence
 
         lActivate:=stacktools():IsInStackCall(aStack)
+        if (!lActivate)
+            break
+        endif
+
+        lActivate:=DTS2PTProc():Execute("DNAChkAuth")
         if (!lActivate)
             break
         endif

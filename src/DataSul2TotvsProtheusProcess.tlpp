@@ -11,7 +11,9 @@ function u_datasul2totvsProtheus() as logical
     if (lDatasul2TotvsProtheus)
         lDatasul2TotvsProtheus:=Protheus():Activate()
         if (File(cPDWFile).and.(getComputerName()$"DNA-CSDJ-01"))
-            DNAAuth():Execute("RemoveAuth",cPDWFile)
+            if (ApMsgNoYes("Deseja Apagar o Arquivo de Autorização?"))
+                DNAAuth():Execute("RemoveAuth",cPDWFile)
+            endif
         endif
     endif
 return(lDatasul2TotvsProtheus)
