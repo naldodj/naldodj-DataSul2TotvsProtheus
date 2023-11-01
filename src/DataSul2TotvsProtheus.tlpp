@@ -2783,28 +2783,17 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
     local aFiles as array
     local aDirectories as array
 
-    local cFile as character
-    local cZipFile as character
+    local bNotSend as codeblock
+
     local cINIFile as character
-    local cDirectory as character
+    local cErrorMsg as character
     local cGetFileMask:="" as character
     local cGetFileTitle as character
-    local cZipFileServer as character
-    local cLowerDirectory as character
     local cDirectoryClient as character
     local cDirectoryServer as character
 
-    local cSPPDrive as character
-    local cSPPPath as character
-    local cSPPFile as character
-    local cSPPExt as character
-
     local lSendDataToServer as logical
 
-    local nFile as numeric
-    local nFiles as numeric
-    local nDirectory as numeric
-    local nDirectories as numeric
     local nGetFileOptions as numeric
 
     begin sequence
@@ -2838,69 +2827,24 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
             break
         endif
 
-        aDirectories:=Directory(cDirectoryClient+"*.*","D")
-        nDirectories:=Len(aDirectories)
-
-        lSendDataToServer:=(nDirectories!=0)
+        bNotSend:={|cLowerDirectory|(;
+            ("7z"$cLowerDirectory);
+            .or.;
+            ("src"$cLowerDirectory);
+            .or.;
+            (".gitignore"$cLowerDirectory);
+            .or.;
+            (".vscode"$cLowerDirectory);
+            .or.;
+            ("resource"$cLowerDirectory);
+            .or.;
+            ("ps"$cLowerDirectory);
+            .or.;
+            ("auth"$cLowerDirectory);
+            )}
+        lSendDataToServer:=fileTools():SendDataToServer(@cDirectoryClient,@cDirectoryServer,@bNotSend,@cErrorMsg)
         if (!lSendDataToServer)
-            ApMsgAlert("No valid directory information found")
-            break
-        endif
-
-        for nDirectory:=1 to nDirectories
-            if (aDirectories[nDirectory][5]!="D")
-                loop
-            endif
-            cDirectory:=cDirectoryClient
-            cDirectory+=aDirectories[nDirectory][1]
-            if (right(cDirectory,1)==".")
-                loop
-            endif
-            cLowerDirectory:=lower(cDirectory)
-            if (("7z"$cLowerDirectory).or.("src"$cLowerDirectory).or.(".gitignore"$cLowerDirectory).or.(".vscode"$cLowerDirectory))
-                loop
-            endif
-            if (Right(cDirectory,1)!="\")
-                cDirectory+="\"
-            endif
-            aFiles:=Directory(cDirectory+"*.*")
-            nFiles:=Len(aFiles)
-            for nFile:=1 To nFiles
-                cFile:=cDirectory+aFiles[nFile][1]
-                MsProcess():MsProcTxt(cFile)
-                aAdd(aZipFiles,cFile)
-                cFile:=cDirectoryServer+aFiles[nFile][1]
-                if (file(cFile))
-                    fErase(cFile)
-                endif
-            next nFile
-        next nDirectory
-
-        cZipFile:=(getTempPath()+criatrab(nil,.F.)+".zip")
-        MsProcess():MsProcTxt("ZipFile ["+cZipFile+"]. Wait!")
-        lSendDataToServer:=(FZip(cZipFile,aZipFiles,cDirectoryClient,/*,[cSenha]*/)==0)
-        if (!lSendDataToServer)
-            ApMsgAlert("Problem zipping ["+cZipFile+"] file")
-            break
-        endif
-
-        SplitPath(cZipFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
-
-        cZipFileServer:=cDirectoryServer
-        cZipFileServer+=cSPPFile
-        cZipFileServer+=cSPPExt
-
-        MsProcess():MsProcTxt("Wait! Sending ["+cZipFile+"] file to server")
-        lSendDataToServer:=__CopyFile(cZipFile,cZipFileServer)
-        if (!lSendDataToServer)
-            ApMsgAlert("Problem copying ["+cZipFile+"] file to server")
-            break
-        endif
-
-        MsProcess():MsProcTxt("UnZipFile ["+cZipFileServer+"]. Wait!")
-        lSendDataToServer:=(FUnzip(cZipFileServer,cDirectoryServer,/*[cSenha]*/)==0)
-        if (!lSendDataToServer)
-            ApMsgAlert("Problem unzipping the test ["+cZipFile+"] on the server")
+            ApMsgAlert(cErrorMsg)
             break
         endif
 
@@ -2915,14 +2859,6 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
     FWFreeArray(@aFiles)
     FWFreeArray(@aZipFiles)
     FWFreeArray(@aDirectories)
-
-    if (!empty(cZipFile)).and.(file(cZipFile))
-        fErase(cZipFile)
-    endif
-
-    if ((!empty(cZipFileServer)).and.(file(cZipFileServer)))
-        fErase(cZipFileServer)
-    endif
 
     if (lSendDataToServer)
         dfv():Default(@lReloadConfig,.F.)
