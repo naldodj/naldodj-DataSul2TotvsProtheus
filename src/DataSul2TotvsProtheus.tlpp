@@ -2397,13 +2397,6 @@ static function ProcRedefine(oProcess as object,oTFont as object,nLeft as numeri
     lProcRedefine:=MsProcess():ProcRedefine(@oProcess,@oTFont,@nLeft,@nWidth,@nCTLFLeft,@loTDlgF,@loTDlgW,lPercentage,lFastMode)
     return(lProcRedefine)
 
-Static Function PlayGif(ohb_GIF89Bmp,aPictures,nCurrentFrame,nTotalFrames)
-    if (++nCurrentFrame>nTotalFrames)
-        nCurrentFrame:=1
-    endif
-    ohb_GIF89Bmp:cBMPFile:=aPictures[nCurrentFrame]
-Return(.T.)
-
 static function SetFilAnt(cFil as character)
     local cSvFilAnt:=&("cFilAnt") as character
     if (valType("cFilAnt")=="C")
