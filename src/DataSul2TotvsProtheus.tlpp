@@ -71,7 +71,7 @@ static method Activate() class Protheus
                 break
             endif
         endif
-        
+
         lActivate:=DTS2PTProc():Execute("DNAChkAuth")
         if (!lActivate)
             break
@@ -86,7 +86,7 @@ static method Activate() class Protheus
     try
         //Tenta Resetar todos os filtros
         CleanAllFilter()
-    catch oException    
+    catch oException
         //Ocorreram problemas no Reset
         FreeObj(@oException)
     endtry
@@ -164,7 +164,7 @@ static function Activate() as logical
 
         cGetFileMask:=cTools():Accentuation("Arquivo de Configura#1#2o | DataSul2Protheus.ini","ccedil","atilde")
         cGetFileTitle:=cTools():Accentuation("Arquivo de Configura#1#2o DataSul2Protheus.ini","ccedil","atilde")
-        
+
         nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
 
         cINIFile:=cGetFile(;
@@ -190,12 +190,12 @@ static function Activate() as logical
             break
         endif
 
-        FWMsgRun(nil,{||lActivate:=datasul2totvs.readIniFile(@cINIFile)},"Wait! Loading Settings","Loading ["+cINIFile+"]")
+        FWMsgRun(nil,{||lActivate:=datasul2totvs.readIniFile(@cINIFile)},"Wait! Loading Settings","["+cINIFile+"]")
         if (!lActivate)
             break
         endif
 
-        MsProcess():MsAguarde({||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...",nil,.T.)
+        FWMsgRun(nil,{||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...")
         if (!lActivate)
             break
         endif
@@ -290,15 +290,152 @@ static function Activate() as logical
                         FWFreeArray(@aProperties)
                     next nSection
                     FWFreeArray(@aSections)
+                    oTMenuOptions:FreeObj()
+                    FreeObj(@oTMenuOptions)
                 ENDMENU
                 MENUITEM "Tools"
                 MENU
-                    bTMenuAction:={||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.T.)}
-                    MENUITEM "Send data to the server" ACTION FWMsgRun(nil,bTMenuAction,"Wait!","Sending Data To Server")
-                    MENUITEM "Settings" ACTION CFGFile()
+                    MENUITEM oTMenuItem PROMPT "Send data to the server"
+                    bTMenuAction:={||FWMsgRun(nil,{||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.T.)},"Wait!","Sending Data To Server")}
+                    oTMenuItem:bAction:=bTMenuAction
+                    MENUITEM oTMenuItem PROMPT "Settings"
+                    oTMenuItem:bAction:={||CFGFile()}
+                    MENUITEM oTMenuItem PROMPT "Show Datasul Files"
+                    oTMenuItem:bAction:={||ShowDatasulFiles()}
+                    if (oTFIni:ExistSection("SplitFiles"))
+                        oTMenuOptions:=Array(#)
+                        aMenu:=aClone(oTFIni:GetAllProperties("SplitFiles"))
+                        nSections:=Len(aMenu)
+                        for nSection:=1 to nSections
+                            cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
+                            aMenuItems:=cTools():StrTokArray(oTFIni:GetPropertyValue("SplitFiles",cSection),",")
+                            oTMenuOptions[#cSection]:=Array(#)
+                            oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+                            nProperties:=Len(aMenuItems)
+                            for nProperty:=1 to nProperties
+                                oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuItems[nProperty]
+                            next nProperty
+                            FWFreeArray(@aMenuItems)
+                        next nSection
+                        FWFreeArray(@aMenuItems)
+                        FWFreeArray(@aMenu)
+                        MENUITEM "Split Files"
+                        MENU
+                            MENUITEM "Split"
+                            MENU
+                                aSections:=aClone(oTMenuOptions:GetAllSections())
+                                nSections:=Len(aSections)
+                                for nSection:=1 to nSections
+                                    cSection:=aSections[nSection]
+                                    aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
+                                    nProperties:=Len(aProperties)
+                                    MENUITEM cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                                    MENU
+                                        for nProperty:=1 to nProperties
+                                            cProperty:=aProperties[nProperty]
+                                            cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
+                                            beginContent var cTMenuAction
+                                                {||FWMsgRun(nil,{||datasul2totvs.SplitFileAdd("cSourceFile")},"cMsgTitle","cMsgDetail")}
+                                            endContent
+                                            cTMenuAction:=cTools():StrReplace(;
+                                                cTMenuAction,;
+                                                {CRLF,""},;
+                                                {CHR(10),""},;
+                                                {CHR(13),""},;
+                                                {" ",""},;
+                                                {"cSourceFile",cAlias},;
+                                                {"cMsgTitle","Wait, splitting files"},;
+                                                {"cMsgDetail","["+cAlias+"]"};
+                                            )
+                                            bTMenuAction:=&(cTMenuAction)
+                                            cTMenuAction:=""
+                                            MENUITEM oTMenuItem PROMPT cAlias
+                                            oTMenuItem:bAction:=bTMenuAction
+                                        next nProperty
+                                    ENDMENU
+                                    FWFreeArray(@aProperties)
+                                next nSection
+                                FWFreeArray(@aSections)
+                            ENDMENU
+                            MENUITEM "Remove"
+                            MENU
+                                aSections:=aClone(oTMenuOptions:GetAllSections())
+                                nSections:=Len(aSections)
+                                for nSection:=1 to nSections
+                                    cSection:=aSections[nSection]
+                                    aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
+                                    nProperties:=Len(aProperties)
+                                    MENUITEM cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                                    MENU
+                                        for nProperty:=1 to nProperties
+                                            cProperty:=aProperties[nProperty]
+                                            cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
+                                            beginContent var cTMenuAction
+                                                {||FWMsgRun(nil,{||datasul2totvs.SplitFileDel("cSourceFile")},"cMsgTitle","cMsgDetail")}
+                                            endContent
+                                            cTMenuAction:=cTools():StrReplace(;
+                                                cTMenuAction,;
+                                                {CRLF,""},;
+                                                {CHR(10),""},;
+                                                {CHR(13),""},;
+                                                {" ",""},;
+                                                {"cSourceFile",cAlias},;
+                                                {"cMsgTitle","Wait, removing files"},;
+                                                {"cMsgDetail","["+cAlias+"]"};
+                                            )
+                                            bTMenuAction:=&(cTMenuAction)
+                                            cTMenuAction:=""
+                                            MENUITEM oTMenuItem PROMPT cAlias
+                                            oTMenuItem:bAction:=bTMenuAction
+                                        next nProperty
+                                    ENDMENU
+                                    FWFreeArray(@aProperties)
+                                next nSection
+                                FWFreeArray(@aSections)
+                            ENDMENU
+                            MENUITEM "Show"
+                            MENU
+                                aSections:=aClone(oTMenuOptions:GetAllSections())
+                                nSections:=Len(aSections)
+                                for nSection:=1 to nSections
+                                    cSection:=aSections[nSection]
+                                    aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
+                                    nProperties:=Len(aProperties)
+                                    MENUITEM cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                                    MENU
+                                        for nProperty:=1 to nProperties
+                                            cProperty:=aProperties[nProperty]
+                                            cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
+                                            beginContent var cTMenuAction
+                                                {||FWMsgRun(nil,{||datasul2totvs.SplitFileView("cSourceFile")},"cMsgTitle","cMsgDetail")}
+                                            endContent
+                                            cTMenuAction:=cTools():StrReplace(;
+                                                cTMenuAction,;
+                                                {CRLF,""},;
+                                                {CHR(10),""},;
+                                                {CHR(13),""},;
+                                                {" ",""},;
+                                                {"cSourceFile",cAlias},;
+                                                {"cMsgTitle","Wait, showing files"},;
+                                                {"cMsgDetail","["+cAlias+"]"};
+                                            )
+                                            bTMenuAction:=&(cTMenuAction)
+                                            cTMenuAction:=""
+                                            MENUITEM oTMenuItem PROMPT cAlias
+                                            oTMenuItem:bAction:=bTMenuAction
+                                        next nProperty
+                                    ENDMENU
+                                    FWFreeArray(@aProperties)
+                                next nSection
+                                FWFreeArray(@aSections)
+                            ENDMENU
+                            oTMenuOptions:FreeObj()
+                            FreeObj(@oTMenuOptions)
+                        ENDMENU
+                    endif
                 ENDMENU
                 MENU
-                    MENUITEM "Exit" ACTION oTDlg:End()
+                    MENUITEM "Exit" ACTION if(ApMsgNoYes("Deseja sair?"),oTDlg:End(),.F.)
                 ENDMENU
             ENDMENU
 
@@ -308,8 +445,8 @@ static function Activate() as logical
 
         ACTIVATE DIALOG oTDlg
 
-        FWMsgRun(nil,{||oTMenuOptions:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
         if (valType(oTMenuOptions)=="O")
+            FWMsgRun(nil,{||oTMenuOptions:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
             FreeObj(@oTMenuOptions)
         endif
 
@@ -430,6 +567,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local aSourceTmpFields as array
     local aSourceTmpFldStruct as array
 
+    local aDataPathSplit as array
+
     local aTargetStruct:=(cAlias)->(dbStruct()) as array
     local aTargetFieldsDef as array
     local aReplicateValues as array
@@ -467,10 +606,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local cType as character
 
     local cLine as character
-    local cRootPath as character
     local cDataPath as character
     local cSourceFile as character
     local cSourceTable as character
+    local cDataPathSplit as character
 
     local cNoReplicateValues as character
 
@@ -500,6 +639,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local cFWTemporaryTableRealName as character
 
     local cFieldsFilterBlock as character
+
+    local cGetFileMask as character
+    local cGetFileTitle as character
 
     local lLock as logical
     local lFound as logical
@@ -549,6 +691,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local nRecProcCustom as numeric
     local nTargetFieldAT as numeric
     local nTargetFieldPos as numeric
+
+    local nGetFileOptions as numeric
 
     local nReplicateValuesAT as numeric
 
@@ -642,19 +786,34 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             break
         endif
 
-        cDataPath:=allTrim(oTFIni:GetPropertyValue("Tables","TablesData",""))
+        cDataPath:=GetDataPath()
         lImportData:=(!empty(cDataPath))
         if (!lImportData)
             ApMsgAlert("Invalida Data Path ("+cDataPath+")","Attention")
             break
         endif
 
-        cRootPath:=GetValue("cRootPath")
-        cSourceFile:=(cRootPath+".."+cDataPath+cSourceTable+".csv")
-        lImportData:=file(cSourceFile)
-        if (!lImportData)
-            ApMsgAlert("File ("+cSourceFile+") not found","Attention")
-            break
+        cDataPathSplit:=GetDataPathSplit()
+        if (!empty(cDataPathSplit))
+            cDataPathSplit+=(cSourceTable+"\")
+            aDataPathSplit:=Directory(cDataPathSplit+cSourceTable+"*.csv")
+            if (!Empty(aDataPathSplit)).and.ApMsgYesNo(cTools():Accentuation("Deseja Selecionar o Arquivo para importa#1#2o?","ccedil","atilde"),cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))
+                cGetFileMask:=(cSourceTable+" | "+cSourceTable+"*.csv")
+                cGetFileTitle:=cSourceTable
+                nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
+                cDataPathSplit:=strTran("SERVIDOR"+cDataPathSplit,"\ini\..","")
+                cSourceFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cDataPathSplit,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+            endif
+            FWFreeArray(@aDataPathSplit)
+        endif
+
+        if (empty(cSourceFile))
+            cSourceFile:=(cDataPath+cSourceTable+".csv")
+            lImportData:=file(cSourceFile)
+            if (!lImportData)
+                ApMsgAlert("File ("+cSourceFile+") not found","Attention")
+                break
+            endif
         endif
 
         aFieldsDef:=aClone(GetValue(cSourceTable,aFieldsDef))
@@ -795,7 +954,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             oFT:ft_fSetFilter(bSourceSetFilter)
         endif
 
-        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Wait. Loading Data File.","Loading:["+cSourceFile+"]",nil,.T.)
+        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Wait! Loading Data File.","["+cSourceFile+"]",nil,.T.)
 
         lImportData:=(nft_fHandle>=0)
         if (!lImportData)
@@ -823,7 +982,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             dbUseArea(.T.,"SQLITE_MEM",cFWTemporaryTableRealName,cSourceAlias,.F.,.F.)
             dbSelectArea(cSourceAlias)
             INDEX ON &(cIndexKey) TAG &(cFWTemporaryTableRealName+"1") TO &(cFWTemporaryTableRealName+"1")
-        endif                
+        endif
 
         (cSourceAlias)->(dbSetOrder(1))
 
@@ -912,7 +1071,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     if (nReplicates>0)
                         exit
                     endif
-                next nField                            
+                next nField
             endif
 
             bSourceGetLine:={|nRecNoAT,uLine|oSourceJSONLine:FromJSON(uLine),oSourceJSONLine["Line"]}
@@ -931,7 +1090,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     lAppend:=.T.
                     lHasError:=.F.
                     lSeekTableFound:=.F.
-                    
+
                     if ((lChkFilial).or.(lEnableFilterBlock).or.(lAddFieldTmp))
 
                         for nField:=1 to nFields
@@ -1290,7 +1449,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             endif
 
                         endif
-                    
+
                     endif
 
                     if ((nReplicates>0).and.(lTypeReplicateRow))
@@ -2064,26 +2223,26 @@ static function readTableDefinition() as logical
         endif
 
         nAT:=1
-        
+
         aLineDef[DTS_DBS_NAME]:={;
             nAT,;
             (Len(aLineDef[DTS_DBS_NAME])+1);
         }
 
         nAT+=aLineDef[DTS_DBS_NAME][2]
-        
+
         aLineDef[DTS_DBS_TYPE]:={;
             nAT,;
             (Len(aLineDef[DTS_DBS_TYPE])+1);
         }
-        
+
         nAT+=aLineDef[DTS_DBS_TYPE][2]
 
         aLineDef[DTS_DBS_FLG]:={;
             nAT,;
             (Len(aLineDef[DTS_DBS_FLG])+1);
         }
-        
+
         nAT+=aLineDef[DTS_DBS_FLG][2]
 
         aLineDef[DTS_DBS_FORMAT]:={;
@@ -2092,8 +2251,6 @@ static function readTableDefinition() as logical
         }
 
         oFT:ft_fGoTop()
-
-        MsProcess():SetRegua(oFT:ft_fLastRec(),.T.)
 
         while (!oFT:ft_fEof())
             cLine:=oFT:ft_fReadLN()
@@ -2105,7 +2262,6 @@ static function readTableDefinition() as logical
                 if ("Table:"==Left(cLine,6))
                     cTable:=strTran(cLine,"Table:","")
                     cTable:=allTrim(cTable)
-                    MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.T.)
                     lSkipTable:=(!oHMTablesImport:Get(cTable))
                     if (lSkipTable)
                         break
@@ -2123,7 +2279,6 @@ static function readTableDefinition() as logical
                             loop
                         endif
                         if ("Table:"==Left(cLine,6))
-                            MsProcess():MsProcTxt("Wait! Loading ["+cTable+"]",.F.)
                             SetValue(cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
                             nft_fRecNo:=oFT:ft_fRecNo()
@@ -2453,8 +2608,8 @@ static procedure CFGFile()
             if (valType(st_oHMbTransform)=="O")
                 st_oHMbTransform:Clean()
             endif
-            FWMsgRun(nil,{||datasul2totvs.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","Loading ["+cINIFile+"]")
-            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...",nil,.T.)
+            FWMsgRun(nil,{||datasul2totvs.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
+            FWMsgRun(nil,{||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...")
         endif
 
     end sequence
@@ -2868,8 +3023,8 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
                 st_oHMbTransform:Clean()
             endif
             cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
-            FWMsgRun(nil,{||datasul2totvs.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","Loading ["+cINIFile+"]")
-            MsProcess():MsAguarde({||datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...",nil,.T.)
+            FWMsgRun(nil,{||datasul2totvs.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
+            FWMsgRun(nil,{||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...")
         endif
     endif
 
@@ -3048,16 +3203,16 @@ static function Accentuation(cText as character,lTablesEncodeUTF8 as logical) as
 return(cTextNew)
 
 static function GetLineFromSource(cLine as character,nLine as numeric,nFileSize as numeric,nBufferSize as numeric,nBytesRead as numeric,cSourceFile as character,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character) as array
-    
+
     local aLine as array
     local cLineMsg as character
     local nLineSiz as numeric
     local nIncProc as numeric
-    
+
     if (lChkEncode)
         cLine:=Accentuation(cLine,lTablesEncodeUTF8)
     endif
-    
+
     aLine:=cTools():StrTokArray(cLine,";")
 
     if ((lSetRegua).and.(nSetRegua==0).and.(!Empty(aLine)))
@@ -3071,7 +3226,7 @@ static function GetLineFromSource(cLine as character,nLine as numeric,nFileSize 
         MsProcess():SetRegua(nSetRegua,.T.)
     endif
 
-    cLineMsg:="["+oProgress:Eval()+"] Loading:["+cSourceFile+"]"
+    cLineMsg:="["+oProgress:Eval()+"] ["+cSourceFile+"]"
     cLineMsg+=cCRLF
     cLineMsg+=cCRLF
     cLineMsg+="Bytes  Processados ["+StrZero(Min(nFileSize,nBytesRead),16)+"/"+StrZero(nFileSize,16)+"]"
@@ -3085,3 +3240,199 @@ static function GetLineFromSource(cLine as character,nLine as numeric,nFileSize 
     MsProcess():MsProcTxt(cLineMsg,.T.)
 
 return(aLine)
+
+static function GetDataPath() as character
+
+    local cRootPath as character
+    local cDataPath as character
+
+    local oTFIni:=GetValue("readIniFile") as object
+
+    cDataPath:=allTrim(oTFIni:GetPropertyValue("Tables","TablesData",""))
+
+    cRootPath:=GetValue("cRootPath")
+    cDataPath:=(cRootPath+".."+cDataPath)
+
+return(cDataPath)
+
+static function GetDataPathSplit() as character
+
+    local cRootPath as character
+    local cDataPath as character
+
+    local oTFIni:=GetValue("readIniFile") as object
+
+    cDataPath:=allTrim(oTFIni:GetPropertyValue("Tables","TablesDataSplit",""))
+    cRootPath:=GetValue("cRootPath")
+    cDataPath:=(cRootPath+".."+cDataPath)
+
+return(cDataPath)
+
+static function SplitOptions(nSplitSize as numeric) as logical
+
+    local aPBoxPrm:=Array(0) as array
+    local aPBoxRet:=Array(0) as array
+
+    local cPBoxTit:=OemToAnsi("Informe os parametros") as character
+
+    local lParamBox:=.F. as logical
+
+    local nPBox as numeric
+
+    saveInter()
+
+        aAdd(aPBoxPrm,Array(9))
+        nPBox:=Len(aPBoxPrm)
+        //01----------------------------------------------------------------------------------------------
+        aPBoxPrm[nPBox][1]:=1                 //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Tamanho em MB"   //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=nSplitSize        //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="99"              //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="NaoVazio()"      //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:=""                //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()"   //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.F.               //[9]:Flag .T./.F. Parametro Obrigatorio ?
+
+        while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,nil,nil,.T.,nil,nil,nil,nil,.T.,.T.)))
+            lParamBox:=MsgYesNo(cTools():Accentuation("Deseja Cancelar a Altera#1#2o dos Par#3metros?","ccedil","atilde","acirc"),cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))            
+            if (lParamBox)
+                lParamBox:=.F.
+                exit
+            endif
+        end while
+
+        if (lParamBox)
+            nSplitSize:=aPBoxRet[nPBox]
+        endif
+
+    restInter()
+
+    FWFreeArray(@aPBoxRet)
+    FWFreeArray(@aPBoxPrm)
+
+return(lParamBox)
+
+static function SplitFileAdd(cSourceTable as character) as logical
+
+    local aFiles as array
+
+    local cLogFile as character
+    local cDataPath as character
+    local cTargetPath as character
+
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
+
+    local cBaseURL as character
+    local cHTMLTempFile as character
+
+    local lSplitFile as logical
+
+    local nFile as numeric
+    local nFiles as numeric
+    local nSplitSize:=10 as numeric
+
+    local oUFLog:=uf.log.Log():New() as object
+
+    begin sequence
+
+        cDataPath:=GetDataPath()
+        lSplitFile:=(!empty(cDataPath))
+        if (!lSplitFile)
+            ApMsgAlert("Invalida Data Path ("+cDataPath+")","Attention")
+            break
+        endif
+
+        cSourceFile:=(cDataPath+cSourceTable+".csv")
+
+        cTargetPath:=GetDataPathSplit()
+        cTargetPath+=(cSourceTable+"\")
+
+        SplitFileDel(cSourceTable)
+
+        SplitOptions(@nSplitSize)
+
+        aFiles:=fileTools():SplitTXTfile(cSourceFile,cTargetPath,nSplitSize)
+
+        nFiles:=Len(aFiles)
+        lSplitFile:=(nFiles>0)
+
+        if ((lSplitFile).and.(ApMsgYesNo("Deseja Consultar os arquivos gerados?",cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))))
+
+            for nFile:=1 to nFiles
+                oUFLog:FormatLogEntryTbl(cSourceTable,aFiles[nFile],"FILE")
+            next nFile
+
+            cLogFile:=oUFLog:FormatLogFile("\log\html\",cSourceTable)
+            cLogFile:=strTran(cLogFile,".log",".html")
+
+            oUFLog:LogAsHtmlFile(cLogFile,cSourceTable)
+
+            SplitPath(cLogFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+            cHTMLTempFile:=(GetTempPath()+cSPPFile+cSPPExt)
+
+            if (__CopyFile(cLogFile,cHTMLTempFile))
+                cBaseURL:=oUFLog:LogGetURLBase()
+                uf.text.view.TextView():ShowHTML(MemoRead(cLogFile),cSourceTable,cHTMLTempFile,cBaseURL)
+                fErase(cHTMLTempFile)
+            endif
+
+            fErase(cLogFile)
+
+            oUFLog:Clean()
+
+        endif
+
+    end sequence
+
+    FreeObj(@oUFLog)
+    FWFreeArray(@aFiles)
+
+return(lSplitFile)
+
+static function SplitFileDel(cSourceTable as character) as logical
+
+    local aFiles as array
+
+    local cTargetPath as character
+
+    local lSplitFileDel as logical
+
+    local nFile as numeric
+    local nFiles as numeric
+
+    cTargetPath:=GetDataPathSplit()
+    cTargetPath+=(cSourceTable+"\")
+
+    aFiles:=Directory(cTargetPath+cSourceTable+"*.csv")
+    nFiles:=Len(aFiles)
+    for nFile:=1 To nFiles
+        cFile:=cTargetPath+aFiles[nFile][1]
+        if (file(cFile))
+            fErase(cFile)
+        endif
+    next nFile
+
+    FWFreeArray(@aFiles)
+
+    aFiles:=Directory(cTargetPath+cSourceTable+"*.csv")
+    lSplitFileDel:=Empty(aFiles)
+    if ((lSplitFileDel).and.(!FwIsInCallStack("DATASUL2TOTVS.SplitFileADD")))
+        ApMsgInfo("Arquivos Excluidos com Sucesso!",cSourceTable)
+    endif
+
+    FWFreeArray(@aFiles)
+
+return(lSplitFileDel)
+
+static function SplitFileView(cSourceTable as character) as variant
+    local cTargetPath:=GetDataPathSplit() as character
+    cTargetPath+=(cSourceTable+"\")
+return(fileTools():BrowseFiles(cSourceTable,cTargetPath,cSourceTable+"*.csv",1))
+
+static function ShowDatasulFiles() as variant
+    local cDataPath:=GetDataPath() as character
+return(fileTools():BrowseFiles("Datasul Files",cDataPath,"*.csv",1))
