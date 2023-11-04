@@ -2997,7 +2997,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
             .or.;
             ("auth"$cLowerDirectory);
             )}
-        lSendDataToServer:=fileTools():SendDataToServer(@cDirectoryClient,@cDirectoryServer,@bNotSend,@cErrorMsg)
+        lSendDataToServer:=fileTools():SendDataToServerWithZip(@cDirectoryClient,@cDirectoryServer,@bNotSend,@cErrorMsg)
         if (!lSendDataToServer)
             ApMsgAlert(cErrorMsg)
             break
@@ -3326,6 +3326,7 @@ static function SplitFileAdd(cSourceTable as character) as logical
     local cSPPFile as character
     local cSPPExt as character
 
+    local cHTML as character
     local cBaseURL as character
     local cHTMLTempFile as character
 
@@ -3376,7 +3377,9 @@ static function SplitFileAdd(cSourceTable as character) as logical
 
             if (__CopyFile(cLogFile,cHTMLTempFile))
                 cBaseURL:=oUFLog:LogGetURLBase()
-                uf.text.view.TextView():ShowHTML(MemoRead(cLogFile),cSourceTable,cHTMLTempFile,cBaseURL)
+                cHTML:=MemoRead(cLogFile)
+                uf.text.view.TextView():ShowHTML(cHTML,cSourceTable,cHTMLTempFile,cBaseURL)
+                cHTML:=""
                 fErase(cHTMLTempFile)
             endif
 

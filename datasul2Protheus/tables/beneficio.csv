@@ -1,0 +1,27 @@
+1;"SEGURO DE VIDA";"SEGVIDA";11;no;2;2;1;2;1;no;"ellen";26/08/16;"152651";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+2;"PLANO DE SAUDE UNIMED";"PL_UNIMED";2;yes;2;2;2;1;1;yes;"super";17/01/20;"132523";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+3;"PLANO DE SAUDE OESTE";"PL_OESTE";2;yes;2;2;2;1;1;yes;"amagro";31/08/22;"085823";"";"";?;?;no;no;0;0;0;0;1;1;no;"";2
+4;"PLANO DE SAUDE HAPVIDA";"PL_HAPVIDA";2;yes;2;2;2;1;1;yes;"amagro";06/05/22;"101218";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+5;"PLANO DE SAUDE UNIMED APTO";"PL_UNIMED_APTO";2;yes;2;2;2;1;1;yes;"amagro";07/11/22;"114110";"";"";?;?;no;no;0;0;0;0;1;1;no;"";2
+6;"PLANO DE SAUDE SAOFCO APTO";"PL_SFCO_APTO";2;yes;2;2;2;1;1;yes;"msantos";03/09/18;"180610";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+7;"VALE REFEICAO";"VR";3;no;2;2;1;2;2;no;"ellen";25/06/19;"200044";"";"";?;?;no;no;0;0;0;0;2;1;no;"";1
+8;"SEGURO DE VIDA";"SEG VIDA";11;no;2;2;1;1;1;no;"ellen";29/08/19;"094128";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+10;"CESTA BASICA";"C_BAS";10;no;2;2;1;1;1;no;"super";31/08/18;"155937";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+11;"VALE SAFRA";"VL_SAFRA";12;no;2;2;1;1;1;no;"super";31/08/18;"172154";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+12;"VALE ALIMENTACAO";"V.A";10;no;2;2;1;1;1;no;"ellen";28/05/19;"093731";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+13;"PLANO DE SAUDE UNIMED SEGUROS";"PL_UNIMED";2;yes;2;2;2;2;1;yes;"gmoreno";14/01/20;"110145";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+14;"UNIMED SEGUROS";"UNIMED_SEGURO";2;yes;2;2;2;1;1;yes;"super";11/02/20;"151952";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+22;"PLANO DE SAUDE UNIMED-COPART";"UNIMED-COPART";2;yes;2;2;1;2;1;yes;"super";26/06/19;"100101";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+23;"PLANO DE SAUDE OESTE-COPART";"OESTE-COPART";2;yes;2;2;2;1;1;yes;"super";06/06/19;"094025";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+24;"PLANO SAUDE SAO FRANC COPART";"SAOFRANC COPART";2;yes;2;2;2;1;1;yes;"ellen";25/06/19;"171918";"";"";?;?;yes;no;0;0;0;0;1;1;no;"";1
+25;"VALE LANCHE";"VALE LANCHE";3;no;2;2;1;2;2;no;"gmoreno";16/08/22;"114539";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+26;"VALE REFEIÇÃO RAO";"VALE REFEIÇÃO";3;no;2;2;2;2;2;no;"gmoreno";16/08/22;"114531";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+27;"VALE MOBILIDADE";"VALE MOBILIDADE";13;no;2;2;1;1;1;no;"gmoreno";16/08/22;"170051";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+28;"PPM";"PPM";99;no;2;2;1;2;1;no;"gmoreno";22/08/22;"111422";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+29;"CAMPANHA 3P";"3P";99;no;2;2;1;2;1;no;"gmoreno";22/08/22;"111455";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+30;"CAMPANHA CANA FORTE";"CANA FORTE";99;no;2;2;1;2;1;no;"gmoreno";22/08/22;"111447";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+31;"CAMPANHA MAIS QUALIDADE";"MAIS QUALIDADE";99;no;2;2;1;2;1;no;"gmoreno";07/12/22;"153325";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+100;"Cesta Básica";"Cesta Básica";99;no;2;2;1;2;1;no;"ellen";25/06/19;"161015";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+423;"CO PARTICIPACAO HAPVIDA";"CO PART HV";2;yes;2;2;2;2;1;yes;"amagro";06/05/22;"101300";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+426;"CO PARTICIPACO UNIMED";"CO PART UNIMED";2;yes;2;2;2;2;1;yes;"ellen";25/06/19;"172622";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
+429;"CO PARTICIPACO OESTE SAUDE";"CO PART OESTE";2;yes;2;2;2;2;1;yes;"gmoreno";22/08/22;"093753";"";"";?;?;no;no;0;0;0;0;1;1;no;"";1
