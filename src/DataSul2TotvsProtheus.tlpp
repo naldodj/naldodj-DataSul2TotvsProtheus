@@ -789,7 +789,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         cDataPath:=GetDataPath()
         lImportData:=(!empty(cDataPath))
         if (!lImportData)
-            ApMsgAlert("Invalida Data Path ("+cDataPath+")","Attention")
+            ApMsgAlert("Invalid Data Path ("+cDataPath+")","Attention")
             break
         endif
 
@@ -2754,6 +2754,8 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
         cFWWSBKP+="-"
         cFWWSBKP+=strTran(Time(),":","-")
         cFWWSBKP+="-"
+        cFWWSBKP+=strZero(ThreadID(),Len(cTools():RetPictVal(ThreadID())))
+        cFWWSBKP+="-"
         cFWWSBKP+=strZero(ranDomize(1,999),3)
 
         nAttemps:=0
@@ -3268,7 +3270,7 @@ static function GetDataPathSplit() as character
 
 return(cDataPath)
 
-static function SplitOptions(nSplitSize as numeric) as logical
+static function SplitOptions(nTargetSize as numeric) as logical
 
     local aPBoxPrm:=Array(0) as array
     local aPBoxRet:=Array(0) as array
@@ -3284,15 +3286,15 @@ static function SplitOptions(nSplitSize as numeric) as logical
         aAdd(aPBoxPrm,Array(9))
         nPBox:=Len(aPBoxPrm)
         //01----------------------------------------------------------------------------------------------
-        aPBoxPrm[nPBox][1]:=1                 //[1]:1 - MsGet
-        aPBoxPrm[nPBox][2]:="Tamanho em MB"   //[2]:Descricao
-        aPBoxPrm[nPBox][3]:=nSplitSize        //[3]:String contendo o inicializador do campo
-        aPBoxPrm[nPBox][4]:="99"              //[4]:String contendo a Picture do campo
-        aPBoxPrm[nPBox][5]:="NaoVazio()"      //[5]:String contendo a validacao
-        aPBoxPrm[nPBox][6]:=""                //[6]:Consulta F3
-        aPBoxPrm[nPBox][7]:="AllWaysTrue()"   //[7]:String contendo a validacao When
-        aPBoxPrm[nPBox][8]:=CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
-        aPBoxPrm[nPBox][9]:=.F.               //[9]:Flag .T./.F. Parametro Obrigatorio ?
+        aPBoxPrm[nPBox][1]:=1                  //[1]:1 - MsGet
+        aPBoxPrm[nPBox][2]:="Tamanho em MB"    //[2]:Descricao
+        aPBoxPrm[nPBox][3]:=nTargetSize        //[3]:String contendo o inicializador do campo
+        aPBoxPrm[nPBox][4]:="9999.99999999999" //[4]:String contendo a Picture do campo
+        aPBoxPrm[nPBox][5]:="NaoVazio()"       //[5]:String contendo a validacao
+        aPBoxPrm[nPBox][6]:=""                 //[6]:Consulta F3
+        aPBoxPrm[nPBox][7]:="(MV_PAR01:="+Str(nTargetSize)+",AllWaysTrue())" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][8]:=(16+CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2])) //[8]:Tamanho do MsGet
+        aPBoxPrm[nPBox][9]:=.T.                //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
         while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,nil,nil,.T.,nil,nil,nil,nil,.T.,.T.)))
             lParamBox:=MsgYesNo(cTools():Accentuation("Deseja Cancelar a Altera#1#2o dos Par#3metros?","ccedil","atilde","acirc"),cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))            
@@ -3303,7 +3305,7 @@ static function SplitOptions(nSplitSize as numeric) as logical
         end while
 
         if (lParamBox)
-            nSplitSize:=aPBoxRet[nPBox]
+            nTargetSize:=aPBoxRet[nPBox]
         endif
 
     restInter()
@@ -3316,6 +3318,7 @@ return(lParamBox)
 static function SplitFileAdd(cSourceTable as character) as logical
 
     local aFiles as array
+    local aFileInfo as array
 
     local cLogFile as character
     local cDataPath as character
@@ -3334,7 +3337,7 @@ static function SplitFileAdd(cSourceTable as character) as logical
 
     local nFile as numeric
     local nFiles as numeric
-    local nSplitSize:=10 as numeric
+    local nTargetSize as numeric
 
     local oUFLog:=uf.log.Log():New() as object
 
@@ -3343,20 +3346,36 @@ static function SplitFileAdd(cSourceTable as character) as logical
         cDataPath:=GetDataPath()
         lSplitFile:=(!empty(cDataPath))
         if (!lSplitFile)
-            ApMsgAlert("Invalida Data Path ("+cDataPath+")","Attention")
+            ApMsgAlert("Invalid Data Path ("+cDataPath+")","Attention")
             break
         endif
 
         cSourceFile:=(cDataPath+cSourceTable+".csv")
+
+        lSplitFile:=File(cSourceFile)
+        if (!lSplitFile)
+            ApMsgAlert("File Not Found ("+cSourceFile+")","Attention")
+            break
+        endif
 
         cTargetPath:=GetDataPathSplit()
         cTargetPath+=(cSourceTable+"\")
 
         SplitFileDel(cSourceTable)
 
-        SplitOptions(@nSplitSize)
+        aFileInfo:=Directory(cSourceFile)
+        lSplitFile:=(!empty(aFileInfo))
+        if (!lSplitFile)
+            ApMsgAlert("File Not Found ("+cSourceFile+")","Attention")
+            break
+        endif
 
-        aFiles:=fileTools():SplitTXTfile(cSourceFile,cTargetPath,nSplitSize)
+        nTargetSize:=(aFileInfo[1][2]/((47/10)*(1024^2)))
+        FWFreeArray(@aFileInfo)
+
+        SplitOptions(@nTargetSize)
+
+        aFiles:=fileTools():SplitTXTfile(cSourceFile,cTargetPath,nTargetSize,/*nTargetSizeType*/,/*cCRLF*/,/*bProgress*/,/*bGetLine*/,/*bSetFilter*/,.F./*lUseUUID*/)
 
         nFiles:=Len(aFiles)
         lSplitFile:=(nFiles>0)
@@ -3400,31 +3419,42 @@ static function SplitFileDel(cSourceTable as character) as logical
 
     local aFiles as array
 
+    local cMsgYesNo as character
     local cTargetPath as character
 
     local lSplitFileDel as logical
 
     local nFile as numeric
     local nFiles as numeric
-
+    
     cTargetPath:=GetDataPathSplit()
     cTargetPath+=(cSourceTable+"\")
 
-    aFiles:=Directory(cTargetPath+cSourceTable+"*.csv")
-    nFiles:=Len(aFiles)
-    for nFile:=1 To nFiles
-        cFile:=cTargetPath+aFiles[nFile][1]
-        if (file(cFile))
-            fErase(cFile)
+    cMsgYesNo:="Deseja, realmente, excluir os arquivos:"
+    cMsgYesNo+=CRLF
+    cMsgYesNo+=cTargetPath+cSourceTable+"*.csv?"
+    
+    lSplitFileDel:=((FWIsInCallStack("datasul2totvs.SplitFileAdd")).or.(ApMsgYesNo(cMsgYesNo)))
+
+    if (lSplitFileDel)
+
+        aFiles:=Directory(cTargetPath+cSourceTable+"*.csv")
+        nFiles:=Len(aFiles)
+        for nFile:=1 To nFiles
+            cFile:=cTargetPath+aFiles[nFile][1]
+            if (file(cFile))
+                fErase(cFile)
+            endif
+        next nFile
+
+        FWFreeArray(@aFiles)
+
+        aFiles:=Directory(cTargetPath+cSourceTable+"*.csv")
+        lSplitFileDel:=Empty(aFiles)
+        if ((lSplitFileDel).and.(!FwIsInCallStack("DATASUL2TOTVS.SplitFileADD")))
+            ApMsgInfo("Arquivos Excluidos com Sucesso!",cSourceTable)
         endif
-    next nFile
 
-    FWFreeArray(@aFiles)
-
-    aFiles:=Directory(cTargetPath+cSourceTable+"*.csv")
-    lSplitFileDel:=Empty(aFiles)
-    if ((lSplitFileDel).and.(!FwIsInCallStack("DATASUL2TOTVS.SplitFileADD")))
-        ApMsgInfo("Arquivos Excluidos com Sucesso!",cSourceTable)
     endif
 
     FWFreeArray(@aFiles)
