@@ -610,6 +610,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local cSourceFile as character
     local cSourceTable as character
     local cDataPathSplit as character
+    local cSourceFileName as character
+
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
 
     local cNoReplicateValues as character
 
@@ -816,6 +822,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             endif
         endif
 
+        SplitPath(cSourceFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+        cSourceFileName:=cSPPFile
+        cSourceFileName+=cSPPExt
+
         aFieldsDef:=aClone(GetValue(cSourceTable,aFieldsDef))
         lImportData:=(!empty(aFieldsDef))
         if (!lImportData)
@@ -945,7 +955,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
 
         oFT:=ftDb():New("SQLITE_TMP")
-        bSourceGetLine:={|cLine,nLine,nFileSize,nBufferSize,nBytesRead|GetLineFromSource(cLine,nLine,nFileSize,nBufferSize,nBytesRead,cSourceFile,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
+        bSourceGetLine:={|cLine,nLine,nFileSize,nBufferSize,nBytesRead|GetLineFromSource(cLine,nLine,nFileSize,nBufferSize,nBytesRead,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
         oFT:ft_fSetGetLine(bSourceGetLine)
         bSourceAppendLine:={|nRecNoAT,uLine|oSourceJSONLine["Line"]:=uLine,oSourceJSONLine:ToJSON()}
         oFT:ft_fSetAppend(bSourceAppendLine)
@@ -954,7 +964,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             oFT:ft_fSetFilter(bSourceSetFilter)
         endif
 
-        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Wait! Loading Data File.","["+cSourceFile+"]",nil,.T.)
+        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Wait! Loading Data File.","["+cSourceFileName+"]",nil,.T.)
 
         lImportData:=(nft_fHandle>=0)
         if (!lImportData)
@@ -2703,10 +2713,10 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
     local cMsg as character
     local cTitle as character
 
-    local cSPDriver as character
-    local cSPPath as character
-    local cSPFileName as character
-    local cSPFileExt as character
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
 
     local cFWWSBKP as character
 
@@ -2726,27 +2736,27 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
             break
         endif
 
-        cSPDriver:=""
-        cSPPath:=""
-        cSPFileName:=""
-        cSPFileExt:=""
+        cSPPDrive:=""
+        cSPPPath:=""
+        cSPPFile:=""
+        cSPPExt:=""
 
-        SplitPath(cINIFile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
+        SplitPath(cINIFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
 
         cMsg:="Deseja Gravar as Alteracoes?"
 
         cTitle:="ARQUIVO CONFIGURACAO  :: "
-        cTitle+=cSPFileName
+        cTitle+=cSPPFile
 
         lChgCFGFile:=ApMsgYesNo(cMsg,cTitle)
         if (!lChgCFGFile)
             break
         endif
 
-        cFWWSBKP:=cSPDriver
-        cFWWSBKP+=cSPPath
-        cFWWSBKP+=cSPFileName
-        cFWWSBKP+=cSPFileExt
+        cFWWSBKP:=cSPPDrive
+        cFWWSBKP+=cSPPPath
+        cFWWSBKP+=cSPPFile
+        cFWWSBKP+=cSPPExt
         cFWWSBKP+="-"
         cFWWSBKP+=__cUserID
         cFWWSBKP+="-"
@@ -2764,7 +2774,7 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
         cMsg+=cINIFile
         cMsg+=" encontra-se em uso deseja tentar novamente?"
 
-        while (!LockByName(cSPFileName,lEmpresa,lFilial,.T.))
+        while (!LockByName(cSPPFile,lEmpresa,lFilial,.T.))
             if (nAttemps++>10)
                 nAttemps:=0
                 if (!MsgYesNo(cMsg,cTitle))
@@ -2788,7 +2798,7 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
             if (nAttemps++>10)
                 nAttemps:=0
                 if (!MsgYesNo(cMsg,cTitle))
-                    UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
+                    UnlockByName(cSPPFile,lEmpresa,lFilial,.T.)
                     lChgCFGFile:=.F.
                     cMsg:="Problema na gravacao do arquivo : "
                     cMsg+=cINIFile
@@ -2815,7 +2825,7 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
             sleep(300)
         end while
 
-        UnlockByName(cSPFileName,lEmpresa,lFilial,.T.)
+        UnlockByName(cSPPFile,lEmpresa,lFilial,.T.)
 
         if (!lChgCFGFile)
             cMsg:="Problema na gravacao do arquivo : "
@@ -2835,20 +2845,20 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
 
 static procedure NotepadCFGFile(cINIFile as character)
 
-    local cSPDriver as character
-    local cSPPath as character
-    local cSPFileName as character
-    local cSPFileExt as character
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
 
     local cTempPath as character
     local cTempFile as character
 
-    cSPDriver:=""
-    cSPPath:=""
-    cSPFileName:=""
-    cSPFileExt:=""
+    cSPPDrive:=""
+    cSPPPath:=""
+    cSPPFile:=""
+    cSPPExt:=""
 
-    SplitPath(cINIFile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
+    SplitPath(cINIFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
 
     cTempPath:=getTempPath()
     if (!(right(cTempPath,1)=="\"))
@@ -2856,8 +2866,8 @@ static procedure NotepadCFGFile(cINIFile as character)
     endif
 
     cTempFile:=cTempPath
-    cTempFile+=cSPFileName
-    cTempFile+=cSPFileExt
+    cTempFile+=cSPPFile
+    cTempFile+=cSPPExt
 
     if (__CopyFile(cINIFile,cTempFile))
         ShellExecute("open",cTempFile,"","",SW_SHOW)
@@ -2872,10 +2882,10 @@ static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oTMe
     local cFileRead as character
     local cDirectory as character
 
-    local cSPDriver as character
-    local cSPPath as character
-    local cSPFileName as character
-    local cSPFileExt as character
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
 
     local lRestoreCFGFile as logical
 
@@ -2883,18 +2893,18 @@ static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oTMe
 
     begin sequence
 
-        cSPDriver:=""
-        cSPPath:=""
-        cSPFileName:=""
-        cSPFileExt:=""
+        cSPPDrive:=""
+        cSPPPath:=""
+        cSPPFile:=""
+        cSPPExt:=""
 
-        SplitPath(cINIFile,@cSPDriver,@cSPPath,@cSPFileName,@cSPFileExt)
+        SplitPath(cINIFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
 
-        cMask:="Arquivos de Configuracao|"+cSPFileName+"*"
+        cMask:="Arquivos de Configuracao|"+cSPPFile+"*"
         cTitle:="Restaurar arquivo de Configuracao"
-        cDirectory:=cSPDriver
-        cDirectory+=cSPPath
-        cDirectory:=StrTran(cSPPath,"/","\")
+        cDirectory:=cSPPDrive
+        cDirectory+=cSPPPath
+        cDirectory:=StrTran(cSPPPath,"/","\")
         nOptions:=GETF_NOCHANGEDIR
 
         cFileRead:=cGetFile(cMask,cTitle,1,cDirectory,.F.,nOptions,/*[lArvore]*/,/*[lKeepCase]*/)
