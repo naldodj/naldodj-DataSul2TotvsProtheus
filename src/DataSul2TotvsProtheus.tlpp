@@ -151,7 +151,7 @@ static function Activate() as logical
         private st_oHMbTransform:=THashMap():New() as object
 
         lSendDataToServer:=(;
-            (getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01")));
+            (getComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01"))+"|DNA-CSDJ-01"));
             .and.;
             (ApMsgNoYes("Sending Data To Server?"));
         )
@@ -298,10 +298,21 @@ static function Activate() as logical
                     MENUITEM oTMenuItem PROMPT "Send data to the server"
                     bTMenuAction:={||FWMsgRun(nil,{||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.T.)},"Wait!","Sending Data To Server")}
                     oTMenuItem:bAction:=bTMenuAction
-                    MENUITEM oTMenuItem PROMPT "Settings"
-                    oTMenuItem:bAction:={||CFGFile()}
-                    MENUITEM oTMenuItem PROMPT "Show Datasul Files"
-                    oTMenuItem:bAction:={||ShowDatasulFiles()}
+                    MENUITEM "Settings"
+                    MENU
+                        MENUITEM "Configure"
+                        MENU
+                            MENUITEM oTMenuItem PROMPT "Settings"
+                            oTMenuItem:bAction:={||CFGFile()}
+                        ENDMENU
+                        MENUITEM "Show"
+                        MENU
+                            MENUITEM oTMenuItem PROMPT "Show Config Files"
+                            oTMenuItem:bAction:={||ShowConfigFiles()}
+                            MENUITEM oTMenuItem PROMPT "Show Datasul Files"
+                            oTMenuItem:bAction:={||ShowDatasulFiles()}
+                        ENDMENU
+                    ENDMENU
                     if (oTFIni:ExistSection("SplitFiles"))
                         oTMenuOptions:=Array(#)
                         aMenu:=aClone(oTFIni:GetAllProperties("SplitFiles"))
@@ -2758,11 +2769,11 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
         cFWWSBKP+=cSPPFile
         cFWWSBKP+=cSPPExt
         cFWWSBKP+="-"
-        cFWWSBKP+=__cUserID
-        cFWWSBKP+="-"
         cFWWSBKP+=DToS(Date())
         cFWWSBKP+="-"
         cFWWSBKP+=strTran(Time(),":","-")
+        cFWWSBKP+="-"
+        cFWWSBKP+=__cUserID
         cFWWSBKP+="-"
         cFWWSBKP+=strZero(ThreadID(),Len(cTools():RetPictVal(ThreadID())))
         cFWWSBKP+="-"
@@ -2965,7 +2976,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
 
     begin sequence
 
-        lSendDataToServer:=(getComputerName()$(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01")))
+        lSendDataToServer:=(getComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01"))+"|DNA-CSDJ-01"))
         if (!lSendDataToServer)
             break
         endif
@@ -3476,6 +3487,10 @@ static function SplitFileView(cSourceTable as character) as variant
     cTargetPath+=(cSourceTable+"\")
 return(fileTools():BrowseFiles(cSourceTable,cTargetPath,cSourceTable+"*.csv",1))
 
+static function ShowConfigFiles() as variant
+    local cRootPath:=GetValue("cRootPath") as character
+return(fileTools():BrowseFiles("Config Files: ["+cRootPath+"]",cRootPath,"*.ini",1))
+
 static function ShowDatasulFiles() as variant
     local cDataPath:=GetDataPath() as character
-return(fileTools():BrowseFiles("Datasul Files",cDataPath,"*.csv",1))
+return(fileTools():BrowseFiles("Datasul Files: ["+cDataPath+"]",cDataPath,"*.csv",1))
