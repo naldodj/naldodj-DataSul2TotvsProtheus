@@ -966,7 +966,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
 
         oFT:=ftDb():New("SQLITE_TMP")
-        bSourceGetLine:={|cLine,nLine,nFileSize,nBufferSize,nBytesRead|GetLineFromSource(cLine,nLine,nFileSize,nBufferSize,nBytesRead,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
+        bSourceGetLine:={|oJSONLine|GetLineFromSource(oJSONLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
         oFT:ft_fSetGetLine(bSourceGetLine)
         bSourceAppendLine:={|nRecNoAT,uLine|oSourceJSONLine["Line"]:=uLine,oSourceJSONLine:ToJSON()}
         oFT:ft_fSetAppend(bSourceAppendLine)
@@ -3225,12 +3225,19 @@ static function Accentuation(cText as character,lTablesEncodeUTF8 as logical) as
 
 return(cTextNew)
 
-static function GetLineFromSource(cLine as character,nLine as numeric,nFileSize as numeric,nBufferSize as numeric,nBytesRead as numeric,cSourceFile as character,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character) as array
+static function GetLineFromSource(oJSONLine as object,cSourceFile as character,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character) as array
 
     local aLine as array
+
     local cLineMsg as character
     local nLineSiz as numeric
     local nIncProc as numeric
+
+    local cLine:=oJSONLine["cLine"] as character
+    local nLine:=oJSONLine["nLine"] as numeric
+    local nFileSize:=oJSONLine["nFileSize"] as numeric
+    local nBufferSize:=oJSONLine["nBufferSize"] as numeric
+    local nBytesRead:=oJSONLine["nBytesRead"] as numeric
 
     if (lChkEncode)
         cLine:=Accentuation(cLine,lTablesEncodeUTF8)

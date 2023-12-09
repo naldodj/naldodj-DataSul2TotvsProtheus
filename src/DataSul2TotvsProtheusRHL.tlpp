@@ -64,7 +64,7 @@ static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentag
             );
         }
         oRHLImport[#cItem][#"bEnableFilterBlockMem"]:=bEnableFilterBlockMem
-        bSourceSetFilter:={|aLine|RHLSourceFilter(aLine,oTFIni)}
+        bSourceSetFilter:={|oJSOnLine|RHLSourceFilter(oJSOnLine,oTFIni)}
         oRHLImport[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter
     endif
 
@@ -132,7 +132,9 @@ static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
 return(lRHLImport)
 
-static function RHLSourceFilter(aLine as array,oTFIni as object) as logical
+static function RHLSourceFilter(oJSOnLine as object,oTFIni as object) as logical
+
+    local aLine:=oJSOnLine["uLine"] as array
 
     local lFilter:=.T. as logical
 

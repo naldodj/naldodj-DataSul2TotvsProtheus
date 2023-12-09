@@ -54,7 +54,7 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     cacheData():Set("datasul2totvsprotheus","SRQImportDataLogReport",oTLogReport)
 
-    bSourceSetFilter:={|aLine|SRQSourceFilter(aLine,oTFIni)}
+    bSourceSetFilter:={|oJSONLine|SRQSourceFilter(oJSONLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
 
     lSRQImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
@@ -225,7 +225,9 @@ static function SRQGetRQVerbas(cVarPD as character) as character
     FWFreeArray(@aVarPD)
 return(cRQVerbas)
 
-static function SRQSourceFilter(aLine as array,oTFIni as object) as logical
+static function SRQSourceFilter(oJSONLine as object,oTFIni as object) as logical
+
+    local aLine:=oJSONLine["uLine"] as array
 
     local lFilter:=.T. as logical
 

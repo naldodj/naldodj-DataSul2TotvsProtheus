@@ -89,7 +89,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
                 );
             }
             nSizeMat:=getSX3Cache("RA_MAT","X3_TAMANHO")
-            bSourceSetFilter:={|aLine|SP8SourceFilter(aLine,oTFIni,dDataDe,dDataAte,cMatDe,cMatAte,nSizeMat,cFilDe,cFilAte,oTLogReport)}
+            bSourceSetFilter:={|oJSOnLine|SP8SourceFilter(oJSOnLine,oTFIni,dDataDe,dDataAte,cMatDe,cMatAte,nSizeMat,cFilDe,cFilAte,oTLogReport)}
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -420,8 +420,10 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
 
 return(lPutMarcacoes)
 
-static function SP8SourceFilter(aLine as array,oTFIni as object,dDataDe as date,dDataAte as date,cMatDe as character,cMatAte as character,nSizeMat as numeric,cFilDe as character,cFilAte as character,oTLogReport as object) as logical
+static function SP8SourceFilter(oJSOnLine as object,oTFIni as object,dDataDe as date,dDataAte as date,cMatDe as character,cMatAte as character,nSizeMat as numeric,cFilDe as character,cFilAte as character,oTLogReport as object) as logical
 
+    local aLine:=oJSOnLine["uLine"] as array
+    
     local cFil as character
     local cMat as character
     local cHora as character

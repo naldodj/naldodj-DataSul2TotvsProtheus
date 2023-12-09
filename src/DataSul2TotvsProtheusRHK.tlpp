@@ -65,7 +65,7 @@ static function RHKImportData(oMsNewProcess as object,lEnd as logical,lPercentag
             );
         }
         oRHKImport[#cItem][#"bEnableFilterBlockMem"]:=bEnableFilterBlockMem
-        bSourceSetFilter:={|aLine|RHKSourceFilter(aLine,oTFIni)}
+        bSourceSetFilter:={|oJSONLine|RHKSourceFilter(oJSONLine,oTFIni)}
         oRHKImport[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter
     endif
 
@@ -133,8 +133,9 @@ static function RHKImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
 return(lRHKImport)
 
-static function RHKSourceFilter(aLine as array,oTFIni as object) as logical
+static function RHKSourceFilter(oJSONLine as object,oTFIni as object) as logical
 
+    local aLine:=oJSONLine["uLine"] as array
     local lFilter:=.T. as logical
 
     local xFilter as variant

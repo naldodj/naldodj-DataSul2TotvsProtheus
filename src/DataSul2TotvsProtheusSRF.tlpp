@@ -27,7 +27,7 @@ static function SRFImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RF_FILIAL+RF_MAT+DTOS(RF_DATABAS)+RF_PD"))
     aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RF_FILIAL,RF_MAT,RF_DATABAS,RF_PD")),",")
 
-    bSourceSetFilter:={|aLine|SRFSourceFilter(aLine,oTFIni)}
+    bSourceSetFilter:={|oJSONLine|SRFSourceFilter(oJSONLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
 
     lSRFImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
@@ -48,8 +48,10 @@ static function SRFImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
 return(lSRFImport)
 
-static function SRFSourceFilter(aLine as array,oTFIni as object) as logical
+static function SRFSourceFilter(oJSONLine as object,oTFIni as object) as logical
 
+    local aLine:=oJSONLine["uLine"] as array
+    
     local lFilter:=.T. as logical
 
     local xFilter as variant
