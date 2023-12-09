@@ -29,7 +29,7 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R3_FILIAL+R3_MAT+DTOS(R3_DATA)+R3_SEQ+R3_TIPO+R3_PD"))
     aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R3_FILIAL,R3_MAT,R3_DATA,R3_SEQ,R3_TIPO,R3_PD")),",")
 
-    bSourceSetFilter:={|oJSOnLine|SR3SourceFilter(oJSOnLine,oTFIni)}
+    bSourceSetFilter:={|jJSOnLine|SR3SourceFilter(jJSOnLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
 
     lSR3Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
@@ -43,7 +43,7 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R7_FILIAL+R7_MAT+DTOS(R7_DATA)+R7_SEQ+R7_TIPO"))
         FWFreeArray(@aAddIndex)
         aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")),",")
-        bSourceSetFilter:={|oJSOnLine|SR3SourceFilter(oJSOnLine,oTFIni)}
+        bSourceSetFilter:={|jJSOnLine|SR3SourceFilter(jJSOnLine,oTFIni)}
         cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
         lSR3Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
         if (lSR3Import)
@@ -67,9 +67,9 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
 return(lSR3Import)
 
-static function SR3SourceFilter(oJSOnLine as object,oTFIni as object) as logical
+static function SR3SourceFilter(jJSOnLine as json,oTFIni as object) as logical
 
-    local aLine:=oJSOnLine["uLine"] as array
+    local aLine:=jJSOnLine["uLine"] as array
     
     local lFilter:=.T. as logical
 

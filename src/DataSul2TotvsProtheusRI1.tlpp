@@ -54,7 +54,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     oRI1Import[#cItem][#"AddIndex"]:=cAddIndex
     oRI1Import[#cItem][#"lRI1Import"]:=.F.
     oRI1Import[#cItem][#"bRI1Import"]:={||lRI1Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
-    bSourceSetFilter:={|oJSOnLine|RI1SourceFilter(oJSOnLine,oTFIni)}
+    bSourceSetFilter:={|jJSOnLine|RI1SourceFilter(jJSOnLine,oTFIni)}
     oRI1Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter    
 
     cItem:=__Soma1(cItem)
@@ -65,7 +65,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     oRI1Import[#cItem][#"AddIndex"]:=cAddIndex
     oRI1Import[#cItem][#"lRI1Import"]:=.F.
     oRI1Import[#cItem][#"bRI1Import"]:={||lRI1Import:=RI1CestaBasica(@oMsNewProcess,@lEnd,@oTLogReport,@cIndexKey)}
-    bSourceSetFilter:={|oJSONLine|.T.}
+    bSourceSetFilter:={|jJSOnLine|.T.}
     oRI1Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter    
 
     cItem:=__Soma1(cItem)
@@ -76,7 +76,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     oRI1Import[#cItem][#"AddIndex"]:=cAddIndex
     oRI1Import[#cItem][#"lRI1Import"]:=.F.
     oRI1Import[#cItem][#"bRI1Import"]:={||lRI1Import:=RI1VTMobilidade(@oMsNewProcess,@lEnd,@oTLogReport,@cIndexKey)}
-    bSourceSetFilter:={|oJSONLine|.T.}
+    bSourceSetFilter:={|jJSOnLine|.T.}
     oRI1Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter    
 
     aItems:=aClone(oRI1Import:GetAllSections())
@@ -412,9 +412,9 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
 
 return(lRI1Import)
 
-static function RI1SourceFilter(oJSOnLine as object,oTFIni as object) as logical
+static function RI1SourceFilter(jJSOnLine as json,oTFIni as object) as logical
 
-    local aLine:=oJSOnLine["uLine"] as array
+    local aLine:=jJSOnLine["uLine"] as array
 
     local lFilter:=.T. as logical
 

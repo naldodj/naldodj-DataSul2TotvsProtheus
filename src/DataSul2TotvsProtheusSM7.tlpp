@@ -61,7 +61,7 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
             );
         }
         oSM7Import[#cItem][#"bEnableFilterBlockMem"]:=bEnableFilterBlockMem
-        bSourceSetFilter:={|oJSONLine|SM7SourceFilter(oJSONLine,oTFIni)}
+        bSourceSetFilter:={|jJSOnLine|SM7SourceFilter(jJSOnLine,oTFIni)}
         oSM7Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter
     endif
 
@@ -129,9 +129,9 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
 return(lSM7Import)
 
-static function SM7SourceFilter(oJSONLine as object,oTFIni as object) as logical
+static function SM7SourceFilter(jJSOnLine as json,oTFIni as object) as logical
 
-    local aLine:=oJSONLine["uLine"] as array
+    local aLine:=jJSOnLine["uLine"] as array
     
     local lFilter:=.T. as logical
 

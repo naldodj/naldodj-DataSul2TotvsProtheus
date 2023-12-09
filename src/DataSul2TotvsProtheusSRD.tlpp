@@ -89,7 +89,7 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical,lPercentag
             nSizeMat:=getSX3Cache("RA_MAT","X3_TAMANHO")
             cAnoDe:=Left(cCompetenciaDe,4)
             cAnoAte:=Left(cCompetenciaAte,4)
-            bSourceSetFilter:={|oJSONLine|SRDSourceFilter(oJSONLine,oTFIni,cCompetenciaDe,cCompetenciaAte,cMatDe,cMatAte,nSizeMat,cAnoDe,cAnoAte,cFilDe,cFilAte)}
+            bSourceSetFilter:={|jJSOnLine|SRDSourceFilter(jJSOnLine,oTFIni,cCompetenciaDe,cCompetenciaAte,cMatDe,cMatAte,nSizeMat,cAnoDe,cAnoAte,cFilDe,cFilAte)}
             cacheData():Set("datasul2totvsprotheus",cTableImport+"EndLine",nEndLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"StartLine",nStartLine)
             cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -544,9 +544,9 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
 return(cRDPD)
 
-static function SRDSourceFilter(oJSONLine as object,oTFIni as object,cCompetenciaDe as character,cCompetenciaAte as character,cMatDe as character,cMatAte as character,nSizeMat as numeric,cAnoDe as character,cAnoAte as character,cFilDe as character,cFilAte as character) as logical
+static function SRDSourceFilter(jJSOnLine as json,oTFIni as object,cCompetenciaDe as character,cCompetenciaAte as character,cMatDe as character,cMatAte as character,nSizeMat as numeric,cAnoDe as character,cAnoAte as character,cFilDe as character,cFilAte as character) as logical
 
-    local aLine:=oJSONLine["uLine"] as array
+    local aLine:=jJSOnLine["uLine"] as array
 
     local lFilter:=.T. as logical
 
