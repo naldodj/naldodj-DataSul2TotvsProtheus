@@ -735,9 +735,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local nTmpAliasOrder as numeric
     local nTmpAliasNextRecNo:=(-1) as numeric
 
-    local oFT as object
     local oTFIni as object
     local oProgress:=txtProgress():New() as object
+    local oFileReader as object
 
     local oSourceJSONLine:=JSONObject():New()
 
@@ -965,17 +965,17 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkEncode","0"))=="1")
         lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
 
-        oFT:=ftDb():New("SQLITE_TMP")
+        oFileReader:=fileTools():FileReader("SQLITE_TMP")
         bSourceGetLine:={|jJSOnLine|GetLineFromSource(jJSOnLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
-        oFT:ft_fSetGetLine(bSourceGetLine)
+        oFileReader:ft_fSetGetLine(bSourceGetLine)
         bSourceAppendLine:={|nRecNoAT,uLine|oSourceJSONLine["Line"]:=uLine,oSourceJSONLine:ToJSON()}
-        oFT:ft_fSetAppend(bSourceAppendLine)
+        oFileReader:ft_fSetAppend(bSourceAppendLine)
         if (valtype(GetValue(cTableImport+"SourceSetFilter",nil))=="B")
             bSourceSetFilter:=GetValue(cTableImport+"SourceSetFilter")
-            oFT:ft_fSetFilter(bSourceSetFilter)
+            oFileReader:ft_fSetFilter(bSourceSetFilter)
         endif
 
-        MsProcess():MsAguarde({||nft_fHandle:=oFT:ft_fUse(cSourceFile)},"Wait! Loading Data File.","["+cSourceFileName+"]",nil,.T.)
+        MsProcess():MsAguarde({||nft_fHandle:=oFileReader:ft_fUse(cSourceFile)},"Wait! Loading Data File.","["+cSourceFileName+"]",nil,.T.)
 
         lImportData:=(nft_fHandle>=0)
         if (!lImportData)
@@ -1049,7 +1049,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 nStartLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"StartLine","1")))
             endif
 
-            nRecCount:=oFT:ft_fLastRec()
+            nRecCount:=oFileReader:ft_fLastRec()
 
             nEndLine:=GetValue(cTableImport+"EndLine",nRecCount)
             if (nEndLine>=nRecCount)
@@ -1059,9 +1059,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             if (nStartLine>1)
                 nRecCount:=((nRecCount-nStartLine)+1)
-                oFT:ft_fGoTo(nStartLine)
+                oFileReader:ft_fGoTo(nStartLine)
             else
-                oFT:ft_fGoTop()
+                oFileReader:ft_fGoTop()
             endif
 
             nRecCountProc:=nRecCount
@@ -1097,10 +1097,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             bSourceGetLine:={|nRecNoAT,uLine|oSourceJSONLine:FromJSON(uLine),oSourceJSONLine["Line"]}
 
-            while (!oFT:ft_fEof())
+            while (!oFileReader:ft_fEof())
 
-                nft_fRecNo:=oFT:ft_fRecNo()
-                aLine:=oFT:ft_fReadLN(bSourceGetLine)
+                nft_fRecNo:=oFileReader:ft_fRecNo()
+                aLine:=oFileReader:ft_fReadLN(bSourceGetLine)
 
                 begin sequence
 
@@ -1599,7 +1599,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     exit
                 endif
 
-                oFT:ft_fSkip()
+                oFileReader:ft_fSkip()
 
             end while
 
@@ -1615,9 +1615,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 (cSourceAlias)->(dbCommitAll())
             endif
 
-            oFT:ft_fUse()
-            oFT:FreeObj()
-            FreeObj(@oFT)
+            oFileReader:ft_fUse()
+            oFileReader:FreeObj()
+            FreeObj(@oFileReader)
 
             cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
 
@@ -2033,10 +2033,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     FreeObj(@oTimeRemaining)
     FreeObj(@oSourceJSONLine)
 
-    if (valType(oFT)=="O")
-        oFT:ft_fUse()
-        oFT:FreeObj()
-        FreeObj(@oFT)
+    if (valType(oFileReader)=="O")
+        oFileReader:ft_fUse()
+        oFileReader:FreeObj()
+        FreeObj(@oFileReader)
     endif
 
     if (Type("oPVTHMSR8Seq")=="O")
@@ -2181,8 +2181,8 @@ static function readTableDefinition() as logical
 
     local nTypeReplicate as numeric
 
-    local oFT as object
     local oTFIni as object
+    local oFileReader as object
     local oHMTablesImport as object
 
     begin sequence
@@ -2211,26 +2211,26 @@ static function readTableDefinition() as logical
             break
         endif
 
-        oFT:=uft():New()
+        oFileReader:=fileTools():FileReader()
 
-        FWMsgRun(nil,{||nft_fHandle:=oFT:ft_fUse(cFileTablesDefinition)},"Wait...",cFileTablesDefinition)
+        FWMsgRun(nil,{||nft_fHandle:=oFileReader:ft_fUse(cFileTablesDefinition)},"Wait...",cFileTablesDefinition)
 
         lreadTableDefinition:=(nft_fHandle>=0)
         if (!lreadTableDefinition)
-            oFT:ft_fUse()
-            FreeObj(@oFT)
+            oFileReader:ft_fUse()
+            FreeObj(@oFileReader)
             ApMsgAlert("Could not open the file: "+cFileTablesDefinition,"Attention")
             break
         endif
 
         oHMTablesImport:=aToHM(aTablesImport,2)
 
-        oFT:ft_fGoTop()
+        oFileReader:ft_fGoTop()
 
-        while (!oFT:ft_fEof())
-            cLine:=oFT:ft_fReadLN()
+        while (!oFileReader:ft_fEof())
+            cLine:=oFileReader:ft_fReadLN()
             if ("-"!=Left(cLine,1))
-                oFT:ft_fSkip()
+                oFileReader:ft_fSkip()
                 loop
             endif
             aLineDef:=cTools():StrTokArray(cLine," ")
@@ -2271,10 +2271,10 @@ static function readTableDefinition() as logical
             Len(aLineDef[DTS_DBS_FORMAT]);
         }
 
-        oFT:ft_fGoTop()
+        oFileReader:ft_fGoTop()
 
-        while (!oFT:ft_fEof())
-            cLine:=oFT:ft_fReadLN()
+        while (!oFileReader:ft_fEof())
+            cLine:=oFileReader:ft_fReadLN()
             begin sequence
                 if (empty(cLine))
                     break
@@ -2287,23 +2287,23 @@ static function readTableDefinition() as logical
                     if (lSkipTable)
                         break
                     else
-                        oFT:ft_fDelete()
-                        oFT:ft_fSkip()
+                        oFileReader:ft_fDelete()
+                        oFileReader:ft_fSkip()
                     endif
                     aSize(aFieldsDef,0)
-                    while (!oFT:ft_fEof())
-                        cLine:=oFT:ft_fReadLN()
+                    while (!oFileReader:ft_fEof())
+                        cLine:=oFileReader:ft_fReadLN()
                         if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
                             cLine:=""
-                            oFT:ft_fDelete()
-                            oFT:ft_fSkip()
+                            oFileReader:ft_fDelete()
+                            oFileReader:ft_fSkip()
                             loop
                         endif
                         if ("Table:"==Left(cLine,6))
                             SetValue(cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
-                            nft_fRecNo:=oFT:ft_fRecNo()
-                            oFT:ft_fGoTo(nft_fRecNo-1)
+                            nft_fRecNo:=oFileReader:ft_fRecNo()
+                            oFileReader:ft_fGoTo(nft_fRecNo-1)
                             break
                         endif
                         cLine:=Accentuation(cLine,.T.)
@@ -2332,8 +2332,8 @@ static function readTableDefinition() as logical
                             aAdd(aFieldsDef,aClone(aFieldDef))
                         endif
                         FWFreeArray(@aFieldDef)
-                        oFT:ft_fDelete()
-                        oFT:ft_fSkip()
+                        oFileReader:ft_fDelete()
+                        oFileReader:ft_fSkip()
                     end while
                     SetValue(cTable,aClone(aFieldsDef))
                     aSize(aFieldsDef,0)
@@ -2341,16 +2341,16 @@ static function readTableDefinition() as logical
                     break
                 endif
             end sequence
-            oFT:ft_fDelete()
-            oFT:ft_fSkip()
+            oFileReader:ft_fDelete()
+            oFileReader:ft_fSkip()
         end while
 
     end sequence
 
-    if (valType(oFT)=="O")
-        oFT:ft_fUse()
-        oFT:FreeObj()
-        FreeObj(@oFT)
+    if (valType(oFileReader)=="O")
+        oFileReader:ft_fUse()
+        oFileReader:FreeObj()
+        FreeObj(@oFileReader)
     endif
 
     if (valtype(oHMTablesImport)=="O")
@@ -2584,9 +2584,8 @@ static function SetFilAnt(cFil as character)
     endif
 return(cSvFilAnt)
 
-static procedure CFGFile()
+static procedure CFGFile(cINIFile as character)
 
-    local cINIFile as character
     local cMemoEdit as character
     local cGetFileRoot as character
     local cGetFileMask as character
@@ -2602,10 +2601,12 @@ static procedure CFGFile()
 
         cGetFileRoot:=GetValue("cRootPath")
 
-        cGetFileMask:=cTools():Accentuation("Arquivo de Configura#1#2o | *.ini","ccedil","atilde")
-        cGetFileTitle:=cTools():Accentuation("Arquivo de Configura#1#2o *.ini","ccedil","atilde")
-        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
-        cINIFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+        if (empty(cINIFile))
+            cGetFileMask:=cTools():Accentuation("Arquivo de Configura#1#2o | *.ini","ccedil","atilde")
+            cGetFileTitle:=cTools():Accentuation("Arquivo de Configura#1#2o *.ini","ccedil","atilde")
+            nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
+            cINIFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+        endif
 
         lHasINIFile:=File(cINIFile)
         if (!lHasINIFile)
@@ -2826,7 +2827,7 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
         cMsg+=cINIFile
         cMsg+=" Deseja tentar novamente?"
 
-        while (!(lChgCFGFile:=MemoWrite(cINIFile,cMemoEdit)))
+        while (!(lChgCFGFile:=MemoWrite(cINIFile,EncodeUtf8(cMemoEdit))))
             if (nAttemps++>10)
                 nAttemps:=0
                 if (!MsgYesNo(cMsg,cTitle))
@@ -2952,6 +2953,7 @@ static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oTMe
 static function ReadMemoCFGFile(cFile) as character
     local cMemoRead as character
     cMemoRead:=cTools():ReadMemo(cFile)
+    cMemoRead:=Accentuation(cMemoRead,.T.)
     return(cMemoRead)
 
 static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logical) as logical
@@ -3058,13 +3060,13 @@ static function MySoftLock(cAlias as character) as logical
     lLock:=(cAlias)->(MyRecLock(cAlias,.F.,.F.,.T.,.T.))
     return(lLock)
 
-static function MyRecLock(cAlias,lAdd,lDelete,lSoft,lInJob)
+static function MyRecLock(cAlias,lAdd,lDelete,lSoFileReader,lInJob)
     local lLock as logical
     ForceAsBlind(.T.)
         dfv():DefaultEmpty(@lDelete,.F.)
-        dfv():DefaultEmpty(@lSoft,.F.)
+        dfv():DefaultEmpty(@lSoFileReader,.F.)
         dfv():DefaultEmpty(@lInJob:=.T.)
-        lLock:=(cAlias)->(RecLock(cAlias,lAdd,lDelete,lSoft,lInJob))
+        lLock:=(cAlias)->(RecLock(cAlias,lAdd,lDelete,lSoFileReader,lInJob))
     ForceAsBlind(.F.)
 return(lLock)
 
@@ -3495,8 +3497,9 @@ static function SplitFileView(cSourceTable as character) as variant
 return(fileTools():BrowseFiles(cSourceTable,cTargetPath,cSourceTable+"*.csv",1))
 
 static function ShowConfigFiles() as variant
+    local bLDblClick:={|oSelf|datasul2totvs.CFGFile(cRootPath+oSelf:oData:aArray[oSelf:AT()][1])} as codeblock
     local cRootPath:=GetValue("cRootPath") as character
-return(fileTools():BrowseFiles("Config Files: ["+cRootPath+"]",cRootPath,"*.ini",1))
+return(fileTools():BrowseFiles("Config Files: ["+cRootPath+"]",cRootPath,"*.ini",1,bLDblClick))
 
 static function ShowDatasulFiles() as variant
     local cDataPath:=GetDataPath() as character
