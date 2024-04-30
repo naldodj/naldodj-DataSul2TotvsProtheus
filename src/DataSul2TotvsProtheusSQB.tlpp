@@ -6,6 +6,13 @@
 #include "jsonhash.ch"
 #include "jsonarray.ch"
 
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
 #include "execin.th"
 EXECIN CLASS SQBImport
 
@@ -31,7 +38,7 @@ static function SQBImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","QB_FILIAL+QB_DEPTO+QB_CC"))
     aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","QB_FILIAL,QB_DEPTO,QB_CC")),",")
 
-    lSQBImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSQBImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lSQBImport)
         ApMsgInfo(cAlias+" Table Import Completed","Info")

@@ -1,5 +1,12 @@
 #include "totvs.ch"
 
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
 #include "execin.th"
 EXECIN CLASS SRVImport
 
@@ -35,7 +42,7 @@ static function SRVImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         endSQL
 
         lSRVImport:=((cAliasTMP)->RVCODFOL!=1)
-        
+
         (cAliasTMP)->(dbCloseArea())
 
         if (!lSRVImport)
@@ -46,7 +53,7 @@ static function SRVImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RV_FILIAL+RV_COD"))
         aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RV_FILIAL,RV_COD")),",")
 
-        lSRVImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRVImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
         if (lSRVImport)
             ApMsgInfo(cAlias+" Table Import Completed","Info")
@@ -54,7 +61,7 @@ static function SRVImportData(oMsNewProcess as object,lEnd as logical,lPercentag
             ApMsgInfo("Problems were encountered while processing the "+cTableImport+" table","Info")
         endif
 
-    end sequence    
+    end sequence
 
     oTLogReport:PrintDialog("Log de Ocorrencias na Importacao: ["+cAlias+"]"+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
     MsAguarde({||oTLogReport:FreeObj()},"Releasing temporary files and workspace memory...","Wait...")

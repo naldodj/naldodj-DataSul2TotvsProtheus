@@ -1,5 +1,12 @@
 #include "totvs.ch"
 
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
 #include "execin.th"
 EXECIN CLASS SRQImport
 
@@ -34,7 +41,7 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oFWTemporaryTable as object
 
     oTFIni:SetPropertyValue(cTableImport,"TCSQLUpdateTable","0")
-    
+
     cPreLoadAlias:=allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadAlias",""))
     cPreLoadTableImport:=allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadTableImport",""))
     cPreLoadIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"preLoadIndexKey",""))
@@ -46,7 +53,7 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     lPreLoadTable:=((lPreLoadTable).and.(!empty(aPreLoadAddIndex)))
 
     if (lPreLoadTable)
-        lPreLoadTable:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cPreLoadAlias,@cPreLoadIndexKey,@cPreLoadTableImport,@aPreLoadAddIndex,@lPreLoadTable)
+        lPreLoadTable:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cPreLoadAlias,@cPreLoadIndexKey,@cPreLoadTableImport,@aPreLoadAddIndex,@lPreLoadTable)
     endif
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RQ_FILIAL+RQ_MAT+RQ_ORQEM+RQ_SEQUENC"))
@@ -57,7 +64,7 @@ static function SRQImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     bSourceSetFilter:={|jJSOnLine|SRQSourceFilter(jJSOnLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
 
-    lSRQImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSRQImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if (lPreLoadTable)
         cTmpAlias:=cacheData():Get("datasul2totvsprotheus","import"+cPreLoadTableImport+"Alias")
@@ -96,8 +103,8 @@ static function SRQFindSRVPD(cRQPD as character) as logical
 
     static c_stHMFindSRVPDKey as character
 
-    local cStack:="SRQIMPORTDATA"
-    
+    local cStack:="DNA.TECH.DATASUL2PROTHEUS.SRQIMPORTDATA"
+
     local cSRVFilial as character
     local cSRVKeySeek as character
 
@@ -109,7 +116,7 @@ static function SRQFindSRVPD(cRQPD as character) as logical
     local nSRVRecNo as numeric
 
     cSRVFilial:=fFilFunc("SRV")
-    
+
     cSRVKeySeek:=cSRVFilial
     cSRVKeySeek+=cRQPD
 
@@ -158,10 +165,10 @@ static function SRQGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 
     local nSRVCod:=getSX3Cache("RV_COD","X3_TAMANHO") as numeric
 
-    local oTLogReport as object 
+    local oTLogReport as object
 
-    cFindInTable:=datasul2totvs.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.,.T.)
-    
+    cFindInTable:=dna.tech.DataSul2Protheus.findInTable(oTFIni,"TabelaVerbasSRV",cEventoDataSul,.T.,.T.)
+
     cRQPD:=Left(cFindInTable,nSRVCod)
 
     if (!Empty(cRQPD))
@@ -180,7 +187,7 @@ static function SRQGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
             endif
             cRQPD:=Space(nSRVCod)
         endif
-    
+
     elseif (!empty(cEventoDataSul))
 
         oTLogReport:=SRQGetValue("SRQImportDataLogReport",nil)
@@ -239,14 +246,14 @@ static function SRQSourceFilter(jJSOnLine as json,oTFIni as object) as logical
             break
         endif
         xFilter:=strTran(aLine[1],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
         lFilter:=(xFilter==cEmpAnt)
         if (!lFilter)
             break
         endif
         xFilter:=aLine[2]
         xFilter:=strTran(aLine[2],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
         lFilter:=(!empty(xFilter))
     end sequence
 

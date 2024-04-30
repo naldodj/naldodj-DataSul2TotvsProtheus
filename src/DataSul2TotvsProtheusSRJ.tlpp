@@ -1,5 +1,12 @@
 #include "totvs.ch"
 
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
 #include "execin.th"
 EXECIN CLASS SRJImport
 
@@ -25,7 +32,7 @@ static function SRJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RJ_FILIAL+RJ_FUNCAO"))
     aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RJ_FILIAL,RJ_FUNCAO")),",")
 
-    lSRJImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSRJImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if ((lSRJImport).and.(!lEnd))
         oMsNewProcess:SetRegua1(0)
@@ -37,7 +44,7 @@ static function SRJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","Q3_FILIAL+Q3_CARGO+Q3_CC"))
         FWFreeArray(@aAddIndex)
         aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","Q3_FILIAL,Q3_CARGO,Q3_CC")),",")
-        lSRJImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRJImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
         if (lSRJImport)
             ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
         else

@@ -1,9 +1,14 @@
+#include "totvs.ch"
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
 
 #include "execin.th"
 EXECIN CLASS DTS2PTProc
 
-#include "totvs.ch"
-using namespace datasul2totvs
 function u_datasul2totvsProtheus() as logical
     local cPDWFile:="\dna\auth\datasul2totvsProtheus.auth"
     local lDatasul2TotvsProtheus:=.F. as logical

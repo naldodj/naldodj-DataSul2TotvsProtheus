@@ -1,4 +1,10 @@
 #include "totvs.ch"
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
 
 #include "execin.th"
 EXECIN CLASS RHLImport
@@ -45,7 +51,7 @@ static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     oRHLImport[#cItem][#"cIndexKey"]:=cIndexKey
     oRHLImport[#cItem][#"AddIndex"]:=cAddIndex
     oRHLImport[#cItem][#"lRHLImport"]:=.F.
-    oRHLImport[#cItem][#"bRHLImport"]:={||lRHLImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
+    oRHLImport[#cItem][#"bRHLImport"]:={||lRHLImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
     lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(oRHLImport[#cItem][#"cTableImport"],"EnableFilterBlock","0"))=="1")
     if (lEnableFilterBlock)
         bEnableFilterBlock:={|cAlias|;
@@ -53,7 +59,7 @@ static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentag
                 !Empty(RHL_TPFORN).and.;
                 !Empty(RHL_CODFOR).and.;
                 !Empty(RHL_TPPLAN).and.;
-                !Empty(RHL_PLANO);            
+                !Empty(RHL_PLANO);
             );
         }
         oRHLImport[#cItem][#"bEnableFilterBlock"]:=bEnableFilterBlock
@@ -72,7 +78,7 @@ static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     nItems:=Len(aItems)
     for nItem:=1 to nItems
         cItem:=aItems[nItem]
-        cAlias:=oRHLImport[#cItem][#"cAlias"]    
+        cAlias:=oRHLImport[#cItem][#"cAlias"]
         cTableImport:=oRHLImport[#cItem][#"cTableImport"]
         cIndexKey:=oRHLImport[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
@@ -100,7 +106,7 @@ static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     if (!lEnd)
         for nItem:=1 to nItems
             cItem:=aItems[nItem]
-            cAlias:=oRHLImport[#cItem][#"cAlias"]    
+            cAlias:=oRHLImport[#cItem][#"cAlias"]
             cTableImport:=oRHLImport[#cItem][#"cTableImport"]
             lItemImport:=oRHLImport[#cItem][#"lRHLImport"]
             lRHLImport:=((lRHLImport).and.(lItemImport))
@@ -156,13 +162,13 @@ static function RHLSourceFilter(jJSOnLine as json,oTFIni as object) as logical
             break
         endif
         xFilter:=strTran(aLine[1],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
         lFilter:=(xFilter==cEmpAnt)
         if (!lFilter)
             break
         endif
         xFilter:=aLine[5]
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaTiposDeBeneficioRHL_TPPLAN",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaTiposDeBeneficioRHL_TPPLAN",xFilter,.T.,.T.)
         lFilter:=(!empty(xFilter))
     end sequence
 

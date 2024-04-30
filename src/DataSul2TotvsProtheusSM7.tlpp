@@ -1,5 +1,12 @@
 #include "totvs.ch"
 
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
 #include "execin.th"
 EXECIN CLASS SM7Import
 
@@ -45,7 +52,7 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     oSM7Import[#cItem][#"cIndexKey"]:=cIndexKey
     oSM7Import[#cItem][#"AddIndex"]:=cAddIndex
     oSM7Import[#cItem][#"lSM7Import"]:=.F.
-    oSM7Import[#cItem][#"bSM7Import"]:={||lSM7Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
+    oSM7Import[#cItem][#"bSM7Import"]:={||lSM7Import:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
     lEnableFilterBlock:=(allTrim(oTFIni:GetPropertyValue(oSM7Import[#cItem][#"cTableImport"],"EnableFilterBlock","0"))=="1")
     if (lEnableFilterBlock)
         bEnableFilterBlock:={|cAlias|;
@@ -69,7 +76,7 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     nItems:=Len(aItems)
     for nItem:=1 to nItems
         cItem:=aItems[nItem]
-        cAlias:=oSM7Import[#cItem][#"cAlias"]    
+        cAlias:=oSM7Import[#cItem][#"cAlias"]
         cTableImport:=oSM7Import[#cItem][#"cTableImport"]
         cIndexKey:=oSM7Import[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
@@ -97,7 +104,7 @@ static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     if (!lEnd)
         for nItem:=1 to nItems
             cItem:=aItems[nItem]
-            cAlias:=oSM7Import[#cItem][#"cAlias"]    
+            cAlias:=oSM7Import[#cItem][#"cAlias"]
             cTableImport:=oSM7Import[#cItem][#"cTableImport"]
             lItemImport:=oSM7Import[#cItem][#"lSM7Import"]
             lSM7Import:=((lSM7Import).and.(lItemImport))
@@ -132,7 +139,7 @@ return(lSM7Import)
 static function SM7SourceFilter(jJSOnLine as json,oTFIni as object) as logical
 
     local aLine:=jJSOnLine["uLine"] as array
-    
+
     local lFilter:=.T. as logical
 
     local xFilter as variant
@@ -157,13 +164,13 @@ static function SM7SourceFilter(jJSOnLine as json,oTFIni as object) as logical
         if (!lFilter)
             break
         endif
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaTiposDeBeneficio",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaTiposDeBeneficio",xFilter,.T.,.T.)
         lFilter:=(xFilter=="1")
         if (!lFilter)
             break
         endif
         xFilter:=strTran(aLine[1],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
         lFilter:=(xFilter==cEmpAnt)
     end sequence
 

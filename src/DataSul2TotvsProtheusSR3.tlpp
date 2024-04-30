@@ -1,5 +1,12 @@
 #include "totvs.ch"
 
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
 #include "execin.th"
 EXECIN CLASS SR3Import
 
@@ -32,7 +39,7 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     bSourceSetFilter:={|jJSOnLine|SR3SourceFilter(jJSOnLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
 
-    lSR3Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+    lSR3Import:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
     if ((lSR3Import).and.(!lEnd))
         oMsNewProcess:SetRegua1(0)
@@ -45,7 +52,7 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")),",")
         bSourceSetFilter:={|jJSOnLine|SR3SourceFilter(jJSOnLine,oTFIni)}
         cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
-        lSR3Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
+        lSR3Import:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cTableImport,@cIndexKey,@cTableImport,@aAddIndex)
         if (lSR3Import)
             ApMsgInfo(cAlias+"/"+cTableImport+" Table Import Completed","Info")
         else
@@ -61,7 +68,7 @@ static function SR3ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     if (findFunction("RstPosAlias"))
         RstPosAlias()
-    endif    
+    endif
 
     DelClassIntF()
 
@@ -70,7 +77,7 @@ return(lSR3Import)
 static function SR3SourceFilter(jJSOnLine as json,oTFIni as object) as logical
 
     local aLine:=jJSOnLine["uLine"] as array
-    
+
     local lFilter:=.T. as logical
 
     local xFilter as variant
@@ -81,14 +88,14 @@ static function SR3SourceFilter(jJSOnLine as json,oTFIni as object) as logical
             break
         endif
         xFilter:=strTran(aLine[1],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
         lFilter:=(xFilter==cEmpAnt)
         if (!lFilter)
             break
         endif
         xFilter:=aLine[2]
         xFilter:=strTran(aLine[2],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
         lFilter:=(!empty(xFilter))
     end sequence
 

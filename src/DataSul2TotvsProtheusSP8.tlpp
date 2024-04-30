@@ -1,5 +1,12 @@
 #include "totvs.ch"
 
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
 #include "execin.th"
 EXECIN CLASS SP8Import
 
@@ -10,7 +17,7 @@ static function SP8SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
 static function SetFilAnt(cFil as character)
-return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.SetFilAnt",@cFil))
+return(dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.SetFilAnt",@cFil))
 
 static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
@@ -124,7 +131,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
             SP8CustomUpdate(@cTmpAlias,@cAlias,@lFound,@lAddNew,@cIndexKey,@cIndexID,@nFields,@aTargetFieldsDef,oTLogReport,@nTmpAliasNextRecNo,@nTmpAliasOrder,@nRecProc);
         }
 
-        lSP8Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,/*lPreLoadTable*/,bCustomUpdate)
+        lSP8Import:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex,/*lPreLoadTable*/,bCustomUpdate)
 
         if (lSP8Import)
             ApMsgInfo(cAlias+" Table Import Completed","Info")
@@ -138,7 +145,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
         FWFreeArray(@aAddIndex)
 
-    end sequence   
+    end sequence
 
     if (valtype(oSP8Pergunte)=="O")
         oSP8Pergunte:Clear()
@@ -177,7 +184,7 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
         nP8Filial:=GetSx3Cache("P8_FILIAL","X3_TAMANHO")
         cFilDe:=Space(nP8Filial)
         cFilAte:=cFilDe
-        
+
         nP8Mat:=GetSx3Cache("P8_MAT","X3_TAMANHO")
         cMatDe:=Space(nP8Mat)
         cMatAte:=cMatDe
@@ -289,7 +296,7 @@ static function SP8Pergunte(oSP8Pergunte as object) as logical
             aPBoxPrm[nPBox][7]:="IF(IF(IF(MV_PAR08>9999999999999990,(MV_PAR08:=9999999999999990),MV_PAR08)<MV_PAR07,(MV_PAR08:=MV_PAR07),MV_PAR08)>=MV_PAR07,AllWaysTrue(),(MV_PAR08:=MV_PAR07,AllWaysTrue()))"//[7]:String contendo a validacao When
             aPBoxPrm[nPBox][8]:=CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2]) //[8]:Tamanho do MsGet
             aPBoxPrm[nPBox][9]:=.F.               //[9]:Flag .T./.F. Parametro Obrigatorio ?
-        
+
         endif
 
         while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,nil,nil,.T.,nil,nil,nil,nil,.T.,.T.)))
@@ -316,20 +323,20 @@ return(lParamBox)
 static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFound as logical,lAddNew as logical,cIndexKey as character,cIndexID as character,nFields as numeric,aTargetFieldsDef as array,oTLogReport as object,nTmpAliasNextRecNo as numeric,nTmpAliasOrder as numeric,nRecProc as numeric) as logical
 
     local aDetail:=array(0) as array
-    
+
     local aPONM010Header:=array(0) as array
     local aPONM010Detail:=array(0) as array
-    
+
     local aPONM010LogFile as array
 
     local cProcFil as character
-    local cSVFilAnt:=SetFilAnt()
+    local cSVFilAnt:=SetFilAnt(cFilAnt)
 
     local cTmpAliasKey as character
 
     local cTLogGroup as character
     local cTLogDetail as character
-    
+
     local cTxtTmp:="" as character
     local cTxtFind as character
     local cTxtReplace as character
@@ -384,7 +391,7 @@ static function SP8CustomUpdate(cTmpAlias as character,cAlias as character,lFoun
         dDataDe/*dDataDe*/,;//13 -> Data inicio para leitura das marcacoes - Via Workflow
         dDataAte/*dDataAte*/;//14 -> Data Fim para leitura das marcacoes - Via Workflow
     )
-    
+
     if (!empty(aPONM010LogFile).and.(len(aPONM010LogFile)>=2).and.(!aPONM010LogFile[1]))
         lPutMarcacoes:=.F.
         cTLogGroup:=cTools():Accentuation("Inconsist#1ncias na Inclus#2o das Marca#3#4es:","ecirc","atilde","ccedil","otilde")
@@ -423,7 +430,7 @@ return(lPutMarcacoes)
 static function SP8SourceFilter(jJSOnLine as json,oTFIni as object,dDataDe as date,dDataAte as date,cMatDe as character,cMatAte as character,nSizeMat as numeric,cFilDe as character,cFilAte as character,oTLogReport as object) as logical
 
     local aLine:=jJSOnLine["uLine"] as array
-    
+
     local cFil as character
     local cMat as character
     local cHora as character
@@ -459,14 +466,14 @@ static function SP8SourceFilter(jJSOnLine as json,oTFIni as object,dDataDe as da
         endif
         cMat:=xFilter
         xFilter:=strTran(aLine[1],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
         lFilter:=(xFilter==cEmpAnt)
         if (!lFilter)
             break
         endif
         xFilter:=aLine[2]
         xFilter:=strTran(aLine[2],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
         lFilter:=((xFilter>=cFilDe).and.(xFilter<=cFilAte))
         if (!lFilter)
             break

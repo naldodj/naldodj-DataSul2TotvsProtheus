@@ -13,7 +13,12 @@
 #include "jsonhash.ch"
 #include "jsonarray.ch"
 
-namespace datasul2totvs
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
 
 #include "execin.th"
 EXECIN CLASS datasul2totvs
@@ -64,7 +69,7 @@ static method Activate() class Protheus
         lActivate:=((FWIsAdmin(__cUserID)).and.(GetNewPar("TOTVSDS2PT",.T.)))
         if (!lActivate)
             if (getComputerName()$"DNA-CSDJ-01")
-                lActivate:=DNAMainExec():Execute("dna.main.exec.MyIsAdmin")
+                lActivate:=DNAMainExec():Execute("dna.tech.MyIsAdmin")
             endif
             if (!lActivate)
                 ApMsgAlert("User without administrative privileges")
@@ -72,12 +77,12 @@ static method Activate() class Protheus
             endif
         endif
 
-        lActivate:=DTS2PTProc():Execute("DNAChkAuth")
+        lActivate:=DTS2PTProc():Execute("dna.tech.DataSul2Protheus.DNAChkAuth")
         if (!lActivate)
             break
         endif
 
-        lActivate:=datasul2totvs.Activate()
+        lActivate:=Activate()
 
     end sequence
 
@@ -100,7 +105,7 @@ static function Activate() as logical
 
     local aMenu as array
     local aMenuItems as array
-    local aStack:={"DATASUL2TOTVS.ACTIVATE","ACTIVATE","U_DATASUL2TOTVSPROTHEUS"} as array
+    local aStack:={"DNA.TECH.DATASUL2PROTHEUS.ACTIVATE","ACTIVATE","DNA.TECH.DATASUL2PROTHEUS.U_DATASUL2TOTVSPROTHEUS"} as array
     local aSections as array
     local aProperties as array
 
@@ -119,7 +124,7 @@ static function Activate() as logical
 
     local lActivate as logical
     local lSendDataToServer as logical
-    local lRedefineBottom:=FwIsInCallStack("DNA.MAIN.EXEC.EXECUTE") as logical
+    local lRedefineBottom:=FwIsInCallStack("DNA.TECH.EXECUTE") as logical
 
     local nSection as numeric
     local nSections as numeric
@@ -143,7 +148,7 @@ static function Activate() as logical
             break
         endif
 
-        lActivate:=DTS2PTProc():Execute("DNAChkAuth")
+        lActivate:=DTS2PTProc():Execute("dna.tech.DataSul2Protheus.DNAChkAuth")
         if (!lActivate)
             break
         endif
@@ -157,7 +162,7 @@ static function Activate() as logical
         )
 
         if (lSendDataToServer)
-            FWMsgRun(nil,{||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.F.)},"Wait!","Sending Data To Server")
+            FWMsgRun(nil,{||lSendDataToServer:=dna.tech.DataSul2Protheus.sendDataToServer(@cGetFileRoot,.F.)},"Wait!","Sending Data To Server")
         elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
             cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
         endif
@@ -190,12 +195,12 @@ static function Activate() as logical
             break
         endif
 
-        FWMsgRun(nil,{||lActivate:=datasul2totvs.readIniFile(@cINIFile)},"Wait! Loading Settings","["+cINIFile+"]")
+        FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.readIniFile(@cINIFile)},"Wait! Loading Settings","["+cINIFile+"]")
         if (!lActivate)
             break
         endif
 
-        FWMsgRun(nil,{||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...")
+        FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.readTableDefinition()},"Loading structure of tables","Wait...")
         if (!lActivate)
             break
         endif
@@ -269,7 +274,7 @@ static function Activate() as logical
                                 cProperty:=aProperties[nProperty]
                                 cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
                                 beginContent var cTMenuAction
-                                    {||datasul2totvs.ProcImportData("cAlias",lPercentage,lFastMode)}
+                                    {||dna.tech.DataSul2Protheus.ProcImportData("cAlias",lPercentage,lFastMode)}
                                 endContent
                                 cTMenuAction:=cTools():StrReplace(;
                                     cTMenuAction,;
@@ -296,7 +301,7 @@ static function Activate() as logical
                 MENUITEM "Tools"
                 MENU
                     MENUITEM oTMenuItem PROMPT "Send data to the server"
-                    bTMenuAction:={||FWMsgRun(nil,{||lSendDataToServer:=datasul2totvs.sendDataToServer(@cGetFileRoot,.T.)},"Wait!","Sending Data To Server")}
+                    bTMenuAction:={||FWMsgRun(nil,{||lSendDataToServer:=dna.tech.DataSul2Protheus.sendDataToServer(@cGetFileRoot,.T.)},"Wait!","Sending Data To Server")}
                     oTMenuItem:bAction:=bTMenuAction
                     MENUITEM "Settings"
                     MENU
@@ -346,7 +351,7 @@ static function Activate() as logical
                                             cProperty:=aProperties[nProperty]
                                             cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
                                             beginContent var cTMenuAction
-                                                {||FWMsgRun(nil,{||datasul2totvs.SplitFileAdd("cSourceFile")},"cMsgTitle","cMsgDetail")}
+                                                {||FWMsgRun(nil,{||dna.tech.DataSul2Protheus.SplitFileAdd("cSourceFile")},"cMsgTitle","cMsgDetail")}
                                             endContent
                                             cTMenuAction:=cTools():StrReplace(;
                                                 cTMenuAction,;
@@ -382,7 +387,7 @@ static function Activate() as logical
                                             cProperty:=aProperties[nProperty]
                                             cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
                                             beginContent var cTMenuAction
-                                                {||FWMsgRun(nil,{||datasul2totvs.SplitFileDel("cSourceFile")},"cMsgTitle","cMsgDetail")}
+                                                {||FWMsgRun(nil,{||dna.tech.DataSul2Protheus.SplitFileDel("cSourceFile")},"cMsgTitle","cMsgDetail")}
                                             endContent
                                             cTMenuAction:=cTools():StrReplace(;
                                                 cTMenuAction,;
@@ -418,7 +423,7 @@ static function Activate() as logical
                                             cProperty:=aProperties[nProperty]
                                             cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
                                             beginContent var cTMenuAction
-                                                {||FWMsgRun(nil,{||datasul2totvs.SplitFileView("cSourceFile")},"cMsgTitle","cMsgDetail")}
+                                                {||FWMsgRun(nil,{||dna.tech.DataSul2Protheus.SplitFileView("cSourceFile")},"cMsgTitle","cMsgDetail")}
                                             endContent
                                             cTMenuAction:=cTools():StrReplace(;
                                                 cTMenuAction,;
@@ -517,7 +522,7 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
 
     oTFont:=TFont():New("Courier New",nil,14,nil,.F.)
     bProcImportData:={||;
-        datasul2totvs.ProcRedefine(;
+        dna.tech.DataSul2Protheus.ProcRedefine(;
             oMSNewProcess,;
             @oTFont,;
             0,;
@@ -532,8 +537,8 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     }
     oMSNewProcess:=MsNewProcess():New(bProcImportData,cMsgProcImportData,"Wait!",.T.)
 
-    oParameters[#"ClassName"]:=cAlias+"Import"
-    oParameters[#"FunctionName"]:=cAlias+"ImportData"
+    oParameters[#"ClassName"]:="dna.tech.DataSul2Protheus."+cAlias+"Import"
+    oParameters[#"FunctionName"]:="dna.tech.DataSul2Protheus."+cAlias+"ImportData"
     oParameters[#"FunctionParameters"]:=Array(#)
     oParameters[#"FunctionParameters"][#"oMSNewProcess"]:=oMSNewProcess
     oParameters[#"FunctionParameters"][#"lEnd"]:=lEnd
@@ -787,7 +792,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     (cTargetAlias)->(dbGoTop())
                 endif
             endif
-            FWMsgRun(nil,{||nAliasdbCount:=datasul2totvs.GetRecCount(RetSQLName(cTargetAlias),"D_E_L_E_T_=' '")},"Wait...","Verifying records in the DBMS")
+            FWMsgRun(nil,{||nAliasdbCount:=dna.tech.DataSul2Protheus.GetRecCount(RetSQLName(cTargetAlias),"D_E_L_E_T_=' '")},"Wait...","Verifying records in the DBMS")
             if (nAliasdbCount>0)
                 lImportData:=ApMsgNoYes("There is already data in this table. Do you want to update them?","Info")
                 if (!lImportData)
@@ -1669,7 +1674,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             if (lTCSQLUpdateTable)
                 MsProcess():MsAguarde(;
                     {||;
-                        datasul2totvs.TCSQLUpdateTable(;
+                        dna.tech.DataSul2Protheus.TCSQLUpdateTable(;
                             cSourceAlias,;
                             cFWTemporaryTableRealName,;
                             cTargetAlias,;
@@ -1690,7 +1695,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             endif
 
             if (lTCSQLUpdateTable)
-                FWMsgRun(nil,{||nAliasdbCount:=datasul2totvs.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
+                FWMsgRun(nil,{||nAliasdbCount:=dna.tech.DataSul2Protheus.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
                 nRecCount:=Min(nAliasdbCount,(cSourceAlias)->(recCount()))
             else
                 nRecCount:=(cSourceAlias)->(recCount())
@@ -2574,13 +2579,18 @@ static function ProcRedefine(oProcess as object,oTFont as object,nLeft as numeri
     return(lProcRedefine)
 
 static function SetFilAnt(cFil as character)
-    local cSvFilAnt:=&("cFilAnt") as character
-    if (valType("cFilAnt")=="C")
+    local cSvFilAnt as character
+    if (Type("cFilAnt")=="C")
         cSvFilAnt:=&("cFilAnt")
+        DEFAULT cFil:=cSvFilAnt
         if (cFil!=cSvFilAnt)
-            &("cFilAnt"):=cFil
+            RPCSetEmpFil(cEmpAnt,cFil)
             FWSM0Util():setSM0PositionBycFilAnt()
         endif
+    elseif (Type("cEmpAnt")=="C")
+        cSvFilAnt:=cFil
+        RPCSetEmpFil(cEmpAnt,cFil)
+        FWSM0Util():setSM0PositionBycFilAnt()
     endif
 return(cSvFilAnt)
 
@@ -2630,8 +2640,8 @@ static procedure CFGFile(cINIFile as character)
             if (valType(st_oHMbTransform)=="O")
                 st_oHMbTransform:Clean()
             endif
-            FWMsgRun(nil,{||datasul2totvs.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
-            FWMsgRun(nil,{||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...")
+            FWMsgRun(nil,{||dna.tech.DataSul2Protheus.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
+            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.readTableDefinition()},"Loading structure of tables","Wait...")
         endif
 
     end sequence
@@ -2698,9 +2708,9 @@ static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logi
             bSet24:={||lOK:=.F.,oTDlg:End()}
 
             aButtons:=array(0)
-            bNotepadCFGFile:={||MsProcess():MsAguarde({||datasul2totvs.NotepadCFGFile(cINIFile)},"Abrindo no Notepad","Aguarde...")}
+            bNotepadCFGFile:={||MsProcess():MsAguarde({||dna.tech.DataSul2Protheus.NotepadCFGFile(cINIFile)},"Abrindo no Notepad","Aguarde...")}
             aAdd(aButtons,{"NotepadCFGFile",bNotepadCFGFile,OemToAnsi("Abir no Notepad"),OemtoAnsi("Abir no Notepad")})
-            bRestoreCFGFile:={||MsProcess():MsAguarde({||datasul2totvs.RestoreCFGFile(cINIFile,@cMemoEdit,@oTMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
+            bRestoreCFGFile:={||MsProcess():MsAguarde({||dna.tech.DataSul2Protheus.RestoreCFGFile(cINIFile,@cMemoEdit,@oTMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
             aAdd(aButtons,{"RestoreCFGFile",bRestoreCFGFile,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
 
         ACTIVATE MSDIALOG oTDlg CENTERED ON INIT EnchoiceBar(oTDlg,bSet15,bSet24,nil,@aButtons)
@@ -3048,8 +3058,8 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
                 st_oHMbTransform:Clean()
             endif
             cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
-            FWMsgRun(nil,{||datasul2totvs.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
-            FWMsgRun(nil,{||lActivate:=datasul2totvs.readTableDefinition()},"Loading structure of tables","Wait...")
+            FWMsgRun(nil,{||dna.tech.DataSul2Protheus.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
+            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.readTableDefinition()},"Loading structure of tables","Wait...")
         endif
     endif
 
@@ -3327,7 +3337,7 @@ static function SplitOptions(nTargetSize as numeric) as logical
         aPBoxPrm[nPBox][9]:=.T.                //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
         while (!(lParamBox:=ParamBox(@aPBoxPrm,@cPBoxTit,@aPBoxRet,nil,nil,.T.,nil,nil,nil,nil,.T.,.T.)))
-            lParamBox:=MsgYesNo(cTools():Accentuation("Deseja Cancelar a Altera#1#2o dos Par#3metros?","ccedil","atilde","acirc"),cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))            
+            lParamBox:=MsgYesNo(cTools():Accentuation("Deseja Cancelar a Altera#1#2o dos Par#3metros?","ccedil","atilde","acirc"),cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))
             if (lParamBox)
                 lParamBox:=.F.
                 exit
@@ -3369,7 +3379,7 @@ static function SplitFileAdd(cSourceTable as character) as logical
     local nFiles as numeric
     local nTargetSize as numeric
 
-    local oUFLog:=uf.log.Log():New() as object
+    local oDNATechLog:=dna.tech.Log():New() as object
 
     begin sequence
 
@@ -3413,34 +3423,34 @@ static function SplitFileAdd(cSourceTable as character) as logical
         if ((lSplitFile).and.(ApMsgYesNo("Deseja Consultar os arquivos gerados?",cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))))
 
             for nFile:=1 to nFiles
-                oUFLog:FormatLogEntryTbl(cSourceTable,aFiles[nFile],"FILE")
+                oDNATechLog:FormatLogEntryTbl(cSourceTable,aFiles[nFile],"FILE")
             next nFile
 
-            cLogFile:=oUFLog:FormatLogFile("\log\html\",cSourceTable)
+            cLogFile:=oDNATechLog:FormatLogFile("\log\html\",cSourceTable)
             cLogFile:=strTran(cLogFile,".log",".html")
 
-            oUFLog:LogAsHtmlFile(cLogFile,cSourceTable)
+            oDNATechLog:LogAsHtmlFile(cLogFile,cSourceTable)
 
             SplitPath(cLogFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
             cHTMLTempFile:=(GetTempPath()+cSPPFile+cSPPExt)
 
             if (__CopyFile(cLogFile,cHTMLTempFile))
-                cBaseURL:=oUFLog:LogGetURLBase()
+                cBaseURL:=oDNATechLog:LogGetURLBase()
                 cHTML:=MemoRead(cLogFile)
-                uf.text.view.TextView():ShowHTML(cHTML,cSourceTable,cHTMLTempFile,cBaseURL)
+                dna.tech.txtEditMemo():htmlFileShow(cHTML,cSourceTable,cHTMLTempFile,cBaseURL)
                 cHTML:=""
                 fErase(cHTMLTempFile)
             endif
 
             fErase(cLogFile)
 
-            oUFLog:Clean()
+            oDNATechLog:Clean()
 
         endif
 
     end sequence
 
-    FreeObj(@oUFLog)
+    FreeObj(@oDNATechLog)
     FWFreeArray(@aFiles)
 
 return(lSplitFile)
@@ -3456,15 +3466,15 @@ static function SplitFileDel(cSourceTable as character) as logical
 
     local nFile as numeric
     local nFiles as numeric
-    
+
     cTargetPath:=GetDataPathSplit()
     cTargetPath+=(cSourceTable+"\")
 
     cMsgYesNo:="Deseja, realmente, excluir os arquivos:"
     cMsgYesNo+=CRLF
     cMsgYesNo+=cTargetPath+cSourceTable+"*.csv?"
-    
-    lSplitFileDel:=((FWIsInCallStack("datasul2totvs.SplitFileAdd")).or.(ApMsgYesNo(cMsgYesNo)))
+
+    lSplitFileDel:=((FWIsInCallStack("dna.tech.DataSul2Protheus.SplitFileAdd")).or.(ApMsgYesNo(cMsgYesNo)))
 
     if (lSplitFileDel)
 
@@ -3481,7 +3491,7 @@ static function SplitFileDel(cSourceTable as character) as logical
 
         aFiles:=Directory(cTargetPath+cSourceTable+"*.csv")
         lSplitFileDel:=Empty(aFiles)
-        if ((lSplitFileDel).and.(!FwIsInCallStack("DATASUL2TOTVS.SplitFileADD")))
+        if ((lSplitFileDel).and.(!FwIsInCallStack("dna.tech.DataSul2Protheus.SplitFileAdd")))
             ApMsgInfo("Arquivos Excluidos com Sucesso!",cSourceTable)
         endif
 
@@ -3497,7 +3507,7 @@ static function SplitFileView(cSourceTable as character) as variant
 return(fileTools():BrowseFiles(cSourceTable,cTargetPath,cSourceTable+"*.csv",1))
 
 static function ShowConfigFiles() as variant
-    local bLDblClick:={|oSelf|datasul2totvs.CFGFile(cRootPath+oSelf:oData:aArray[oSelf:AT()][1])} as codeblock
+    local bLDblClick:={|oSelf|dna.tech.DataSul2Protheus.CFGFile(cRootPath+oSelf:oData:aArray[oSelf:AT()][1])} as codeblock
     local cRootPath:=GetValue("cRootPath") as character
 return(fileTools():BrowseFiles("Config Files: ["+cRootPath+"]",cRootPath,"*.ini",1,bLDblClick))
 

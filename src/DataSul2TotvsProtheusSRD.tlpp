@@ -1,5 +1,12 @@
 #include "totvs.ch"
 
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
 #include "execin.th"
 EXECIN CLASS SRDImport
 
@@ -108,7 +115,7 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
         cacheData():Set("datasul2totvsprotheus","SRDImportDataLogReport",oTLogReport)
 
-        lSRDImport:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
+        lSRDImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 
         if (lSRDImport)
             ApMsgInfo(cAlias+" Table Import Completed","Info")
@@ -343,7 +350,7 @@ static function SRDGetSEQ() as character
 
     static c_stHMSRDSeqKey as character
 
-    local cStack:="SRDIMPORTDATA" as character
+    local cStack:="DNA.TECH.DATASUL2PROTHEUS.SRDIMPORTDATA" as character
 
     local cRDSEQ:="" as character
 
@@ -413,7 +420,7 @@ static function SRDFindSRVPD(cRDPD as character,lMsGoTo as logical,nSRVRecNo as 
 
     static c_stHMFindSRVPDKey as character
 
-    local cStack:="SRDIMPORTDATA"
+    local cStack:="DNA.TECH.DATASUL2PROTHEUS.SRDIMPORTDATA"
 
     local cSRVFilial as character
     local cSRVKeySeek as character
@@ -500,12 +507,12 @@ static function SRDGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
             )
         endif
         if (lFindInCustomTable)
-            cFindInTable:=datasul2totvs.findInTable(oTFIni,cCutsomTable,cEventoDataSul,.T.,.T.)
+            cFindInTable:=dna.tech.DataSul2Protheus.findInTable(oTFIni,cCutsomTable,cEventoDataSul,.T.,.T.)
         endif
     endif
 
     if (empty(cFindInTable))
-        cFindInTable:=datasul2totvs.findInTable(oTFIni,cTable,cEventoDataSul,.T.,.T.)
+        cFindInTable:=dna.tech.DataSul2Protheus.findInTable(oTFIni,cTable,cEventoDataSul,.T.,.T.)
     endif
 
     cRDPD:=Left(cFindInTable,nSRDPD)
@@ -573,13 +580,13 @@ static function SRDSourceFilter(jJSOnLine as json,oTFIni as object,cCompetenciaD
             break
         endif
         xFilter:=strTran(aLine[1],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
         lFilter:=(xFilter==cEmpAnt)
         if (!lFilter)
             break
         endif
         xFilter:=strTran(aLine[2],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
         lFilter:=((xFilter>=cFilDe).and.(xFilter<=cFilAte))
     end sequence
 

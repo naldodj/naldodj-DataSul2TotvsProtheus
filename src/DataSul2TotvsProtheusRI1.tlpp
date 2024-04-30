@@ -1,5 +1,12 @@
 #include "totvs.ch"
 
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
 #include "execin.th"
 EXECIN CLASS RI1Import
 
@@ -10,7 +17,7 @@ static function RI1SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
 static function SetFilAnt(cFil as character)
-return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.SetFilAnt",@cFil))
+return(dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.SetFilAnt",@cFil))
 
 static function MySoftLock(cAlias as character) as logical
     local lLock as logical
@@ -18,7 +25,7 @@ static function MySoftLock(cAlias as character) as logical
     return(lLock)
 
 static function MyRecLock(cAlias,lAdd,lDelete,lSoft,lInJob)
-return(datasul2totvs.datasul2totvs():Execute("datasul2totvs.MyRecLock",@cAlias,@lAdd,@lDelete,@lSoft,@lInJob))
+return(dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.MyRecLock",@cAlias,@lAdd,@lDelete,@lSoft,@lInJob))
 
 static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
@@ -53,9 +60,9 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     oRI1Import[#cItem][#"cIndexKey"]:=cIndexKey
     oRI1Import[#cItem][#"AddIndex"]:=cAddIndex
     oRI1Import[#cItem][#"lRI1Import"]:=.F.
-    oRI1Import[#cItem][#"bRI1Import"]:={||lRI1Import:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
+    oRI1Import[#cItem][#"bRI1Import"]:={||lRI1Import:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)}
     bSourceSetFilter:={|jJSOnLine|RI1SourceFilter(jJSOnLine,oTFIni)}
-    oRI1Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter    
+    oRI1Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter
 
     cItem:=__Soma1(cItem)
     oRI1Import[#cItem]:=Array(#)
@@ -66,7 +73,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     oRI1Import[#cItem][#"lRI1Import"]:=.F.
     oRI1Import[#cItem][#"bRI1Import"]:={||lRI1Import:=RI1CestaBasica(@oMsNewProcess,@lEnd,@oTLogReport,@cIndexKey)}
     bSourceSetFilter:={|jJSOnLine|.T.}
-    oRI1Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter    
+    oRI1Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter
 
     cItem:=__Soma1(cItem)
     oRI1Import[#cItem]:=Array(#)
@@ -77,13 +84,13 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     oRI1Import[#cItem][#"lRI1Import"]:=.F.
     oRI1Import[#cItem][#"bRI1Import"]:={||lRI1Import:=RI1VTMobilidade(@oMsNewProcess,@lEnd,@oTLogReport,@cIndexKey)}
     bSourceSetFilter:={|jJSOnLine|.T.}
-    oRI1Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter    
+    oRI1Import[#cItem][#"bSourceSetFilter"]:=bSourceSetFilter
 
     aItems:=aClone(oRI1Import:GetAllSections())
     nItems:=Len(aItems)
     for nItem:=1 to nItems
         cItem:=aItems[nItem]
-        cAlias:=oRI1Import[#cItem][#"cAlias"]    
+        cAlias:=oRI1Import[#cItem][#"cAlias"]
         cTableImport:=oRI1Import[#cItem][#"cTableImport"]
         cIndexKey:=oRI1Import[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
@@ -107,7 +114,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     if (!lEnd)
         for nItem:=1 to nItems
             cItem:=aItems[nItem]
-            cAlias:=oRI1Import[#cItem][#"cAlias"]    
+            cAlias:=oRI1Import[#cItem][#"cAlias"]
             cTableImport:=oRI1Import[#cItem][#"cTableImport"]
             lItemImport:=oRI1Import[#cItem][#"lRI1Import"]
             lRI1Import:=((lRI1Import).and.(lItemImport))
@@ -143,7 +150,7 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
 
     local aRDSGetAdvFVal as array
     local aRDSRetAdvFVal as array
-    
+
     local cRI1BENEF:="81" as character
     local cRI1TABELA as character
     local cRI1KeySeek as character
@@ -151,7 +158,7 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
     local cRISFilial as character
     local cRISKeySeek as character
 
-    local cSVFilAnt:=SetFilAnt()
+    local cSVFilAnt:=SetFilAnt(cFilAnt)
 
     local cIncProc as character
     local cRecCount as character
@@ -165,7 +172,7 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
     local lRI1Import:=.T. as logical
 
     local nRI1Order:=RetOrder("RI1",cIndexKey) as numeric
-    
+
     local nRecProc:=0 as numeric
     local nRecCount:=SRA->(recCount()) as numeric
 
@@ -190,7 +197,7 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
     cTLogGroup:=cTools():Accentuation("N#1o foi poss#2vel obter exclusividade no(s) Registro(s) da Tabela RI1:","atilde","iacute")
 
     aRDSGetAdvFVal:=array(0)
-    
+
     aAdd(aRDSGetAdvFVal,"RIS_PD")
     aAdd(aRDSGetAdvFVal,"RIS_PD1")
     aAdd(aRDSGetAdvFVal,"RIS_PD2")
@@ -282,7 +289,7 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
 
     local aRDSGetAdvFVal as array
     local aRDSRetAdvFVal as array
-    
+
     local cRI1BENEF:="86" as character
     local cRI1TABELA as character
     local cRI1KeySeek as character
@@ -290,12 +297,12 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
     local cRISFilial as character
     local cRISKeySeek as character
 
-    local cSVFilAnt:=SetFilAnt()
+    local cSVFilAnt:=SetFilAnt(cFilAnt)
 
     local cIncProc as character
     local cRecCount as character
     local cTimeRemaining as character
-    
+
     local cTLogGroup as character
     local cTLogDetail as character
 
@@ -304,7 +311,7 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
     local lRI1Import:=.T. as logical
 
     local nRI1Order:=RetOrder("RI1",cIndexKey) as numeric
-    
+
     local nRecProc:=0 as numeric
     local nRecCount:=SRA->(recCount()) as numeric
 
@@ -324,7 +331,7 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
     cTLogGroup:=cTools():Accentuation("N#1o foi poss#2vel obter exclusividade no(s) Registro(s) da Tabela RI1:","atilde","iacute")
 
     aRDSGetAdvFVal:=array(0)
-    
+
     aAdd(aRDSGetAdvFVal,"RIS_PD")
     aAdd(aRDSGetAdvFVal,"RIS_PD1")
     aAdd(aRDSGetAdvFVal,"RIS_PD2")
@@ -426,16 +433,15 @@ static function RI1SourceFilter(jJSOnLine as json,oTFIni as object) as logical
             break
         endif
         xFilter:=strTran(aLine[1],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaEmpresas",xFilter,.T.,.T.)
         lFilter:=(xFilter==cEmpAnt)
         if (!lFilter)
             break
         endif
         xFilter:=aLine[2]
         xFilter:=strTran(aLine[2],'"',"")
-        xFilter:=datasul2totvs.datasul2totvs():Execute("datasul2totvs.FindInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
+        xFilter:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.findInTable",oTFIni,"TabelaFiliais",xFilter,.T.,.T.)
         lFilter:=(!empty(xFilter))
     end sequence
 
 return(lFilter)
-
