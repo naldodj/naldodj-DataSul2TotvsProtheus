@@ -17,14 +17,14 @@ function u_datasul2totvsProtheus() as logical
         lDatasul2TotvsProtheus:=Protheus():Activate()
         if (File(cPDWFile).and.(getComputerName()$"DNA-CSDJ-01"))
             if (ApMsgNoYes(cTools():Accentuation("Deseja Apagar o Arquivo de Autoriza#1#2o?","ccedil","atilde")))
-                DNAAuth():Execute("RemoveAuth",cPDWFile)
+                DNAAuth():Execute("dna.tech.RemoveAuth",cPDWFile)
             endif
         endif
     endif
 return(lDatasul2TotvsProtheus)
 
 static function DNAChkAuth() as logical
-    
+
     local cPDWFile:="\dna\auth\datasul2totvsProtheus.auth"
     local cPathAuth:="C:\GitHub\naldodj-DataSul2TotvsProtheus\auth\autorize.auth"
 
@@ -33,7 +33,7 @@ static function DNAChkAuth() as logical
     local oError as object
 
     try
-        lChkAuth:=DNAAuth():Execute("CheckAuth",cPathAuth,cPDWFile)
+        lChkAuth:=DNAAuth():Execute("dna.tech.CheckAuth",cPathAuth,cPDWFile)
     catch oError
         lChkAuth:=.F.
         FreeObj(@oError)
@@ -53,7 +53,7 @@ static function DNAAuthorizeUse() as logical
     local oError as object
 
     try
-        lChkAuth:=DNAAuth():Execute("Authorize",cPathAuth,cPDWFile)
+        lChkAuth:=DNAAuth():Execute("dna.tech.Authorize",cPathAuth,cPDWFile)
     catch oError
         lChkAuth:=.F.
         FreeObj(@oError)
