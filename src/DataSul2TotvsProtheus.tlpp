@@ -170,7 +170,7 @@ static function Activate() as logical
         cGetFileMask:=cTools():Accentuation("Arquivo de Configura#1#2o | DataSul2Protheus.ini","ccedil","atilde")
         cGetFileTitle:=cTools():Accentuation("Arquivo de Configura#1#2o DataSul2Protheus.ini","ccedil","atilde")
 
-        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
+        nGetFileOptions:=nOR(GETF_LOCALHARD,GETF_NETWORKDRIVE)
 
         cINIFile:=cGetFile(;
             cGetFileMask,;
@@ -822,7 +822,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             if (!Empty(aDataPathSplit)).and.ApMsgYesNo(cTools():Accentuation("Deseja Selecionar o Arquivo para importa#1#2o?","ccedil","atilde"),cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))
                 cGetFileMask:=(cSourceTable+" | "+cSourceTable+"*.csv")
                 cGetFileTitle:=cSourceTable
-                nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
+                nGetFileOptions:=nOR(GETF_LOCALHARD,GETF_NETWORKDRIVE)
                 cDataPathSplit:=strTran("SERVIDOR"+cDataPathSplit,"\ini\..","")
                 cSourceFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cDataPathSplit,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
             endif
@@ -2614,7 +2614,7 @@ static procedure CFGFile(cINIFile as character)
         if (empty(cINIFile))
             cGetFileMask:=cTools():Accentuation("Arquivo de Configura#1#2o | *.ini","ccedil","atilde")
             cGetFileTitle:=cTools():Accentuation("Arquivo de Configura#1#2o *.ini","ccedil","atilde")
-            nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE)
+            nGetFileOptions:=nOR(GETF_LOCALHARD,GETF_NETWORKDRIVE)
             cINIFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cGetFileRoot,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
         endif
 
@@ -2994,7 +2994,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
         endif
 
         cGetFileTitle:=cTools():Accentuation("Diret#1rio de Configura#2#3o DataSul2Protheus.ini","oacute","ccedil","atilde")
-        nGetFileOptions:=(GETF_LOCALHARD+GETF_NETWORKDRIVE+GETF_RETDIRECTORY)
+        nGetFileOptions:=nOR(GETF_LOCALHARD,GETF_NETWORKDRIVE,GETF_RETDIRECTORY)
         cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
 
         lSendDataToServer:=((lIsDir(cDirectoryClient)).and.("datasul2protheus"$StrTran(lower(cDirectoryClient),"totvs","")))
