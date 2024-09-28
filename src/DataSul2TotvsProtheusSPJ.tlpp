@@ -41,7 +41,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     cPreLoadAlias:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAlias",""))
     cPreLoadTableImport:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadTableImport",""))
     cPreLoadIndexKey:=allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadIndexKey",""))
-    aPreLoadAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAddIndex","")),",")
+    aPreLoadAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cAlias,"preLoadAddIndex","")),",")
 
     lPreLoadTable:=(!empty(cPreLoadAlias))
     lPreLoadTable:=((lPreLoadTable).and.(!empty(cPreLoadTableImport)))
@@ -53,7 +53,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     endif
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","PJ_FILIAL+PJ_TURNO+PJ_SEMANA+PJ_DIA"))
-    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","PJ_FILIAL,PJ_TURNO,PJ_SEMANA,PJ_DIA")),",")
+    aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","PJ_FILIAL,PJ_TURNO,PJ_SEMANA,PJ_DIA")),",")
 
     lSPJImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 

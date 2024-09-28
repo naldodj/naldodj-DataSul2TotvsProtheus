@@ -30,7 +30,7 @@ static function SR6ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R6_FILIAL+R6_TURNO"))
-    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R6_FILIAL,R6_TURNO")),",")
+    aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","R6_FILIAL,R6_TURNO")),",")
 
     lSR6Import:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 

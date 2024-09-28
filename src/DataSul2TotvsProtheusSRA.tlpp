@@ -32,7 +32,7 @@ static function SRAImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_FILIAL+RA_MAT"))
-    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_FILIAL,RA_MAT")),",")
+    aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_FILIAL,RA_MAT")),",")
 
     bSourceSetFilter:={|jJSOnLine|SRASourceFilter(jJSOnLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
@@ -47,7 +47,7 @@ static function SRAImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cTableImport:="SRA_RHPF"
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_MATMIG"))
         FWFreeArray(@aAddIndex)
-        aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_MATMIG")),",")
+        aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_MATMIG")),",")
         lSRAImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
         if ((lSRAImport).and.(!lEnd))
             oMsNewProcess:SetRegua1(0)
@@ -57,7 +57,7 @@ static function SRAImportData(oMsNewProcess as object,lEnd as logical,lPercentag
             cTableImport:="SRA_SPED"
             cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RA_FILIAL+RA_MAT"))
             FWFreeArray(@aAddIndex)
-            aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_FILIAL,RA_MAT")),",")
+            aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RA_FILIAL,RA_MAT")),",")
             cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
             lSRAImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
             if ((lSRAImport).and.(!lEnd))

@@ -111,7 +111,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         endif
 
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","P8_FILIAL+P8_MAT+P8_ORDEM+Dtos(P8_DATA)+Str(P8_HORA,5,2)"))
-        aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","P8_FILIAL,P8_MAT,P8_ORDEM,P8_DATA,P8_HORA")),",")
+        aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","P8_FILIAL,P8_MAT,P8_ORDEM,P8_DATA,P8_HORA")),",")
 
         bCustomUpdate:={;
             |;

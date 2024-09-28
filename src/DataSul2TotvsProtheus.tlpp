@@ -237,7 +237,7 @@ static function Activate() as logical
         nSections:=Len(aMenu)
         for nSection:=1 to nSections
             cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
-            aMenuItems:=cTools():StrTokArray(oTFIni:GetPropertyValue("Menu",cSection),",")
+            aMenuItems:=ctools():StrTokCountArray(oTFIni:GetPropertyValue("Menu",cSection),",")
             oTMenuOptions[#cSection]:=Array(#)
             oTMenuOptions[#cSection][#"Alias"]:=Array(#)
             nProperties:=Len(aMenuItems)
@@ -324,7 +324,7 @@ static function Activate() as logical
                         nSections:=Len(aMenu)
                         for nSection:=1 to nSections
                             cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
-                            aMenuItems:=cTools():StrTokArray(oTFIni:GetPropertyValue("SplitFiles",cSection),",")
+                            aMenuItems:=ctools():StrTokCountArray(oTFIni:GetPropertyValue("SplitFiles",cSection),",")
                             oTMenuOptions[#cSection]:=Array(#)
                             oTMenuOptions[#cSection][#"Alias"]:=Array(#)
                             nProperties:=Len(aMenuItems)
@@ -873,7 +873,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cTmpFields:=allTrim(oTFIni:GetPropertyValue(cTableImport+"_addTmpField","TmpFields",""))
             lAddFieldTmp:=(!Empty(cTmpFields))
             if (lAddFieldTmp)
-                aSourceTmpFields:=cTools():StrTokArray(cTmpFields,",")
+                aSourceTmpFields:=ctools():StrTokCountArray(cTmpFields,",")
                 nFields:=Len(aSourceTmpFields)
                 if (nFields>0)
                     aSourceTmpFldStruct:=array(0)
@@ -933,7 +933,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         if (lTypeReplicate)
             cNoReplicateValues:=allTrim(oTFIni:GetPropertyValue(cTableImport,"NoReplicateValues",""))
-            aNoReplicateValues:=cTools():StrTokArray(cNoReplicateValues,",")
+            aNoReplicateValues:=ctools():StrTokCountArray(cNoReplicateValues,",")
             aTargetReplicateFields:=array(0)
             oHMTargetReplicateFields:=THashMap():New()
         endif
@@ -1032,9 +1032,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 if (lSeekTable)
                     (cSeekTable)->(dbSetOrder(nSeekTableIndex))
                     cUpdateTableFields:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableFields",""))
-                    aUpdateTableFields:=cTools():StrTokArray(cUpdateTableFields,",")
+                    aUpdateTableFields:=ctools():StrTokCountArray(cUpdateTableFields,",")
                     cUpdateTableSource:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableSource",""))
-                    aUpdateTableSource:=cTools():StrTokArray(cUpdateTableSource,",")
+                    aUpdateTableSource:=ctools():StrTokCountArray(cUpdateTableSource,",")
                     nUpdateTableSource:=len(aUpdateTableFields)
                     lUpdateTableFields:=((nUpdateTableSource>0).and.(nUpdateTableSource==len(aUpdateTableSource)))
                 endif
@@ -2238,7 +2238,7 @@ static function readTableDefinition() as logical
                 oFileReader:ft_fSkip()
                 loop
             endif
-            aLineDef:=cTools():StrTokArray(cLine," ")
+            aLineDef:=ctools():StrTokCountArray(cLine," ")
             exit
         end while
 
@@ -2399,7 +2399,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
         if (lSourceTransform)
             cSourceField:=SubStr(cSourceField,2)
         endif
-        aSourceField:=cTools():StrTokArray(cSourceField,"+")
+        aSourceField:=ctools():StrTokCountArray(cSourceField,"+")
         nSourceFields:=len(aSourceField)
         aValueField:=Array(nSourceFields,2)
         for nSourceField:=1 to nSourceFields
@@ -2659,6 +2659,7 @@ static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logi
     local bSet15 as codeblock
     local bSet24 as codeblock
     local bNotepadCFGFile as codeblock
+    local bWebViewCFGFile as codeblock
     local bRestoreCFGFile as codeblock
 
     local cTitle as character
@@ -2710,6 +2711,8 @@ static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logi
             aButtons:=array(0)
             bNotepadCFGFile:={||MsProcess():MsAguarde({||dna.tech.DataSul2Protheus.NotepadCFGFile(cINIFile)},"Abrindo no Notepad","Aguarde...")}
             aAdd(aButtons,{"NotepadCFGFile",bNotepadCFGFile,OemToAnsi("Abir no Notepad"),OemtoAnsi("Abir no Notepad")})
+            bWebViewCFGFile:={||MsProcess():MsAguarde({||dna.tech.DataSul2Protheus.WebViewCFGFile(cINIFile)},"Abrindo no WebView","Aguarde...")}
+            aAdd(aButtons,{"WebViewCFGFile",bWebViewCFGFile,OemToAnsi("Abir no WebView"),OemtoAnsi("Abir no WebView")})
             bRestoreCFGFile:={||MsProcess():MsAguarde({||dna.tech.DataSul2Protheus.RestoreCFGFile(cINIFile,@cMemoEdit,@oTMemoEdit,@cSVMemoEdit)},"Restaurando Versao Anterior","Aguarde...")}
             aAdd(aButtons,{"RestoreCFGFile",bRestoreCFGFile,OemToAnsi("Restaurar Versao Anterior"),OemtoAnsi("Restaurar Versao Anterior")})
 
@@ -2895,6 +2898,10 @@ static procedure NotepadCFGFile(cINIFile as character)
         ShellExecute("open",cTempFile,"","",SW_SHOW)
     endif
 
+    return
+
+static procedure WebViewCFGFile(cINIFile as character)
+    txtEditMemo():htmlTextShow(MemoRead(cINIFile),cINIFile)
     return
 
 static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oTMemoEdit as object,cSVMemoEdit as character) as logical
@@ -3255,7 +3262,7 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
         cLine:=Accentuation(cLine,lTablesEncodeUTF8)
     endif
 
-    aLine:=cTools():StrTokArray(cLine,";")
+    aLine:=ctools():StrTokCountArray(cLine,";")
 
     if ((lSetRegua).and.(nSetRegua==0).and.(!Empty(aLine)))
         lSetRegua:=.F.
@@ -3502,15 +3509,21 @@ static function SplitFileDel(cSourceTable as character) as logical
 return(lSplitFileDel)
 
 static function SplitFileView(cSourceTable as character) as variant
+    local aFWBrwData as array
     local cTargetPath:=GetDataPathSplit() as character
+    local oFWBrowseFile as object
     cTargetPath+=(cSourceTable+"\")
-return(fileTools():BrowseFiles(cSourceTable,cTargetPath,cSourceTable+"*.csv",1))
+return(fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,cSourceTable,cTargetPath,cSourceTable+"*.csv",1))
 
 static function ShowConfigFiles() as variant
+    local aFWBrwData as array
     local bLDblClick:={|oSelf|dna.tech.DataSul2Protheus.CFGFile(cRootPath+oSelf:oData:aArray[oSelf:AT()][1])} as codeblock
     local cRootPath:=GetValue("cRootPath") as character
-return(fileTools():BrowseFiles("Config Files: ["+cRootPath+"]",cRootPath,"*.ini",1,bLDblClick))
+    local oFWBrowseFile as object
+return(fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,"Config Files: ["+cRootPath+"]",cRootPath,"*.ini",1,bLDblClick))
 
 static function ShowDatasulFiles() as variant
+    local aFWBrwData as array
     local cDataPath:=GetDataPath() as character
-return(fileTools():BrowseFiles("Datasul Files: ["+cDataPath+"]",cDataPath,"*.csv",1))
+    local oFWBrowseFile as object
+return(fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,"Datasul Files: ["+cDataPath+"]",cDataPath,"*.csv",1))

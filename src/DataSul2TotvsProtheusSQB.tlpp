@@ -36,7 +36,7 @@ static function SQBImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","QB_FILIAL+QB_DEPTO+QB_CC"))
-    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","QB_FILIAL,QB_DEPTO,QB_CC")),",")
+    aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","QB_FILIAL,QB_DEPTO,QB_CC")),",")
 
     lSQBImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 

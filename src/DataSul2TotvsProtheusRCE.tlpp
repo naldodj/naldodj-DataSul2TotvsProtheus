@@ -36,7 +36,7 @@ static function RCEImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RCE_FILIAL+RCE_CODIGO"))
-    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RCE_FILIAL,RCE_CODIGO")),",")
+    aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RCE_FILIAL,RCE_CODIGO")),",")
 
     lRCEImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 

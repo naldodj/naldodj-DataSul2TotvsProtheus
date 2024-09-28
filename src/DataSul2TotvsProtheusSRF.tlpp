@@ -32,7 +32,7 @@ static function SRFImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RF_FILIAL+RF_MAT+DTOS(RF_DATABAS)+RF_PD"))
-    aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RF_FILIAL,RF_MAT,RF_DATABAS,RF_PD")),",")
+    aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RF_FILIAL,RF_MAT,RF_DATABAS,RF_PD")),",")
 
     bSourceSetFilter:={|jJSOnLine|SRFSourceFilter(jJSOnLine,oTFIni)}
     cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)

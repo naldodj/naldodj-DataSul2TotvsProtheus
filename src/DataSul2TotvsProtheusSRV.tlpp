@@ -51,7 +51,7 @@ static function SRVImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         endif
 
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","RV_FILIAL+RV_COD"))
-        aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RV_FILIAL,RV_COD")),",")
+        aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex","RV_FILIAL,RV_COD")),",")
 
         lSRVImport:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.ImportData",@oMsNewProcess,@lEnd,lPercentage,@oTLogReport,@cAlias,@cIndexKey,@cTableImport,@aAddIndex)
 

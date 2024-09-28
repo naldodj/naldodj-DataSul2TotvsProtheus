@@ -95,7 +95,7 @@ static function RI1ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=oRI1Import[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
         cAddIndex:=oRI1Import[#cItem][#"AddIndex"]
-        aAddIndex:=cTools():StrTokArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
+        aAddIndex:=ctools():StrTokCountArray(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
         bRI1Import:=oRI1Import[#cItem][#"bRI1Import"]
         bSourceSetFilter:=oRI1Import[#cItem][#"bSourceSetFilter"]
         cacheData():Set("datasul2totvsprotheus",cTableImport+"SourceSetFilter",bSourceSetFilter)
