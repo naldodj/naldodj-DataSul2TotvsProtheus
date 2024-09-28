@@ -68,7 +68,7 @@ static method Activate() class Protheus
 
         lActivate:=((FWIsAdmin(__cUserID)).and.(GetNewPar("TOTVSDS2PT",.T.)))
         if (!lActivate)
-            if (getComputerName()$"DNA-CSDJ-01")
+            if (getComputerName()$"|DNA-CSDJ-01|DNA-TECH-01|")
                 lActivate:=DNAMainExec():Execute("dna.tech.MyIsAdmin")
             endif
             if (!lActivate)
@@ -156,7 +156,7 @@ static function Activate() as logical
         private st_oHMbTransform:=THashMap():New() as object
 
         lSendDataToServer:=(;
-            (getComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01"))+"|DNA-CSDJ-01"));
+            (getComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","|DNA-CSDJ-01|DNA-TECH-01|"))+"|DNA-CSDJ-01|DNA-TECH-01|"));
             .and.;
             (ApMsgNoYes("Sending Data To Server?"));
         )
@@ -2988,7 +2988,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
 
     begin sequence
 
-        lSendDataToServer:=(getComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","DNA-CSDJ-01"))+"|DNA-CSDJ-01"))
+        lSendDataToServer:=(getComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","|DNA-CSDJ-01|DNA-TECH-01|"))+"|DNA-CSDJ-01|DNA-TECH-01|"))
         if (!lSendDataToServer)
             break
         endif
