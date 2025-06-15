@@ -718,6 +718,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local nReplicate as numeric
     local nReplicates:=0 as numeric
+    local nTypeReplicate as numeric
 
     local nEndLine as numeric
     local nStartLine as numeric
@@ -881,7 +882,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         next nField
 
         aTargetFieldsDef:=aClone(oTFIni:GetAllProperties(cSourceTable))
-        lImportData:=(!empty(aFieldsDef))
+        nTypeReplicate:=aScan(aTargetFieldsDef,{|x|Upper(x[1])=="TYPEREPLICATE"})
+        if (nTypeReplicate>0)
+            aDel(aTargetFieldsDef,nTypeReplicate)
+            aSize(aTargetFieldsDef,Len(aTargetFieldsDef)-1)
+        endif
+
+        lImportData:=(!empty(aTargetFieldsDef))
         if (!lImportData)
             ApMsgAlert("Field definitions for the "+cTableImport+" table not found","Attention")
             break
