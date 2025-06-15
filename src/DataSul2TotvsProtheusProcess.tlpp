@@ -9,19 +9,31 @@ using namespace dna.tech.DataSul2Protheus
 #include "execin.th"
 EXECIN CLASS DTS2PTProc
 
+//Chamada do Menu:dna.tech.DataSul2Protheus.u_datasul2totvsProtheus
 function u_datasul2totvsProtheus() as logical
     local cPDWFile:="\dna\auth\datasul2totvsProtheus.auth"
     local lDatasul2TotvsProtheus:=.F. as logical
     lDatasul2TotvsProtheus:=DNAChkAuth()
     if (lDatasul2TotvsProtheus)
+        if (((Type("cModulo")!="C").or.(cModulo!="GPE")))
+            SetModulo("SIGAFAT","GPE")
+        endif
         lDatasul2TotvsProtheus:=Protheus():Activate()
-        if (File(cPDWFile).and.(getComputerName()$"DNA-CSDJ-01"))
+        if (File(cPDWFile).and.(getComputerName()$"DNA-CSDJ-01|DNA-TECH-01"))
             if (ApMsgNoYes(cTools():Accentuation("Deseja Apagar o Arquivo de Autoriza#1#2o?","ccedil","atilde")))
                 DNAAuth():Execute("dna.tech.RemoveAuth",cPDWFile)
             endif
         endif
     endif
 return(lDatasul2TotvsProtheus)
+
+//Execucao Direta (Tela de abetura do sistema):dna.tech.DataSul2Protheus.u_datasul2totvsProtheusMain
+procedure u_datasul2totvsProtheusMain()
+    local cTitle:="DNA Tech :: DataSul2TotvsProtheus" as character
+    //Limpa os Erros antigos gerados pela EvalBlock
+    evalBlock():CleanError()
+    MainExec():Execute({||SetModulo("SIGAGPE","GPE"),dna.tech.DataSul2Protheus.u_datasul2totvsProtheus()},cTitle)
+return
 
 static function DNAChkAuth() as logical
 

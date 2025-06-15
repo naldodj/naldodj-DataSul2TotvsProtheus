@@ -134,7 +134,10 @@ static function Activate() as logical
 
     local oTDlg as object
     local oTMenu as object
+    local oTPanel as object
+    local oTBitMap as object
     local oFWDefSize as object
+    local oWNDDefault as object
 
     local oTFIni as object
 
@@ -200,7 +203,7 @@ static function Activate() as logical
             break
         endif
 
-        FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.readTableDefinition()},"Loading structure of tables","Wait...")
+        FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Loading structure of tables","Wait...")
         if (!lActivate)
             break
         endif
@@ -250,7 +253,12 @@ static function Activate() as logical
         FWFreeArray(@aMenuItems)
         FWFreeArray(@aMenu)
 
-        DEFINE MSDIALOG oTDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF getWNDDefault()
+        oWNDDefault:=GetWNDDefault()
+        if ((Empty(oWNDDefault)).and.(Type("oMainWnd")=="O"))
+            oWNDDefault:=oMainWnd
+        endif
+
+        DEFINE MSDIALOG oTDlg TITLE cCadastro FROM nTop,nLeft TO nBottom,nRight PIXEL OF oWNDDefault
 
             if (lRedefineBottom)
                 oTDlg:nTop+=7
@@ -259,8 +267,15 @@ static function Activate() as logical
                 oTDlg:nBottom-=11
             endif
 
+            @ 000,000 MSPANEL oTPanel OF oTDlg
+            oTPanel:Align:=CONTROL_ALIGN_ALLCLIENT
+
+            @ nTop,nLeft BITMAP oTBitMap RESNAME "DNA_TECH_LOGO_MENU_BACKGROUND" SIZE nBottom,nRight BORDER OF oTPanel PIXEL
+            oTBitMap:Align:=CONTROL_ALIGN_ALLCLIENT
+            oTBitMap:SetCSS("{background-size: 100% 100%;}")
+
             MENU oTMenu IMAGE "" OF oTDlg
-                MENUITEM cCadastro
+                MENUITEM oTMenuItem PROMPT cCadastro
                 MENU
                     aSections:=aClone(oTMenuOptions:GetAllSections())
                     nSections:=Len(aSections)
@@ -268,7 +283,7 @@ static function Activate() as logical
                         cSection:=aSections[nSection]
                         aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
                         nProperties:=Len(aProperties)
-                        MENUITEM cSection
+                        MENUITEM oTMenuItem PROMPT cSection
                         MENU
                             for nProperty:=1 to nProperties
                                 cProperty:=aProperties[nProperty]
@@ -298,19 +313,19 @@ static function Activate() as logical
                     oTMenuOptions:FreeObj()
                     FreeObj(@oTMenuOptions)
                 ENDMENU
-                MENUITEM "Tools"
+                MENUITEM oTMenuItem PROMPT "Tools"
                 MENU
                     MENUITEM oTMenuItem PROMPT "Send data to the server"
                     bTMenuAction:={||FWMsgRun(nil,{||lSendDataToServer:=dna.tech.DataSul2Protheus.sendDataToServer(@cGetFileRoot,.T.)},"Wait!","Sending Data To Server")}
                     oTMenuItem:bAction:=bTMenuAction
-                    MENUITEM "Settings"
+                    MENUITEM oTMenuItem PROMPT "Settings"
                     MENU
-                        MENUITEM "Configure"
+                        MENUITEM oTMenuItem PROMPT "Configure"
                         MENU
                             MENUITEM oTMenuItem PROMPT "Settings"
                             oTMenuItem:bAction:={||CFGFile()}
                         ENDMENU
-                        MENUITEM "Show"
+                        MENUITEM oTMenuItem PROMPT "Show"
                         MENU
                             MENUITEM oTMenuItem PROMPT "Show Config Files"
                             oTMenuItem:bAction:={||ShowConfigFiles()}
@@ -335,9 +350,9 @@ static function Activate() as logical
                         next nSection
                         FWFreeArray(@aMenuItems)
                         FWFreeArray(@aMenu)
-                        MENUITEM "Split Files"
+                        MENUITEM oTMenuItem PROMPT "Split Files"
                         MENU
-                            MENUITEM "Split"
+                            MENUITEM oTMenuItem PROMPT "Split"
                             MENU
                                 aSections:=aClone(oTMenuOptions:GetAllSections())
                                 nSections:=Len(aSections)
@@ -345,7 +360,7 @@ static function Activate() as logical
                                     cSection:=aSections[nSection]
                                     aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
                                     nProperties:=Len(aProperties)
-                                    MENUITEM cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                                    MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
                                     MENU
                                         for nProperty:=1 to nProperties
                                             cProperty:=aProperties[nProperty]
@@ -373,7 +388,7 @@ static function Activate() as logical
                                 next nSection
                                 FWFreeArray(@aSections)
                             ENDMENU
-                            MENUITEM "Remove"
+                            MENUITEM oTMenuItem PROMPT "Remove"
                             MENU
                                 aSections:=aClone(oTMenuOptions:GetAllSections())
                                 nSections:=Len(aSections)
@@ -381,7 +396,7 @@ static function Activate() as logical
                                     cSection:=aSections[nSection]
                                     aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
                                     nProperties:=Len(aProperties)
-                                    MENUITEM cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                                    MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
                                     MENU
                                         for nProperty:=1 to nProperties
                                             cProperty:=aProperties[nProperty]
@@ -409,7 +424,7 @@ static function Activate() as logical
                                 next nSection
                                 FWFreeArray(@aSections)
                             ENDMENU
-                            MENUITEM "Show"
+                            MENUITEM oTMenuItem PROMPT "Show"
                             MENU
                                 aSections:=aClone(oTMenuOptions:GetAllSections())
                                 nSections:=Len(aSections)
@@ -417,7 +432,7 @@ static function Activate() as logical
                                     cSection:=aSections[nSection]
                                     aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
                                     nProperties:=Len(aProperties)
-                                    MENUITEM cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                                    MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
                                     MENU
                                         for nProperty:=1 to nProperties
                                             cProperty:=aProperties[nProperty]
@@ -451,11 +466,12 @@ static function Activate() as logical
                     endif
                 ENDMENU
                 MENU
-                    MENUITEM "Exit" ACTION if(ApMsgNoYes("Deseja sair?"),oTDlg:End(),.F.)
+                    MENUITEM oTMenuItem PROMPT "Exit" ACTION if(ApMsgNoYes("Deseja sair?"),oTDlg:End(),.F.)
                 ENDMENU
             ENDMENU
 
             oTMenu:align:=CONTROL_ALIGN_ALLCLIENT
+
             oTDlg:SetMenu(oTMenu)
             oTDlg:lCentered:=(!lRedefineBottom)
 
@@ -466,6 +482,8 @@ static function Activate() as logical
             FreeObj(@oTMenuOptions)
         endif
 
+        FreeObj(@oTBitMap)
+        FreeObj(@oTPanel)
         FreeObj(@oTMenuItem)
         FreeObj(@oTMenu)
         FreeObj(@oTDlg)
@@ -669,7 +687,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local lFound as logical
     local lAddNew as logical
     local lAppend as logical
-    local ldbCommit as logical
+    local lDbCommit as logical
     local lSetRegua:=.T. as logical
     local lHasError:=.F. as logical
     local lChkFilial as logical
@@ -728,8 +746,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local nDeleteIfEmpty:=0 as numeric
 
-    local nft_fRecNo as numeric
-    local nft_fHandle as numeric
+    local nFTfRecNo as numeric
+    local nFTfHandle as numeric
 
     local nDBS_ALEN:=(DBS_ALEN+1) as numeric
 
@@ -919,7 +937,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             bTargetIgnoreFields:=&(cTargetIgnoreFields)
             aTargetFieldsDefTmp:=array(0)
             for nField:=1 to nFields
-                cField:=aTargetFieldsDef[nField][1]
+                cField:=aTargetFieldsDef[nField][DBS_NAME]
                 if (eval(bTargetIgnoreFields,cField))
                     loop
                 endif
@@ -942,7 +960,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         oHMTargetFieldsDef:=THashMap():New()
 
         for nField:=1 to nFields
-            cField:=aTargetFieldsDef[nField][1]
+            cField:=aTargetFieldsDef[nField][DBS_NAME]
             if (oHMTargetStruct:Get(cField,@aField))
                 nTargetFieldPos:=aField[1][nDBS_ALEN]
             else
@@ -980,9 +998,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             oFileReader:ft_fSetFilter(bSourceSetFilter)
         endif
 
-        MsProcess():MsAguarde({||nft_fHandle:=oFileReader:ft_fUse(cSourceFile)},"Wait! Loading Data File.","["+cSourceFileName+"]",nil,.T.)
+        MsProcess():MsAguarde(;
+             {||nFTfHandle:=oFileReader:ft_fUse(cSourceFile)};
+            ,"Wait! Loading Data File.";
+            ,"["+cSourceFileName+"]";
+            ,nil;
+            ,.T.;
+        )
 
-        lImportData:=(nft_fHandle>=0)
+        lImportData:=(nFTfHandle>=0)
         if (!lImportData)
             ApMsgAlert("Could not open the file: "+cSourceFile,"Attention")
             break
@@ -1035,8 +1059,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     aUpdateTableFields:=ctools():StrTokCountArray(cUpdateTableFields,",")
                     cUpdateTableSource:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableSource",""))
                     aUpdateTableSource:=ctools():StrTokCountArray(cUpdateTableSource,",")
-                    nUpdateTableSource:=len(aUpdateTableFields)
-                    lUpdateTableFields:=((nUpdateTableSource>0).and.(nUpdateTableSource==len(aUpdateTableSource)))
+                    nUpdateTableSource:=Len(aUpdateTableFields)
+                    lUpdateTableFields:=((nUpdateTableSource>0).and.(nUpdateTableSource==Len(aUpdateTableSource)))
                 endif
             endif
         endif
@@ -1093,7 +1117,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             if (lTypeReplicate)
                 for nField:=1 to nFields
-                    nReplicates:=GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)
+                    nReplicates:=GetValue(cSourceTable+"_"+aTargetFieldsDef[nField][2]+"_TypeReplicate",0)
                     if (nReplicates>0)
                         exit
                     endif
@@ -1104,7 +1128,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             while (!oFileReader:ft_fEof())
 
-                nft_fRecNo:=oFileReader:ft_fRecNo()
+                nFTfRecNo:=oFileReader:ft_fRecNo()
                 aLine:=oFileReader:ft_fReadLN(bSourceGetLine)
 
                 begin sequence
@@ -1120,7 +1144,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     if ((lChkFilial).or.(lEnableFilterBlock).or.(lAddFieldTmp))
 
                         for nField:=1 to nFields
-                            cField:=aTargetFieldsDef[nField][1]
+                            cField:=aTargetFieldsDef[nField][DBS_NAME]
                             if (;
                                     (;
                                         (lChkFilial).and.(cField==cFieldFilial);
@@ -1151,7 +1175,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     if (!empty(cError))
                                         cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                         cError:=""
-                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogGroup)
                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                         cTLogDetail:=""
@@ -1166,7 +1190,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 endif
                                 if (empty(xValue))
                                     if (lHasError)
-                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogGroup)
                                         cTLogDetail:="Estrutura da Linha diferente da estrutura de Dados"
                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
@@ -1193,7 +1217,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     if (!empty(cError))
                                         cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                         cError:=""
-                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
                                         oTLogReport:AddGroup(cTLogGroup)
                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                         cTLogDetail:=""
@@ -1228,7 +1252,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     (cSourceAlias)->(dbAppend(.F.))
 
-                    ldbCommit:=(++nCommitBuffer>=1024)
+                    lDbCommit:=(++nCommitBuffer>=1024)
 
                     if (lSeekTable)
                         cAllSeekIndexKey:=cSeekIndexKey
@@ -1236,7 +1260,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     for nField:=1 to nFields
 
-                        cField:=aTargetFieldsDef[nField][1]
+                        cField:=aTargetFieldsDef[nField][DBS_NAME]
 
                         if ((!lChkFilial).and.(cField==cFieldFilial))
 
@@ -1276,7 +1300,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                         if (!empty(cError))
                                             cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                             cError:=""
-                                            cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                            cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
                                             oTLogReport:AddGroup(cTLogGroup)
                                             oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                             cTLogDetail:=""
@@ -1318,7 +1342,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 if (!empty(cError))
                                     cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                     cError:=""
-                                    cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                    cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
                                     oTLogReport:AddGroup(cTLogGroup)
                                     oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                     cLine:=""
@@ -1336,7 +1360,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                         if (empty(xValue))
                             if (lHasError)
-                                cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
                                 oTLogReport:AddGroup(cTLogGroup)
                                 cTLogDetail:="Estrutura da Linha diferente da estrutura de Dados"
                                 oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
@@ -1427,7 +1451,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                                     if (!empty(cError))
                                                         cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                                         cError:=""
-                                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
                                                         oTLogReport:AddGroup(cTLogGroup)
                                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                                         cTLogDetail:=""
@@ -1449,7 +1473,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                                     if (!empty(cError))
                                                         cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                                         cError:=""
-                                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
                                                         oTLogReport:AddGroup(cTLogGroup)
                                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                                         cTLogDetail:=""
@@ -1488,11 +1512,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             lAppend:=.T.
 
                             (cSourceAlias)->(dbAppend(.F.))
-                            ldbCommit:=(++nCommitBuffer>=1024)
+                            lDbCommit:=(++nCommitBuffer>=1024)
 
                             for nField:=1 to nFields
 
-                                cField:=aTargetFieldsDef[nField][1]
+                                cField:=aTargetFieldsDef[nField][DBS_NAME]
 
                                 if (GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0)
 
@@ -1591,13 +1615,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     exit
                 endif
 
-                if (ldbCommit)
+                if (lDbCommit)
                     nCommitBuffer:=0
                     (cSourceAlias)->(dbCommitAll())
                 endif
 
-                if (ldbCommit)
-                    ldbCommit:=.F.
+                if (lDbCommit)
+                    lDbCommit:=.F.
                 endif
 
                 if (nRecProcPerc>=nRecCount)
@@ -1793,7 +1817,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             if (!empty(cError))
                                 cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
                                 cError:=""
-                                cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nft_fRecNo)+"]:"
+                                cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
                                 oTLogReport:AddGroup(cTLogGroup)
                                 oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                 cTLogDetail:=""
@@ -1812,7 +1836,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         endif
                         if (lLock)
                             for nField:=1 to nFields
-                                cField:=aTargetFieldsDef[nField][1]
+                                cField:=aTargetFieldsDef[nField][DBS_NAME]
                                 if ((lFound).and.(cField$cIndexKey))
                                     loop
                                 endif
@@ -1913,7 +1937,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             end while
 
             for nField:=1 to nFields
-                cField:=aTargetFieldsDef[nField][1]
+                cField:=aTargetFieldsDef[nField][DBS_NAME]
                 DelProperty(cField)
             next nField
 
@@ -2129,14 +2153,14 @@ static function readIniFile(cINIFile as character) as logical
     local cSPPFile as character
     local cSPPExt as character
 
-    local lreadIniFile:=.F. as logical
+    local lReadIniFile:=.F. as logical
 
     local oTFIni as object
 
     begin sequence
 
-        lreadIniFile:=(!empty(cINIFile).and.(File(cINIFile)))
-        if (!lreadIniFile)
+        lReadIniFile:=(!empty(cINIFile).and.(File(cINIFile)))
+        if (!lReadIniFile)
             ApMsgAlert("Configuration file invalid or not found","Attention")
             break
         endif
@@ -2155,9 +2179,9 @@ static function readIniFile(cINIFile as character) as logical
 
     end sequence
 
-return(lreadIniFile)
+return(lReadIniFile)
 
-static function readTableDefinition() as logical
+static function ReadTableDefinition() as logical
 
     local aLineDef as array
     local aFieldDef as array
@@ -2174,15 +2198,15 @@ static function readTableDefinition() as logical
 
     local lTypeReplicate:=.F. as logical
     local lSkipTable:=.F. as logical
-    local lreadTableDefinition:=.F. as logical
+    local lReadTableDefinition:=.F. as logical
 
     local nField as numeric
     local nFields as numeric
 
     local nAT as numeric
 
-    local nft_fRecNo as numeric
-    local nft_fHandle as numeric
+    local nFTfRecNo as numeric
+    local nFTfHandle as numeric
 
     local nTypeReplicate as numeric
 
@@ -2195,33 +2219,33 @@ static function readTableDefinition() as logical
         oTFIni:=GetValue("readIniFile")
 
         aTablesImport:=aClone(oTFIni:GetAllProperties("TablesImport"))
-        lreadTableDefinition:=(!empty(aTablesImport))
-        if (!lreadTableDefinition)
+        lReadTableDefinition:=(!empty(aTablesImport))
+        if (!lReadTableDefinition)
             ApMsgAlert("Invalid import tables","Attention")
             break
         endif
 
         cTablesDefinition:=allTrim(oTFIni:GetPropertyValue("Tables","TablesDefinition",""))
-        lreadTableDefinition:=(!empty(cTablesDefinition))
-        if (!lreadTableDefinition)
+        lReadTableDefinition:=(!empty(cTablesDefinition))
+        if (!lReadTableDefinition)
             ApMsgAlert("Invalid TablesDefinition","Attention")
             break
         endif
 
         cRootPath:=GetValue("cRootPath")
         cFileTablesDefinition:=(cRootPath+".."+cTablesDefinition)
-        lreadTableDefinition:=file(cFileTablesDefinition)
-        if (!lreadTableDefinition)
+        lReadTableDefinition:=file(cFileTablesDefinition)
+        if (!lReadTableDefinition)
             ApMsgAlert("File ("+cFileTablesDefinition+") with the definitions of the tables not found","Attention")
             break
         endif
 
         oFileReader:=fileTools():FileReader()
 
-        FWMsgRun(nil,{||nft_fHandle:=oFileReader:ft_fUse(cFileTablesDefinition)},"Wait...",cFileTablesDefinition)
+        FWMsgRun(nil,{||nFTfHandle:=oFileReader:ft_fUse(cFileTablesDefinition)},"Wait...",cFileTablesDefinition)
 
-        lreadTableDefinition:=(nft_fHandle>=0)
-        if (!lreadTableDefinition)
+        lReadTableDefinition:=(nFTfHandle>=0)
+        if (!lReadTableDefinition)
             oFileReader:ft_fUse()
             FreeObj(@oFileReader)
             ApMsgAlert("Could not open the file: "+cFileTablesDefinition,"Attention")
@@ -2242,8 +2266,8 @@ static function readTableDefinition() as logical
             exit
         end while
 
-        lreadTableDefinition:=(!empty(aLineDef).and.(len(aLineDef)==DTS_DBS_ALEN))
-        if (!lreadTableDefinition)
+        lReadTableDefinition:=(!empty(aLineDef).and.(Len(aLineDef)==DTS_DBS_ALEN))
+        if (!lReadTableDefinition)
             ApMsgAlert("Could not get structure for tables","Attention")
             break
         endif
@@ -2307,8 +2331,8 @@ static function readTableDefinition() as logical
                         if ("Table:"==Left(cLine,6))
                             SetValue(cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
-                            nft_fRecNo:=oFileReader:ft_fRecNo()
-                            oFileReader:ft_fGoTo(nft_fRecNo-1)
+                            nFTfRecNo:=oFileReader:ft_fRecNo()
+                            oFileReader:ft_fGoTo(nFTfRecNo-1)
                             break
                         endif
                         cLine:=Accentuation(cLine,.T.)
@@ -2326,7 +2350,7 @@ static function readTableDefinition() as logical
                             if (nFields>1)
                                 aFieldDefTmp:=aClone(aFieldDef)
                                 SetValue(cTable+"_TypeReplicate",lTypeReplicate)
-                                SetValue(aFieldDef[DTS_DBS_NAME]+"_TypeReplicate",nFields)
+                                SetValue(cTable+"_"+aFieldDef[DTS_DBS_NAME]+"_TypeReplicate",nFields)
                                 for nField:=2 to nFields
                                     aFieldDef[DTS_DBS_NAME]:=(aFieldDefTmp[DTS_DBS_NAME]+cTools():NToS(nField))
                                     aAdd(aFieldsDef,aClone(aFieldDef))
@@ -2371,7 +2395,7 @@ static function readTableDefinition() as logical
 
     DelClassIntF()
 
-return(lreadTableDefinition)
+return(lReadTableDefinition)
 
 static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine as array,cTargetField as character,aTargetField as array,aSourceFieldsDef as array,oHMSourceFieldsDef as object,cType as character) as variant
 
@@ -2400,7 +2424,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
             cSourceField:=SubStr(cSourceField,2)
         endif
         aSourceField:=ctools():StrTokCountArray(cSourceField,"+")
-        nSourceFields:=len(aSourceField)
+        nSourceFields:=Len(aSourceField)
         aValueField:=Array(nSourceFields,2)
         for nSourceField:=1 to nSourceFields
             cSourceField:=aSourceField[nSourceField]
@@ -2641,7 +2665,7 @@ static procedure CFGFile(cINIFile as character)
                 st_oHMbTransform:Clean()
             endif
             FWMsgRun(nil,{||dna.tech.DataSul2Protheus.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
-            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.readTableDefinition()},"Loading structure of tables","Wait...")
+            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Loading structure of tables","Wait...")
         endif
 
     end sequence
@@ -3066,7 +3090,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
             endif
             cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
             FWMsgRun(nil,{||dna.tech.DataSul2Protheus.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
-            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.readTableDefinition()},"Loading structure of tables","Wait...")
+            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Loading structure of tables","Wait...")
         endif
     endif
 
@@ -3513,17 +3537,29 @@ static function SplitFileView(cSourceTable as character) as variant
     local cTargetPath:=GetDataPathSplit() as character
     local oFWBrowseFile as object
     cTargetPath+=(cSourceTable+"\")
-return(fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,cSourceTable,cTargetPath,cSourceTable+"*.csv",1))
+    fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,cSourceTable,cTargetPath,cSourceTable+"*.csv",1)
+    FWFreeArray(@aFWBrwData)
+    FreeObj(@oFWBrowseFile)
+    DelClassIntF()
+return(nil)
 
 static function ShowConfigFiles() as variant
     local aFWBrwData as array
     local bLDblClick:={|oSelf|dna.tech.DataSul2Protheus.CFGFile(cRootPath+oSelf:oData:aArray[oSelf:AT()][1])} as codeblock
     local cRootPath:=GetValue("cRootPath") as character
     local oFWBrowseFile as object
-return(fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,"Config Files: ["+cRootPath+"]",cRootPath,"*.ini",1,bLDblClick))
+    fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,"Config Files: ["+cRootPath+"]",cRootPath,"*.ini",1,bLDblClick)
+    FWFreeArray(@aFWBrwData)
+    FreeObj(@oFWBrowseFile)
+    DelClassIntF()
+return(nil)
 
 static function ShowDatasulFiles() as variant
     local aFWBrwData as array
     local cDataPath:=GetDataPath() as character
     local oFWBrowseFile as object
-return(fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,"Datasul Files: ["+cDataPath+"]",cDataPath,"*.csv",1))
+    fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,"Datasul Files: ["+cDataPath+"]",cDataPath,"*.csv",1)
+    FWFreeArray(@aFWBrwData)
+    FreeObj(@oFWBrowseFile)
+    DelClassIntF()
+return(nil)
