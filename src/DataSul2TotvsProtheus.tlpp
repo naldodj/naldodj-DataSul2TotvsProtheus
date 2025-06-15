@@ -3277,6 +3277,8 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
 
     local cLine as character
     local cLineMsg as character
+    local cProgress as character
+    local cReplicate as character
     local cTimeRemaining as character
 
     local nLineSiz as numeric
@@ -3311,8 +3313,10 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
         MsProcess():SetRegua(nSetRegua,.T.)
     endif
 
+    cProgress:=oProgress:Eval()
+
     cLineMsg:=cCRLF
-    cLineMsg+="["+oProgress:Eval()+"] ["+cSourceFile+"]"
+    cLineMsg+="["+cProgress+"] ["+cSourceFile+"]"
     cLineMsg+=cCRLF
 
     cLineMsg+=cCRLF
@@ -3333,13 +3337,19 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
     cTimeRemaining+="[+/-]"
     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+    cTimeRemaining+="["+cProgress+"]
+
+    cReplicate:=Replicate("-",Len(cTimeRemaining))
 
     cLineMsg+=cCRLF
-    cLineMsg+=Replicate("-",Len(cTimeRemaining))
+    cLineMsg+=cCRLF
+    cLineMsg+=cReplicate
+    cLineMsg+=cCRLF
     cLineMsg+=cCRLF
 
     cLineMsg+=cTimeRemaining
     cLineMsg+=cCRLF
+    cLineMsg+=cReplicate
 
     MsProcess():MsProcTxt(cLineMsg,.T.)
 
