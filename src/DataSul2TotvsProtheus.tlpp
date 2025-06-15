@@ -3344,7 +3344,7 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
     cTimeRemaining+="[+/-]"
     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
-    cTimeRemaining+="["+cProgress+"]
+    cTimeRemaining+="["+cProgress+"]"
 
     cReplicate:=Replicate("-",Len(cTimeRemaining))
 
