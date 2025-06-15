@@ -765,6 +765,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local oSourceJSONLine:=JSONObject():New()
 
     local oTimeRemaining as object
+    local oTimeRemainingGetLineFromSource as object
 
     local oFWTemporaryTable as object
 
@@ -989,7 +990,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
 
         oFileReader:=fileTools():FileReader("SQLITE_TMP")
-        bSourceGetLine:={|jJSOnLine|GetLineFromSource(jJSOnLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF)}
+        bSourceGetLine:={|jJSOnLine|GetLineFromSource(jJSOnLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF,@oTimeRemainingGetLineFromSource)}
         oFileReader:ft_fSetGetLine(bSourceGetLine)
         bSourceAppendLine:={|nRecNoAT,uLine|oSourceJSONLine["Line"]:=uLine,oSourceJSONLine:ToJSON()}
         oFileReader:ft_fSetAppend(bSourceAppendLine)
@@ -1001,10 +1002,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         MsProcess():MsAguarde(;
              {||nFTfHandle:=oFileReader:ft_fUse(cSourceFile)};
             ,"Wait! Loading Data File.";
-            ,"["+cSourceFileName+"]";
+            ,cCRLF+"["+cSourceFileName+"]";
             ,nil;
             ,.T.;
         )
+
+        FreeObj(@oTimeRemainingGetLineFromSource)
 
         lImportData:=(nFTfHandle>=0)
         if (!lImportData)
@@ -1113,7 +1116,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             oMsNewProcess:SetRegua1(if(lPercentage,nRecCount,Round(nRecCount/nIncProcStep,0)))
 
-            oTimeRemaining:=timeRemaining():New(nRecCountProc)
+            oTimeRemaining:=TimeRemaining():New(nRecCountProc)
 
             if (lTypeReplicate)
                 for nField:=1 to nFields
@@ -3268,19 +3271,27 @@ static function Accentuation(cText as character,lTablesEncodeUTF8 as logical) as
 
 return(cTextNew)
 
-static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character) as array
+static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character,oTimeRemaining as object) as array
 
     local aLine as array
 
+    local cLine as character
     local cLineMsg as character
+    local cTimeRemaining as character
+
     local nLineSiz as numeric
     local nIncProc as numeric
 
-    local cLine:=jJSOnLine["cLine"] as character
-    local nLine:=jJSOnLine["nLine"] as numeric
-    local nFileSize:=jJSOnLine["nFileSize"] as numeric
-    local nBufferSize:=jJSOnLine["nBufferSize"] as numeric
-    local nBytesRead:=jJSOnLine["nBytesRead"] as numeric
+    local nLine as numeric
+    local nFileSize as numeric
+    local nBufferSize as numeric
+    local nBytesRead as numeric
+
+    cLine:=jJSOnLine["cLine"]
+    nLine:=jJSOnLine["nLine"]
+    nFileSize:=jJSOnLine["nFileSize"]
+    nBufferSize:=jJSOnLine["nBufferSize"]
+    nBytesRead:=jJSOnLine["nBytesRead"]
 
     if (lChkEncode)
         cLine:=Accentuation(cLine,lTablesEncodeUTF8)
@@ -3296,19 +3307,39 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
         nLineSiz-=1
         nSetRegua:=nLineSiz
         nSetRegua:=Int(nFileSize/nSetRegua)
+        oTimeRemaining:=TimeRemaining():New(nSetRegua)
         MsProcess():SetRegua(nSetRegua,.T.)
     endif
 
-    cLineMsg:="["+oProgress:Eval()+"] ["+cSourceFile+"]"
+    cLineMsg:=cCRLF
+    cLineMsg+="["+oProgress:Eval()+"] ["+cSourceFile+"]"
     cLineMsg+=cCRLF
+
     cLineMsg+=cCRLF
     cLineMsg+="Bytes  Processados ["+StrZero(Min(nFileSize,nBytesRead),16)+"/"+StrZero(nFileSize,16)+"]"
+
     nIncProc:=if((nBytesRead>=nFileSize),100,((nBytesRead/nFileSize)*100))
     cLineMsg+="["+cTools():NToS(nIncProc)+"%]"
     cLineMsg+=cCRLF
+
     cLineMsg+="Linhas Processadas ["+StrZero(Min(nSetRegua,nLine),16)+"/"+StrZero(nSetRegua,16)+"]"
     nIncProc:=if((nLine>=nSetRegua),100,((nLine/nSetRegua)*100))
+
     cLineMsg+="["+cTools():NToS(nIncProc)+"%]"
+
+    oTimeRemaining:Calcule(.T.)
+
+    cTimeRemaining:="End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+    cTimeRemaining+="[+/-]"
+    cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+
+    cLineMsg+=cCRLF
+    cLineMsg+=Replicate("-",Len(cTimeRemaining))
+    cLineMsg+=cCRLF
+
+    cLineMsg+=cTimeRemaining
+    cLineMsg+=cCRLF
 
     MsProcess():MsProcTxt(cLineMsg,.T.)
 
