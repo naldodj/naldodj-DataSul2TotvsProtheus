@@ -3284,6 +3284,7 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
 
     local cLine as character
     local cLineMsg as character
+    local cIncProc as character
     local cProgress as character
     local cReplicate as character
     local cTimeRemaining as character
@@ -3330,13 +3331,15 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
     cLineMsg+="Bytes  Processados ["+StrZero(Min(nFileSize,nBytesRead),16)+"/"+StrZero(nFileSize,16)+"]"
 
     nIncProc:=if((nBytesRead>=nFileSize),100,((nBytesRead/nFileSize)*100))
-    cLineMsg+="["+cTools():NToS(nIncProc)+"%]"
+    cIncProc:=cTools():NToS(nIncProc)
+    cLineMsg+="["+cIncProc+"%]"
     cLineMsg+=cCRLF
 
     cLineMsg+="Linhas Processadas ["+StrZero(Min(nSetRegua,nLine),16)+"/"+StrZero(nSetRegua,16)+"]"
     nIncProc:=if((nLine>=nSetRegua),100,((nLine/nSetRegua)*100))
+    cIncProc:=cTools():NToS(nIncProc)
 
-    cLineMsg+="["+cTools():NToS(nIncProc)+"%]"
+    cLineMsg+="["+cIncProc+"%]"
 
     oTimeRemaining:Calcule(.T.)
 
