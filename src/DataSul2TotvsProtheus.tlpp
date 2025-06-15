@@ -3343,12 +3343,17 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
 
     cLineMsg+=cCRLF
     cLineMsg+=cCRLF
+
     cLineMsg+=cReplicate
+
     cLineMsg+=cCRLF
     cLineMsg+=cCRLF
 
     cLineMsg+=cTimeRemaining
+
     cLineMsg+=cCRLF
+    cLineMsg+=cCRLF
+
     cLineMsg+=cReplicate
 
     MsProcess():MsProcTxt(cLineMsg,.T.)
