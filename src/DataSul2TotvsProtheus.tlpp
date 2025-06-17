@@ -103,18 +103,10 @@ return(lActivate)
 
 static function Activate() as logical
 
-    local aMenu as array
-    local aMenuItems as array
     local aStack:={"DNA.TECH.DATASUL2PROTHEUS.ACTIVATE","ACTIVATE","DNA.TECH.DATASUL2PROTHEUS.U_DATASUL2TOTVSPROTHEUS"} as array
     local aSections as array
     local aProperties as array
 
-    local bTMenuAction as codeblock
-
-    local cAlias as character
-    local cSection as character
-    local cProperty as character
-    local cTMenuAction as character
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
     local cGetFileTitle as character
@@ -126,10 +118,6 @@ static function Activate() as logical
     local lSendDataToServer as logical
     local lRedefineBottom:=FwIsInCallStack("DNA.TECH.EXECUTE") as logical
 
-    local nSection as numeric
-    local nSections as numeric
-    local nProperty as numeric
-    local nProperties as numeric
     local nGetFileOptions as numeric
 
     local oTDlg as object
@@ -140,9 +128,6 @@ static function Activate() as logical
     local oWNDDefault as object
 
     local oTFIni as object
-
-    local oTMenuItem as object
-    local oTMenuOptions as object
 
     begin sequence
 
@@ -240,25 +225,6 @@ static function Activate() as logical
             nBottom-=50
         endif
 
-        oTMenuOptions:=Array(#)
-
-        aMenu:=aClone(oTFIni:GetAllProperties("Menu"))
-        nSections:=Len(aMenu)
-        for nSection:=1 to nSections
-            cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
-            aMenuItems:=ctools():StrTokCountArray(oTFIni:GetPropertyValue("Menu",cSection),",")
-            oTMenuOptions[#cSection]:=Array(#)
-            oTMenuOptions[#cSection][#"Alias"]:=Array(#)
-            nProperties:=Len(aMenuItems)
-            for nProperty:=1 to nProperties
-                oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuItems[nProperty]
-            next nProperty
-            FWFreeArray(@aMenuItems)
-        next nSection
-
-        FWFreeArray(@aMenuItems)
-        FWFreeArray(@aMenu)
-
         oWNDDefault:=GetWNDDefault()
         if ((Empty(oWNDDefault)).and.(Type("oMainWnd")=="O"))
             oWNDDefault:=oMainWnd
@@ -276,226 +242,20 @@ static function Activate() as logical
             @ 000,000 MSPANEL oTPanel OF oTDlg
             oTPanel:Align:=CONTROL_ALIGN_ALLCLIENT
 
-            @ nTop,nLeft BITMAP oTBitMap RESNAME "DNA_TECH_LOGO_MENU_BACKGROUND" SIZE nBottom,nRight BORDER OF oTPanel PIXEL
+            @ nTop,nLeft BITMAP oTBitMap RESNAME "DNA_TECH_LOGO_MENU_BACKGROUND_BLACK_PANTER" SIZE nBottom,nRight BORDER OF oTPanel PIXEL
+            oTBitMap:lTransparent:=.F.
             oTBitMap:Align:=CONTROL_ALIGN_ALLCLIENT
             oTBitMap:SetCSS("{background-size: 100% 100%;}")
 
-            MENU oTMenu IMAGE "" OF oTDlg
-                MENUITEM oTMenuItem PROMPT cCadastro
-                MENU
-                    aSections:=aClone(oTMenuOptions:GetAllSections())
-                    nSections:=Len(aSections)
-                    for nSection:=1 to nSections
-                        cSection:=aSections[nSection]
-                        aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
-                        nProperties:=Len(aProperties)
-                        MENUITEM oTMenuItem PROMPT cSection
-                        MENU
-                            for nProperty:=1 to nProperties
-                                cProperty:=aProperties[nProperty]
-                                cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
-                                beginContent var cTMenuAction
-                                    {||dna.tech.DataSul2Protheus.ProcImportData("cAlias",lPercentage,lFastMode)}
-                                endContent
-                                cTMenuAction:=cTools():StrReplace(;
-                                    cTMenuAction,;
-                                    {CRLF,""},;
-                                    {CHR(10),""},;
-                                    {CHR(13),""},;
-                                    {" ",""},;
-                                    {"cAlias",cAlias},;
-                                    {"lPercentage",IF(lPercentage,".T.",".F.")},;
-                                    {"lFastMode",IF(lFastMode,".T.",".F.")};
-                                )
-                                bTMenuAction:=&(cTMenuAction)
-                                cTMenuAction:=""
-                                MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.))
-                                oTMenuItem:bAction:=bTMenuAction
-                            next nProperty
-                        ENDMENU
-                        FWFreeArray(@aProperties)
-                    next nSection
-                    FWFreeArray(@aSections)
-                    oTMenuOptions:FreeObj()
-                    FreeObj(@oTMenuOptions)
-                ENDMENU
-                MENUITEM oTMenuItem PROMPT "Tools"
-                MENU
-                    MENUITEM oTMenuItem PROMPT "Send data to the server"
-                    bTMenuAction:={||FWMsgRun(nil,{||lSendDataToServer:=dna.tech.DataSul2Protheus.sendDataToServer(@cGetFileRoot,.T.)},"Wait!","Sending Data To Server")}
-                    oTMenuItem:bAction:=bTMenuAction
-                    MENUITEM oTMenuItem PROMPT "Settings"
-                    MENU
-                        MENUITEM oTMenuItem PROMPT "Configure"
-                        MENU
-                            MENUITEM oTMenuItem PROMPT "Settings"
-                            oTMenuItem:bAction:={||CFGFile()}
-                        ENDMENU
-                        MENUITEM oTMenuItem PROMPT "Show"
-                        MENU
-                            MENUITEM oTMenuItem PROMPT "Show Config Files"
-                            oTMenuItem:bAction:={||ShowConfigFiles()}
-                            MENUITEM oTMenuItem PROMPT "Show Datasul Files"
-                            oTMenuItem:bAction:={||ShowDatasulFiles()}
-                        ENDMENU
-                    ENDMENU
-                    if (oTFIni:ExistSection("SplitFiles"))
-                        oTMenuOptions:=Array(#)
-                        aMenu:=aClone(oTFIni:GetAllProperties("SplitFiles"))
-                        nSections:=Len(aMenu)
-                        for nSection:=1 to nSections
-                            cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
-                            aMenuItems:=ctools():StrTokCountArray(oTFIni:GetPropertyValue("SplitFiles",cSection),",")
-                            oTMenuOptions[#cSection]:=Array(#)
-                            oTMenuOptions[#cSection][#"Alias"]:=Array(#)
-                            nProperties:=Len(aMenuItems)
-                            for nProperty:=1 to nProperties
-                                oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuItems[nProperty]
-                            next nProperty
-                            FWFreeArray(@aMenuItems)
-                        next nSection
-                        FWFreeArray(@aMenuItems)
-                        FWFreeArray(@aMenu)
-                        MENUITEM oTMenuItem PROMPT "Split Files"
-                        MENU
-                            MENUITEM oTMenuItem PROMPT "Split"
-                            MENU
-                                aSections:=aClone(oTMenuOptions:GetAllSections())
-                                nSections:=Len(aSections)
-                                for nSection:=1 to nSections
-                                    cSection:=aSections[nSection]
-                                    aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
-                                    nProperties:=Len(aProperties)
-                                    MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
-                                    MENU
-                                        for nProperty:=1 to nProperties
-                                            cProperty:=aProperties[nProperty]
-                                            cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
-                                            beginContent var cTMenuAction
-                                                {||FWMsgRun(nil,{||dna.tech.DataSul2Protheus.SplitFileAdd("cSourceFile")},"cMsgTitle","cMsgDetail")}
-                                            endContent
-                                            cTMenuAction:=cTools():StrReplace(;
-                                                cTMenuAction,;
-                                                {CRLF,""},;
-                                                {CHR(10),""},;
-                                                {CHR(13),""},;
-                                                {" ",""},;
-                                                {"cSourceFile",cAlias},;
-                                                {"cMsgTitle","Wait, splitting files"},;
-                                                {"cMsgDetail","["+cAlias+"]"};
-                                            )
-                                            bTMenuAction:=&(cTMenuAction)
-                                            cTMenuAction:=""
-                                            MENUITEM oTMenuItem PROMPT cAlias
-                                            oTMenuItem:bAction:=bTMenuAction
-                                        next nProperty
-                                    ENDMENU
-                                    FWFreeArray(@aProperties)
-                                next nSection
-                                FWFreeArray(@aSections)
-                            ENDMENU
-                            MENUITEM oTMenuItem PROMPT "Remove"
-                            MENU
-                                aSections:=aClone(oTMenuOptions:GetAllSections())
-                                nSections:=Len(aSections)
-                                for nSection:=1 to nSections
-                                    cSection:=aSections[nSection]
-                                    aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
-                                    nProperties:=Len(aProperties)
-                                    MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
-                                    MENU
-                                        for nProperty:=1 to nProperties
-                                            cProperty:=aProperties[nProperty]
-                                            cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
-                                            beginContent var cTMenuAction
-                                                {||FWMsgRun(nil,{||dna.tech.DataSul2Protheus.SplitFileDel("cSourceFile")},"cMsgTitle","cMsgDetail")}
-                                            endContent
-                                            cTMenuAction:=cTools():StrReplace(;
-                                                cTMenuAction,;
-                                                {CRLF,""},;
-                                                {CHR(10),""},;
-                                                {CHR(13),""},;
-                                                {" ",""},;
-                                                {"cSourceFile",cAlias},;
-                                                {"cMsgTitle","Wait, removing files"},;
-                                                {"cMsgDetail","["+cAlias+"]"};
-                                            )
-                                            bTMenuAction:=&(cTMenuAction)
-                                            cTMenuAction:=""
-                                            MENUITEM oTMenuItem PROMPT cAlias
-                                            oTMenuItem:bAction:=bTMenuAction
-                                        next nProperty
-                                    ENDMENU
-                                    FWFreeArray(@aProperties)
-                                next nSection
-                                FWFreeArray(@aSections)
-                            ENDMENU
-                            MENUITEM oTMenuItem PROMPT "Show"
-                            MENU
-                                aSections:=aClone(oTMenuOptions:GetAllSections())
-                                nSections:=Len(aSections)
-                                for nSection:=1 to nSections
-                                    cSection:=aSections[nSection]
-                                    aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
-                                    nProperties:=Len(aProperties)
-                                    MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
-                                    MENU
-                                        for nProperty:=1 to nProperties
-                                            cProperty:=aProperties[nProperty]
-                                            cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
-                                            beginContent var cTMenuAction
-                                                {||FWMsgRun(nil,{||dna.tech.DataSul2Protheus.SplitFileView("cSourceFile")},"cMsgTitle","cMsgDetail")}
-                                            endContent
-                                            cTMenuAction:=cTools():StrReplace(;
-                                                cTMenuAction,;
-                                                {CRLF,""},;
-                                                {CHR(10),""},;
-                                                {CHR(13),""},;
-                                                {" ",""},;
-                                                {"cSourceFile",cAlias},;
-                                                {"cMsgTitle","Wait, showing files"},;
-                                                {"cMsgDetail","["+cAlias+"]"};
-                                            )
-                                            bTMenuAction:=&(cTMenuAction)
-                                            cTMenuAction:=""
-                                            MENUITEM oTMenuItem PROMPT cAlias
-                                            oTMenuItem:bAction:=bTMenuAction
-                                        next nProperty
-                                    ENDMENU
-                                    FWFreeArray(@aProperties)
-                                next nSection
-                                FWFreeArray(@aSections)
-                            ENDMENU
-                            oTMenuOptions:FreeObj()
-                            FreeObj(@oTMenuOptions)
-                        ENDMENU
-                    endif
-                ENDMENU
-                MENUITEM oTMenuItem PROMPT "Environment"
-                MENU
-                    MENUITEM oTMenuItem PROMPT "ChangeCompanyAndBranch" ACTION ChangeCompanyAndBranch(cEmpAnt,cFilAnt,.F.)
-                    MENUITEM oTMenuItem PROMPT "ChangeBaseDate" ACTION ChangeBaseDate(dDataBase)
-                ENDMENU
-                MENU
-                    MENUITEM oTMenuItem PROMPT "Exit" ACTION if(ApMsgNoYes("Deseja sair?"),oTDlg:End(),.F.)
-                ENDMENU
-            ENDMENU
-
-            oTMenu:align:=CONTROL_ALIGN_ALLCLIENT
+            oTMenu:=LoadMenu(@oTDlg,oTFIni,@lSendDataToServer,@lFastMode,@lPercentage)
 
             oTDlg:SetMenu(oTMenu)
             oTDlg:lCentered:=(!lRedefineBottom)
 
         ACTIVATE DIALOG oTDlg
 
-        if (valType(oTMenuOptions)=="O")
-            FWMsgRun(nil,{||oTMenuOptions:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
-            FreeObj(@oTMenuOptions)
-        endif
-
         FreeObj(@oTBitMap)
         FreeObj(@oTPanel)
-        FreeObj(@oTMenuItem)
         FreeObj(@oTMenu)
         FreeObj(@oTDlg)
 
@@ -526,6 +286,255 @@ static function Activate() as logical
     DelClassIntF()
 
 return(lActivate)
+
+static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as logical,lFastMode as logical,lPercentage as logical) as object
+
+    local aMenu as array
+    local aMenuItems as array
+
+    local bTMenuAction as codeblock
+
+    local cAlias as character
+    local cSection as character
+    local cProperty as character
+    local cTMenuAction as character
+
+    local nSection as numeric
+    local nSections as numeric
+    local nProperty as numeric
+    local nProperties as numeric
+
+    local oTMenu as object
+    local oTMenuItem as object
+
+    oTMenuOptions:=Array(#)
+
+    aMenu:=aClone(oTFIni:GetAllProperties("Menu"))
+    nSections:=Len(aMenu)
+    for nSection:=1 to nSections
+        cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
+        aMenuItems:=ctools():StrTokCountArray(oTFIni:GetPropertyValue("Menu",cSection),",")
+        oTMenuOptions[#cSection]:=Array(#)
+        oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+        nProperties:=Len(aMenuItems)
+        for nProperty:=1 to nProperties
+            oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuItems[nProperty]
+        next nProperty
+        FWFreeArray(@aMenuItems)
+    next nSection
+
+    FWFreeArray(@aMenuItems)
+    FWFreeArray(@aMenu)
+
+    MENU oTMenu IMAGE "" OF oTDlg
+        MENUITEM oTMenuItem PROMPT cCadastro
+        MENU
+            aSections:=aClone(oTMenuOptions:GetAllSections())
+            nSections:=Len(aSections)
+            for nSection:=1 to nSections
+                cSection:=aSections[nSection]
+                aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
+                nProperties:=Len(aProperties)
+                MENUITEM oTMenuItem PROMPT cSection
+                MENU
+                    for nProperty:=1 to nProperties
+                        cProperty:=aProperties[nProperty]
+                        cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
+                        beginContent var cTMenuAction
+                            {||dna.tech.DataSul2Protheus.ProcImportData("cAlias",lPercentage,lFastMode)}
+                        endContent
+                        cTMenuAction:=cTools():StrReplace(;
+                            cTMenuAction,;
+                            {CRLF,""},;
+                            {CHR(10),""},;
+                            {CHR(13),""},;
+                            {" ",""},;
+                            {"cAlias",cAlias},;
+                            {"lPercentage",IF(lPercentage,".T.",".F.")},;
+                            {"lFastMode",IF(lFastMode,".T.",".F.")};
+                        )
+                        bTMenuAction:=&(cTMenuAction)
+                        cTMenuAction:=""
+                        MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.))
+                        oTMenuItem:bAction:=bTMenuAction
+                    next nProperty
+                ENDMENU
+                FWFreeArray(@aProperties)
+            next nSection
+            FWFreeArray(@aSections)
+            oTMenuOptions:FreeObj()
+            FreeObj(@oTMenuOptions)
+        ENDMENU
+        MENUITEM oTMenuItem PROMPT "Tools"
+        MENU
+            MENUITEM oTMenuItem PROMPT "Send data to the server"
+            bTMenuAction:={||FWMsgRun(nil,{||lSendDataToServer:=dna.tech.DataSul2Protheus.sendDataToServer(@cGetFileRoot,.T.)},"Wait!","Sending Data To Server")}
+            oTMenuItem:bAction:=bTMenuAction
+            MENUITEM oTMenuItem PROMPT "Settings"
+            MENU
+                MENUITEM oTMenuItem PROMPT "Environment"
+                MENU
+                    MENUITEM oTMenuItem PROMPT "ChangeCompanyAndBranch" ACTION ChangeCompanyAndBranch(cEmpAnt,cFilAnt,.F.)
+                    MENUITEM oTMenuItem PROMPT "ChangeBaseDate" ACTION ChangeBaseDate(dDataBase)
+                ENDMENU
+                MENUITEM oTMenuItem PROMPT "Configure"
+                MENU
+                    MENUITEM oTMenuItem PROMPT "Settings"
+                    oTMenuItem:bAction:={||CFGFile()}
+                ENDMENU
+                MENUITEM oTMenuItem PROMPT "Show"
+                MENU
+                    MENUITEM oTMenuItem PROMPT "Show Config Files"
+                    oTMenuItem:bAction:={||ShowConfigFiles()}
+                    MENUITEM oTMenuItem PROMPT "Show Datasul Files"
+                    oTMenuItem:bAction:={||ShowDatasulFiles()}
+                ENDMENU
+            ENDMENU
+            if (oTFIni:ExistSection("SplitFiles"))
+                oTMenuOptions:=Array(#)
+                aMenu:=aClone(oTFIni:GetAllProperties("SplitFiles"))
+                nSections:=Len(aMenu)
+                for nSection:=1 to nSections
+                    cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
+                    aMenuItems:=ctools():StrTokCountArray(oTFIni:GetPropertyValue("SplitFiles",cSection),",")
+                    oTMenuOptions[#cSection]:=Array(#)
+                    oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+                    nProperties:=Len(aMenuItems)
+                    for nProperty:=1 to nProperties
+                        oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuItems[nProperty]
+                    next nProperty
+                    FWFreeArray(@aMenuItems)
+                next nSection
+                FWFreeArray(@aMenuItems)
+                FWFreeArray(@aMenu)
+                MENUITEM oTMenuItem PROMPT "Split Files"
+                MENU
+                    MENUITEM oTMenuItem PROMPT "Split"
+                    MENU
+                        aSections:=aClone(oTMenuOptions:GetAllSections())
+                        nSections:=Len(aSections)
+                        for nSection:=1 to nSections
+                            cSection:=aSections[nSection]
+                            aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
+                            nProperties:=Len(aProperties)
+                            MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                            MENU
+                                for nProperty:=1 to nProperties
+                                    cProperty:=aProperties[nProperty]
+                                    cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
+                                    beginContent var cTMenuAction
+                                        {||FWMsgRun(nil,{||dna.tech.DataSul2Protheus.SplitFileAdd("cSourceFile")},"cMsgTitle","cMsgDetail")}
+                                    endContent
+                                    cTMenuAction:=cTools():StrReplace(;
+                                        cTMenuAction,;
+                                        {CRLF,""},;
+                                        {CHR(10),""},;
+                                        {CHR(13),""},;
+                                        {" ",""},;
+                                        {"cSourceFile",cAlias},;
+                                        {"cMsgTitle","Wait, splitting files"},;
+                                        {"cMsgDetail","["+cAlias+"]"};
+                                    )
+                                    bTMenuAction:=&(cTMenuAction)
+                                    cTMenuAction:=""
+                                    MENUITEM oTMenuItem PROMPT cAlias
+                                    oTMenuItem:bAction:=bTMenuAction
+                                next nProperty
+                            ENDMENU
+                            FWFreeArray(@aProperties)
+                        next nSection
+                        FWFreeArray(@aSections)
+                    ENDMENU
+                    MENUITEM oTMenuItem PROMPT "Remove"
+                    MENU
+                        aSections:=aClone(oTMenuOptions:GetAllSections())
+                        nSections:=Len(aSections)
+                        for nSection:=1 to nSections
+                            cSection:=aSections[nSection]
+                            aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
+                            nProperties:=Len(aProperties)
+                            MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                            MENU
+                                for nProperty:=1 to nProperties
+                                    cProperty:=aProperties[nProperty]
+                                    cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
+                                    beginContent var cTMenuAction
+                                        {||FWMsgRun(nil,{||dna.tech.DataSul2Protheus.SplitFileDel("cSourceFile")},"cMsgTitle","cMsgDetail")}
+                                    endContent
+                                    cTMenuAction:=cTools():StrReplace(;
+                                        cTMenuAction,;
+                                        {CRLF,""},;
+                                        {CHR(10),""},;
+                                        {CHR(13),""},;
+                                        {" ",""},;
+                                        {"cSourceFile",cAlias},;
+                                        {"cMsgTitle","Wait, removing files"},;
+                                        {"cMsgDetail","["+cAlias+"]"};
+                                    )
+                                    bTMenuAction:=&(cTMenuAction)
+                                    cTMenuAction:=""
+                                    MENUITEM oTMenuItem PROMPT cAlias
+                                    oTMenuItem:bAction:=bTMenuAction
+                                next nProperty
+                            ENDMENU
+                            FWFreeArray(@aProperties)
+                        next nSection
+                        FWFreeArray(@aSections)
+                    ENDMENU
+                    MENUITEM oTMenuItem PROMPT "Show"
+                    MENU
+                        aSections:=aClone(oTMenuOptions:GetAllSections())
+                        nSections:=Len(aSections)
+                        for nSection:=1 to nSections
+                            cSection:=aSections[nSection]
+                            aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
+                            nProperties:=Len(aProperties)
+                            MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                            MENU
+                                for nProperty:=1 to nProperties
+                                    cProperty:=aProperties[nProperty]
+                                    cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
+                                    beginContent var cTMenuAction
+                                        {||FWMsgRun(nil,{||dna.tech.DataSul2Protheus.SplitFileView("cSourceFile")},"cMsgTitle","cMsgDetail")}
+                                    endContent
+                                    cTMenuAction:=cTools():StrReplace(;
+                                        cTMenuAction,;
+                                        {CRLF,""},;
+                                        {CHR(10),""},;
+                                        {CHR(13),""},;
+                                        {" ",""},;
+                                        {"cSourceFile",cAlias},;
+                                        {"cMsgTitle","Wait, showing files"},;
+                                        {"cMsgDetail","["+cAlias+"]"};
+                                    )
+                                    bTMenuAction:=&(cTMenuAction)
+                                    cTMenuAction:=""
+                                    MENUITEM oTMenuItem PROMPT cAlias
+                                    oTMenuItem:bAction:=bTMenuAction
+                                next nProperty
+                            ENDMENU
+                            FWFreeArray(@aProperties)
+                        next nSection
+                        FWFreeArray(@aSections)
+                    ENDMENU
+                    oTMenuOptions:FreeObj()
+                    FreeObj(@oTMenuOptions)
+                ENDMENU
+            endif
+        ENDMENU
+        MENU
+            MENUITEM oTMenuItem PROMPT "Exit" ACTION if(ApMsgNoYes("Deseja sair?"),oTDlg:End(),.F.)
+        ENDMENU
+    ENDMENU
+
+    if (valType(oTMenuOptions)=="O")
+        FWMsgRun(nil,{||oTMenuOptions:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
+        FreeObj(@oTMenuOptions)
+    endif
+
+    oTMenu:align:=CONTROL_ALIGN_ALLCLIENT
+
+return(oTMenu)
 
 static function ProcImportData(cAlias as character,lPercentage as logical,lFastMode as logical) as logical
 
@@ -694,6 +703,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local cGetFileMask as character
     local cGetFileTitle as character
 
+    local jSourceJSONLine:=JSONObject():New() as json
+
     local lLock as logical
     local lFound as logical
     local lAddNew as logical
@@ -735,6 +746,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local nStartLine as numeric
 
     local nRecProc:=0 as numeric
+    local nIncProc as numeric
     local nSetRegua:=0 as numeric
     local nRecCount as numeric
     local nRecProcPerc as numeric
@@ -773,8 +785,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local oTFIni as object
     local oProgress:=txtProgress():New() as object
     local oFileReader as object
-
-    local oSourceJSONLine:=JSONObject():New()
 
     local oTimeRemaining as object
     local oTimeRemainingGetLineFromSource as object
@@ -1010,7 +1020,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         oFileReader:=fileTools():FileReader("SQLITE_TMP")
         bSourceGetLine:={|jJSOnLine|GetLineFromSource(jJSOnLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF,@oTimeRemainingGetLineFromSource)}
         oFileReader:ft_fSetGetLine(bSourceGetLine)
-        bSourceAppendLine:={|nRecNoAT,uLine|oSourceJSONLine["Line"]:=uLine,oSourceJSONLine:ToJSON()}
+        bSourceAppendLine:={|nRecNoAT,uLine|jSourceJSONLine["Line"]:=uLine,jSourceJSONLine:ToJSON()}
         oFileReader:ft_fSetAppend(bSourceAppendLine)
         if (valtype(GetValue(cTableImport+"SourceSetFilter",nil))=="B")
             bSourceSetFilter:=GetValue(cTableImport+"SourceSetFilter")
@@ -1145,9 +1155,46 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 next nField
             endif
 
-            bSourceGetLine:={|nRecNoAT,uLine|oSourceJSONLine:FromJSON(uLine),oSourceJSONLine["Line"]}
+            bSourceGetLine:={|nRecNoAT,uLine|jSourceJSONLine:FromJSON(uLine),jSourceJSONLine["Line"]}
 
             while (!oFileReader:ft_fEof())
+
+                nRecProc++
+                if (lPercentage)
+                    nRecProcPerc:=(nRecProc*nIncProcStep)
+                else
+                    nRecProcPerc:=nRecProc
+                endif
+
+                oTimeRemaining:nProgress:=nRecProc
+
+                if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
+                    oTimeRemaining:Calcule(.F.)
+                    cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                    cTimeRemaining+="[+/-]"
+                    cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+                    cIncProc:="["+oProgress:Eval()+"] "
+                    cIncProc+="Processing Record ["
+                    cIncProc+=cTools():NToS(nRecProc)
+                    cIncProc+="/"
+                    cIncProc+=cRecCount
+                    cIncProc+="] :: "
+                    cIncProc+="Table ["+cFWTemporaryTableRealName+"]"
+                    cIncProc+=cTimeRemaining
+                    cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
+                    oMsNewProcess:IncRegua1(cIncProc)
+                endif
+
+                lEnd:=oMsNewProcess:lEnd
+
+                if (lEnd)
+                    cTLogGroup:="Process canceled by user:"
+                    oTLogReport:AddGroup(cTLogGroup)
+                    cTLogDetail:="Process canceled by user ["+DtoC(Date())+"]["+Time()+"]"
+                    oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+                    exit
+                endif
 
                 nFTfRecNo:=oFileReader:ft_fRecNo()
                 aLine:=oFileReader:ft_fReadLN(bSourceGetLine)
@@ -1599,43 +1646,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 cLine:=""
                 FWFreeArray(@aLine)
 
-                nRecProc++
-                if (lPercentage)
-                    nRecProcPerc:=(nRecProc*nIncProcStep)
-                else
-                    nRecProcPerc:=nRecProc
-                endif
-
-                oTimeRemaining:nProgress:=nRecProc
-
-                if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
-                    oTimeRemaining:Calcule(.F.)
-                    cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
-                    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
-                    cTimeRemaining+="[+/-]"
-                    cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
-                    cIncProc:="["+oProgress:Eval()+"] "
-                    cIncProc+="Processing Record ["
-                    cIncProc+=cTools():NToS(nRecProc)
-                    cIncProc+="/"
-                    cIncProc+=cRecCount
-                    cIncProc+="] :: "
-                    cIncProc+="Table ["+cFWTemporaryTableRealName+"]"
-                    cIncProc+=cTimeRemaining
-                    cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
-                    oMsNewProcess:IncRegua1(cIncProc)
-                endif
-
-                lEnd:=oMsNewProcess:lEnd
-
-                if (lEnd)
-                    cTLogGroup:="Process canceled by user:"
-                    oTLogReport:AddGroup(cTLogGroup)
-                    cTLogDetail:="Process canceled by user ["+DtoC(Date())+"]["+Time()+"]"
-                    oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
-                    exit
-                endif
-
                 if (lDbCommit)
                     nCommitBuffer:=0
                     (cSourceAlias)->(dbCommitAll())
@@ -1651,6 +1661,28 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                 oFileReader:ft_fSkip()
 
+            end while
+
+            nRecProcPerc-=1
+            while (nRecProcPerc<=nRecCount)
+                nRecProcPerc++
+                oTimeRemaining:Calcule(.F.)
+                cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                cTimeRemaining+="[+/-]"
+                cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+                cIncProc:="["+oProgress:Eval()+"] "
+                cIncProc+="Processing Record ["
+                cIncProc+=cTools():NToS(nRecProc)
+                cIncProc+="/"
+                cIncProc+=cRecCount
+                cIncProc+="] :: "
+                cIncProc+="Table ["+cFWTemporaryTableRealName+"]"
+                cIncProc+=cTimeRemaining
+                cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
+                for nIncProc:=1 to 10
+                    oMsNewProcess:IncRegua1(cIncProc)
+                next nRecProcPerc
             end while
 
             if (lPercentage)
@@ -1957,6 +1989,28 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             end while
 
+            nRecProcPerc-=1
+            while (nRecProcPerc<=nRecCount)
+                nRecProcPerc++
+                oTimeRemaining:Calcule(.F.)
+                cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                cTimeRemaining+="[+/-]"
+                cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+                cIncProc:="["+oProgress:Eval()+"] "
+                cIncProc+="Updating Record ["
+                cIncProc+=cTools():NToS(nRecProc)
+                cIncProc+="/"
+                cIncProc+=cRecCount
+                cIncProc+="] :: "
+                cIncProc+="Table ["+cTargetAliasRealName+"]"
+                cIncProc+=cTimeRemaining
+                cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
+                for nIncProc:=1 to 10
+                    oMsNewProcess:IncRegua2(cIncProc)
+                next nRecProcPerc
+            end while
+
             for nField:=1 to nFields
                 cField:=aTargetFieldsDef[nField][DBS_NAME]
                 DelProperty(cField)
@@ -2081,7 +2135,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     FreeObj(@oProgress)
     FreeObj(@oTimeRemaining)
-    FreeObj(@oSourceJSONLine)
+    FreeObj(@jSourceJSONLine)
 
     if (valType(oFileReader)=="O")
         oFileReader:ft_fUse()
