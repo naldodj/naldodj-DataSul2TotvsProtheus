@@ -247,7 +247,7 @@ static function Activate() as logical
             oTBitMap:Align:=CONTROL_ALIGN_ALLCLIENT
             oTBitMap:SetCSS("{background-size: 100% 100%;}")
 
-            oTMenu:=LoadMenu(@oTDlg,oTFIni,@lSendDataToServer,@cGetFileRoot,@lFastMode,@lPercentage)
+            FWMsgRun(nil,{||oTMenu:=LoadMenu(@oTDlg,oTFIni,@lSendDataToServer,@cGetFileRoot,@lFastMode,@lPercentage)},"Wait! Loading Menu",ProcName())
 
             oTDlg:SetMenu(oTMenu)
             oTDlg:lCentered:=(!lRedefineBottom)
@@ -291,11 +291,13 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
 
     local aMenu as array
     local aMenuItems as array
+    local aMenuOption as array
 
     local bTMenuAction as codeblock
 
     local cAlias as character
     local cSection as character
+    local cFunction as character
     local cProperty as character
     local cTMenuAction as character
 
@@ -316,9 +318,15 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
         aMenuItems:=ctools():StrTokCountArray(oTFIni:GetPropertyValue("Menu",cSection),",")
         oTMenuOptions[#cSection]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"]:=Array(#)
+        oTMenuOptions[#cSection][#"Function"]:=Array(#)
         nProperties:=Len(aMenuItems)
         for nProperty:=1 to nProperties
-            oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuItems[nProperty]
+            aMenuOption:=ctools():StrTokCountArray(aMenuItems[nProperty],"|")
+            oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuOption[1]
+            if ((Len(aMenuOption)>1).and.(!Empty(aMenuOption[2])))
+                oTMenuOptions[#cSection][#"Function"][#StrZero(nProperty,2)]:={"Alias":aMenuOption[1],"Function":(aMenuOption[2]+"()")}
+            endif
+            FWFreeArray(@aMenuOption)
         next nProperty
         FWFreeArray(@aMenuItems)
     next nSection
@@ -331,36 +339,71 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
         MENU
             aSections:=aClone(oTMenuOptions:GetAllSections())
             nSections:=Len(aSections)
-            for nSection:=1 to nSections
-                cSection:=aSections[nSection]
-                aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
-                nProperties:=Len(aProperties)
-                MENUITEM oTMenuItem PROMPT cSection
-                MENU
-                    for nProperty:=1 to nProperties
-                        cProperty:=aProperties[nProperty]
-                        cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
-                        beginContent var cTMenuAction
-                            {||dna.tech.DataSul2Protheus.ProcImportData("cAlias",lPercentage,lFastMode)}
-                        endContent
-                        cTMenuAction:=cTools():StrReplace(;
-                            cTMenuAction,;
-                            {CRLF,""},;
-                            {CHR(10),""},;
-                            {CHR(13),""},;
-                            {" ",""},;
-                            {"cAlias",cAlias},;
-                            {"lPercentage",IF(lPercentage,".T.",".F.")},;
-                            {"lFastMode",IF(lFastMode,".T.",".F.")};
-                        )
-                        bTMenuAction:=&(cTMenuAction)
-                        cTMenuAction:=""
-                        MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.))
-                        oTMenuItem:bAction:=bTMenuAction
-                    next nProperty
-                ENDMENU
-                FWFreeArray(@aProperties)
-            next nSection
+            MENUITEM oTMenuItem PROMPT "Import (Process)"
+            MENU
+                for nSection:=1 to nSections
+                    cSection:=aSections[nSection]
+                    aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
+                    nProperties:=Len(aProperties)
+                    MENUITEM oTMenuItem PROMPT cSection
+                    MENU
+                        for nProperty:=1 to nProperties
+                            cProperty:=aProperties[nProperty]
+                            cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
+                            beginContent var cTMenuAction
+                                {||dna.tech.DataSul2Protheus.ProcImportData("cAlias",lPercentage,lFastMode)}
+                            endContent
+                            cTMenuAction:=cTools():StrReplace(;
+                                cTMenuAction,;
+                                {CRLF,""},;
+                                {CHR(10),""},;
+                                {CHR(13),""},;
+                                {" ",""},;
+                                {"cAlias",cAlias},;
+                                {"lPercentage",IF(lPercentage,".T.",".F.")},;
+                                {"lFastMode",IF(lFastMode,".T.",".F.")};
+                            )
+                            bTMenuAction:=&(cTMenuAction)
+                            cTMenuAction:=""
+                            MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.))
+                            oTMenuItem:bAction:=bTMenuAction
+                        next nProperty
+                    ENDMENU
+                    FWFreeArray(@aProperties)
+                next nSection
+            ENDMENU
+            MENUITEM oTMenuItem PROMPT "Import (View)"
+            MENU
+                for nSection:=1 to nSections
+                    cSection:=aSections[nSection]
+                    aProperties:=aClone(oTMenuOptions[#cSection][#"Function"]:GetAllSections())
+                    nProperties:=Len(aProperties)
+                    MENUITEM oTMenuItem PROMPT cSection
+                    MENU
+                        for nProperty:=1 to nProperties
+                            cProperty:=aProperties[nProperty]
+                            cAlias:=oTMenuOptions[#cSection][#"Function"][#cProperty]["Alias"]
+                            cFunction:=oTMenuOptions[#cSection][#"Function"][#cProperty]["Function"]
+                            beginContent var cTMenuAction
+                                {||cFunction}
+                            endContent
+                            cTMenuAction:=cTools():StrReplace(;
+                                cTMenuAction,;
+                                {CRLF,""},;
+                                {CHR(10),""},;
+                                {CHR(13),""},;
+                                {" ",""},;
+                                {"cFunction",cFunction};
+                            )
+                            bTMenuAction:=&(cTMenuAction)
+                            cTMenuAction:=""
+                            MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.))
+                            oTMenuItem:bAction:=bTMenuAction
+                        next nProperty
+                    ENDMENU
+                    FWFreeArray(@aProperties)
+                next nSection
+            ENDMENU
             FWFreeArray(@aSections)
             oTMenuOptions:FreeObj()
             FreeObj(@oTMenuOptions)
