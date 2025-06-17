@@ -300,6 +300,7 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
     local cFunction as character
     local cProperty as character
     local cTMenuAction as character
+    local cDescription as character
 
     local nSection as numeric
     local nSections as numeric
@@ -324,7 +325,7 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
             aMenuOption:=ctools():StrTokCountArray(aMenuItems[nProperty],"|")
             oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuOption[1]
             if ((Len(aMenuOption)>1).and.(!Empty(aMenuOption[2])))
-                oTMenuOptions[#cSection][#"Function"][#StrZero(nProperty,2)]:={"Alias":aMenuOption[1],"Function":(aMenuOption[2]+"()")}
+                oTMenuOptions[#cSection][#"Function"][#StrZero(nProperty,2)]:={"Alias":aMenuOption[1],"Function":aMenuOption[2]}
             endif
             FWFreeArray(@aMenuOption)
         next nProperty
@@ -365,7 +366,8 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                             )
                             bTMenuAction:=&(cTMenuAction)
                             cTMenuAction:=""
-                            MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.))
+                            cDescription:=(cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.)))
+                            MENUITEM oTMenuItem PROMPT cDescription
                             oTMenuItem:bAction:=bTMenuAction
                         next nProperty
                     ENDMENU
@@ -385,19 +387,21 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                             cAlias:=oTMenuOptions[#cSection][#"Function"][#cProperty]["Alias"]
                             cFunction:=oTMenuOptions[#cSection][#"Function"][#cProperty]["Function"]
                             beginContent var cTMenuAction
-                                {||cFunction}
+                                {||__Execute("cFunction()","xxxxxxxxxx","cDescription",StrZero(nModulo,2))}
                             endContent
+                            cDescription:=(cAlias+" ("+cFunction+") :: "+Upper(AllTrim(FWSX2Util():GetX2Name(cAlias,.F.))))
                             cTMenuAction:=cTools():StrReplace(;
                                 cTMenuAction,;
                                 {CRLF,""},;
                                 {CHR(10),""},;
                                 {CHR(13),""},;
                                 {" ",""},;
-                                {"cFunction",cFunction};
+                                {"cFunction",cFunction},;
+                                {"cDescription",cDescription};
                             )
                             bTMenuAction:=&(cTMenuAction)
                             cTMenuAction:=""
-                            MENUITEM oTMenuItem PROMPT cAlias+" :: "+Upper(FWSX2Util():GetX2Name(cAlias,.F.))
+                            MENUITEM oTMenuItem PROMPT cDescription
                             oTMenuItem:bAction:=bTMenuAction
                         next nProperty
                     ENDMENU
@@ -460,7 +464,7 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                             cSection:=aSections[nSection]
                             aProperties:=aClone(oTMenuOptions[#cSection][#"Alias"]:GetAllSections())
                             nProperties:=Len(aProperties)
-                            MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(FWSX2Util():GetX2Name(cSection,.F.))
+                            MENUITEM oTMenuItem PROMPT cSection+" :: "+Upper(AllTrim(FWSX2Util():GetX2Name(cSection,.F.)))
                             MENU
                                 for nProperty:=1 to nProperties
                                     cProperty:=aProperties[nProperty]
