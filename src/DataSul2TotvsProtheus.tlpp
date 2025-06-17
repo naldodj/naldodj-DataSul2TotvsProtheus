@@ -247,7 +247,7 @@ static function Activate() as logical
             oTBitMap:Align:=CONTROL_ALIGN_ALLCLIENT
             oTBitMap:SetCSS("{background-size: 100% 100%;}")
 
-            oTMenu:=LoadMenu(@oTDlg,oTFIni,@lSendDataToServer,@lFastMode,@lPercentage)
+            oTMenu:=LoadMenu(@oTDlg,oTFIni,@lSendDataToServer,@cGetFileRoot,@lFastMode,@lPercentage)
 
             oTDlg:SetMenu(oTMenu)
             oTDlg:lCentered:=(!lRedefineBottom)
@@ -287,7 +287,7 @@ static function Activate() as logical
 
 return(lActivate)
 
-static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as logical,lFastMode as logical,lPercentage as logical) as object
+static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as logical,cGetFileRoot as character,lFastMode as logical,lPercentage as logical) as object
 
     local aMenu as array
     local aMenuItems as array
