@@ -1727,7 +1727,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 cIncProc+="Table ["+cFWTemporaryTableRealName+"]"
                 cIncProc+=cTimeRemaining
                 cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
-                for nIncProc:=1 to 10
+                for nIncProc:=1 to Max(nIncProcStep,10)
                     oMsNewProcess:IncRegua1(cIncProc)
                 next nRecProcPerc
             end while
@@ -2053,7 +2053,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 cIncProc+="Table ["+cTargetAliasRealName+"]"
                 cIncProc+=cTimeRemaining
                 cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
-                for nIncProc:=1 to 10
+                for nIncProc:=1 to Max(nIncProcStep,10)
                     oMsNewProcess:IncRegua2(cIncProc)
                 next nRecProcPerc
             end while
@@ -3291,7 +3291,7 @@ static function TCSQLUpdateTable(;
             cMsProcTXT+="["+cTools():NToS(Min(nMaxRecNo,nMinRecNoPlus))+"] ",;
             cMsProcTXT+="out of ",;
             cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]",;
-            MsProcess():MsProcTxt(cMsProcTXT,.T.),;
+            MsProcess():MsProcTxt(cMsProcTXT,.T.,(Mod(nMinRecNo,Min(nMaxRecNo,10))==0)),;
             oMsNewProcess:IncRegua2(cMsProcTXT);
     } as codeblock
     local bOnError:={|cQueryFull,cSourceTable,cTargetTable,nTCSQLExec,cTCSQLError|;
@@ -3401,8 +3401,8 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
     local cReplicate as character
     local cTimeRemaining as character
 
-    local nLineSiz as numeric
     local nIncProc as numeric
+    local nLineSize as numeric
 
     local nLine as numeric
     local nFileSize as numeric
@@ -3423,11 +3423,11 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
 
     if ((lSetRegua).and.(nSetRegua==0).and.(!Empty(aLine)))
         lSetRegua:=.F.
-        nLineSiz:=0
+        nLineSize:=0
         nSetRegua:=(nBufferSize/nFileSize)
-        aEval(aLine,{|e|nLineSiz+=(Len(e)+1+nSetRegua)})
-        nLineSiz-=1
-        nSetRegua:=nLineSiz
+        aEval(aLine,{|e|nLineSize+=(Len(e)+1+nSetRegua)})
+        nLineSize-=1
+        nSetRegua:=nLineSize
         nSetRegua:=Int(nFileSize/nSetRegua)
         oTimeRemaining:=TimeRemaining():New(nSetRegua)
         MsProcess():SetRegua(nSetRegua,.T.)
@@ -3478,7 +3478,7 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
 
     cLineMsg+=cReplicate
 
-    MsProcess():MsProcTxt(cLineMsg,.T.)
+    MsProcess():MsProcTxt(cLineMsg,.F.,(Mod(nLine,Min(10,nSetRegua))==0))
 
 return(aLine)
 
