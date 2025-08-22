@@ -670,6 +670,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local aDataPathSplit as array
 
+    local aFWBulk as array
+    local aFWBulkDefault as array
+
     local aTargetStruct:=(cAlias)->(dbStruct()) as array
     local aTargetFieldsDef as array
     local aReplicateValues as array
@@ -781,6 +784,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local lEnableFilterBlock as logical
 
     local lDeleted:=Set(_SET_DELETED,"ON") as logical
+    local lCanUseBulk:=.F. as logical
 
     local nField as numeric
     local nFields as numeric
@@ -836,6 +840,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local oTimeRemaining as object
     local oTimeRemainingGetLineFromSource as object
 
+    local oFWBulk as object
     local oFWTemporaryTable as object
 
     local oHMMemoVirutal as object
@@ -1106,6 +1111,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             oFWTemporaryTable:Create()
             cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
             SetValue("import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
+            lCanUseBulk:=FwBulk():CanBulk()
+            if (lCanUseBulk)
+                oFWBulk:=FwBulk():New(cFWTemporaryTableRealName,1024)
+                oFWBulk:SetFields(aTargetStruct)
+                aFWBulk:=Array(Len(aTargetStruct))
+                aEval(aTargetStruct,{|x,y|aFWBulk[y]:=__GetValType(aTargetStruct[y][DBS_TYPE],aTargetStruct[y][DBS_LEN])})
+                aFWBulkDefault:=aClone(aFWBulk)
+            endif
         else
             cFWTemporaryTableRealName:=criaTrab(nil,.F.)
             dbCreate(cFWTemporaryTableRealName,aTargetStruct,"SQLITE_MEM")
@@ -1367,7 +1380,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         endif
                     endif
 
-                    (cSourceAlias)->(dbAppend(.F.))
+                    if (!lCanUseBulk)
+                        (cSourceAlias)->(dbAppend(.F.))
+                    endif
 
                     lDbCommit:=(++nCommitBuffer>=1024)
 
@@ -1436,7 +1451,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                         loop
                                     endif
 
-                                    (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                    if (lCanUseBulk)
+                                        aFWBulk[nTargetFieldPos]:=xValue
+                                    else
+                                        (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                    endif
 
                                 end while
 
@@ -1502,7 +1521,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             loop
                         endif
 
-                        (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
+                        if (lCanUseBulk)
+                            aFWBulk[nTargetFieldPos]:=xValue
+                        else
+                            (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
+                        endif
 
                         if ((lSeekTable).and.(!empty(cAllSeekIndexKey)))
                             if (cField$cAllSeekIndexKey)
@@ -1517,6 +1540,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         endif
 
                     next nField
+
+                    if (lCanUseBulk)
+                        lAppend:=oFWBulk:AddData(aFWBulk)
+                        aFWBulk:=aClone(aFWBulkDefault)
+                    endif
 
                     lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
 
@@ -1628,7 +1656,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             lAppend:=.T.
 
-                            (cSourceAlias)->(dbAppend(.F.))
+                            if (!lCanUseBulk)
+                                (cSourceAlias)->(dbAppend(.F.))
+                            endif
+
                             lDbCommit:=(++nCommitBuffer>=1024)
 
                             for nField:=1 to nFields
@@ -1670,9 +1701,18 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     loop
                                 endif
 
-                                (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                if (lCanUseBulk)
+                                    aFWBulk[nTargetFieldPos]:=xValue
+                                else
+                                    (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                endif
 
                             next nField
+
+                            if (lCanUseBulk)
+                                lAppend:=oFWBulk:AddData(aFWBulk)
+                                aFWBulk:=aClone(aFWBulkDefault)
+                            endif
 
                             lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
 
@@ -1686,7 +1726,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                         end while
 
-                        FwFreeArray(@aReplicateValues)
+                        FWFreeArray(@aReplicateValues)
 
                     endif
 
@@ -1697,7 +1737,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                 if (lDbCommit)
                     nCommitBuffer:=0
-                    (cSourceAlias)->(dbCommitAll())
+                    if (lCanUseBulk)
+                        oFWBulk:Flush()
+                    else
+                        (cSourceAlias)->(dbCommitAll())
+                    endif
                 endif
 
                 if (lDbCommit)
@@ -1711,6 +1755,14 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 oFileReader:ft_fSkip()
 
             end while
+
+            if (lCanUseBulk)
+                oFWBulk:Close()
+                oFWBulk:Destroy()
+                FreeObj(@oFWBulk)
+                FWFreeArray(@aFWBulk)
+                FWFreeArray(@aFWBulkDefault)
+            endif
 
             nRecProcPerc-=1
             while (nRecProcPerc<=nRecCount)
@@ -2610,7 +2662,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
     SetValue(cTargetField,xValue)
 
     FWFreeArray(@aValueField)
-    FwFreeArray(@aSourceField)
+    FWFreeArray(@aSourceField)
 
 return(xValue)
 
@@ -3741,3 +3793,33 @@ return(DNATechTools():Execute("DNA.TECH.ChangeCompanyAndBranch",cCompany,cBranch
 
 static function ChangeBaseDate(dDate) as logical
 return(DNATechTools():Execute("DNA.TECH.ChangeBaseDate",dDate,"dnatechtools_"+Lower(ProcName())))
+
+static function __GetValType(xType as variant,nSize as numeric) as variant
+
+    local cType as character
+    local xRet as variant
+
+    DEFAULT xType:="U"
+    DEFAULT nSize:=0
+
+    if (cType:=ValType(xType))!="C"
+        nSize:=if(cType=="C",Len(cType),nSize)
+        xRet:=GetValType(cType,nSize)
+        return(xRet)
+    EndIF
+
+    cType:=Upper(AllTrim(xType))
+
+    do case
+        case cType=="A"  ; xRet := {}
+        case cType$"CM"  ; xRet := Space(nSize)
+        case cType=="D"  ; xRet := Ctod("//")
+        case cType=="N"  ; xRet := 0
+        case cType=="J"  ; xRet := JSONObject():New()
+        case cType=="L"  ; xRet := .F.
+        case cType=="B"  ; xRet := { || NIL }
+        case cType$"U/O" ; xRet := NIL
+        case cType=="R"  ; xRet := 0
+    end case
+
+return(xRet)

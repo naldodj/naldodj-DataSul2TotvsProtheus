@@ -206,19 +206,25 @@ static function SRQGetSRVPD(cEventoDataSul as character,oTFIni as object) as cha
 return(cRQPD)
 
 static function SRQGetRQVerbas(cVarPD as character) as character
+
     local aPDS as array
     local aVarPD as array
+
     local cPD as character
+    local cToken:=","
     local cRQVerbas:="" as character
+
     local nPD as numeric
     local nPDs as numeric
     local nVar as numeric
     local nVars as numeric
-    aVarPD:=ctools():StrTokCountArray(cVarPD,",")
+    local nToken:=1 as numeric
+
+    aVarPD:=ctools():StrTokCountArray(cVarPD,cToken,nToken)
     nVars:=Len(aVarPD)
     for nVar:=1 to nVars
         cPD:=allTrim(SRQGetValue(aVarPD[nVar],""))
-        aPDS:=ctools():StrTokCountArray(cPD,",")
+        aPDS:=ctools():StrTokCountArray(cPD,cToken,nToken)
         nPDs:=Len(aPDS)
         for nPD:=1 to nPDs
             cPD:=aPDS[nPD]
