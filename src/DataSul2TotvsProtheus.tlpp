@@ -849,6 +849,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local oHMSourceFieldsDef as object
 
+    local xDummy as variant
+
     begin sequence
 
         dfv():Default(@lPreLoadTable,.F.)
@@ -1215,7 +1217,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                 oTimeRemaining:nProgress:=nRecProc
 
-                if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
+                if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc,@xDummy)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
                     oTimeRemaining:Calcule(.F.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
@@ -1990,7 +1992,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     oTimeRemaining:nProgress:=nRecProc
 
-                    if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
+                    if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc,@xDummy)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
                         oTimeRemaining:Calcule(.F.)
                         cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                         cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
@@ -2336,6 +2338,8 @@ static function ReadTableDefinition() as logical
     local oFileReader as object
     local oHMTablesImport as object
 
+    local xDummy as variant
+
     begin sequence
 
         oTFIni:=GetValue("readIniFile")
@@ -2434,7 +2438,7 @@ static function ReadTableDefinition() as logical
                 if ("Table:"==Left(cLine,6))
                     cTable:=strTran(cLine,"Table:","")
                     cTable:=allTrim(cTable)
-                    lSkipTable:=(!oHMTablesImport:Get(cTable))
+                    lSkipTable:=(!oHMTablesImport:Get(cTable,@xDummy))
                     if (lSkipTable)
                         break
                     else
