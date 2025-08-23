@@ -1072,7 +1072,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkEncode","0"))=="1")
         lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
 
-        oFileReader:=fileTools():FileReader("TOPCONN")
+        oFileReader:=fileTools():FileReader("HASHMAP")
         bSourceGetLine:={|jLine|GetLineFromSource(jLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF,@oTimeRemainingGetLineFromSource)}
         oFileReader:ft_fSetGetLine(bSourceGetLine)
         bSourceAppendLine:={|nRecNoAT,uLine|jSourceJSONLine["Line"]:=uLine,jSourceJSONLine:ToJSON()}
@@ -1762,6 +1762,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     exit
                 endif
 
+                oFileReader:ft_fDelete()
                 oFileReader:ft_fSkip()
 
             end while
