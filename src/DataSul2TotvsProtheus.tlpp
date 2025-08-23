@@ -316,13 +316,13 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
     nSections:=Len(aMenu)
     for nSection:=1 to nSections
         cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
-        aMenuItems:=ctools():StrTokCountArray(oTFIni:GetPropertyValue("Menu",cSection),",")
+        aMenuItems:=ctools():__StrTokCountArray(oTFIni:GetPropertyValue("Menu",cSection),",",1)
         oTMenuOptions[#cSection]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"]:=Array(#)
         oTMenuOptions[#cSection][#"Function"]:=Array(#)
         nProperties:=Len(aMenuItems)
         for nProperty:=1 to nProperties
-            aMenuOption:=ctools():StrTokCountArray(aMenuItems[nProperty],"|")
+            aMenuOption:=ctools():__StrTokCountArray(aMenuItems[nProperty],"|",1)
             oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuOption[1]
             if ((Len(aMenuOption)>1).and.(!Empty(aMenuOption[2])))
                 oTMenuOptions[#cSection][#"Function"][#StrZero(nProperty,2)]:={"Alias":aMenuOption[1],"Function":aMenuOption[2]}
@@ -443,7 +443,7 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                 nSections:=Len(aMenu)
                 for nSection:=1 to nSections
                     cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
-                    aMenuItems:=ctools():StrTokCountArray(oTFIni:GetPropertyValue("SplitFiles",cSection),",")
+                    aMenuItems:=ctools():__StrTokCountArray(oTFIni:GetPropertyValue("SplitFiles",cSection),",",1)
                     oTMenuOptions[#cSection]:=Array(#)
                     oTMenuOptions[#cSection][#"Alias"]:=Array(#)
                     nProperties:=Len(aMenuItems)
@@ -783,8 +783,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local lUpdateTableFields:=.F. as logical
     local lEnableFilterBlock as logical
 
+    local lCanBulk:=.F. as logical
     local lDeleted:=Set(_SET_DELETED,"ON") as logical
-    local lCanUseBulk:=.F. as logical
 
     local nField as numeric
     local nFields as numeric
@@ -974,7 +974,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cTmpFields:=allTrim(oTFIni:GetPropertyValue(cTableImport+"_addTmpField","TmpFields",""))
             lAddFieldTmp:=(!Empty(cTmpFields))
             if (lAddFieldTmp)
-                aSourceTmpFields:=ctools():StrTokCountArray(cTmpFields,",")
+                aSourceTmpFields:=ctools():__StrTokCountArray(cTmpFields,",",1)
                 nFields:=Len(aSourceTmpFields)
                 if (nFields>0)
                     aSourceTmpFldStruct:=array(0)
@@ -1034,7 +1034,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         if (lTypeReplicate)
             cNoReplicateValues:=allTrim(oTFIni:GetPropertyValue(cTableImport,"NoReplicateValues",""))
-            aNoReplicateValues:=ctools():StrTokCountArray(cNoReplicateValues,",")
+            aNoReplicateValues:=ctools():__StrTokCountArray(cNoReplicateValues,",",1)
             aTargetReplicateFields:=array(0)
             oHMTargetReplicateFields:=THashMap():New()
         endif
@@ -1071,8 +1071,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         lChkEncode:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"ChkEncode","0"))=="1")
         lTablesEncodeUTF8:=(allTrim(oTFIni:GetPropertyValue("General","TablesEncodeUTF8","0"))=="1")
 
-        oFileReader:=fileTools():FileReader("SQLITE_TMP")
-        bSourceGetLine:={|jJSOnLine|GetLineFromSource(jJSOnLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF,@oTimeRemainingGetLineFromSource)}
+        oFileReader:=fileTools():FileReader("TOPCONN")
+        bSourceGetLine:={|jLine|GetLineFromSource(jLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF,@oTimeRemainingGetLineFromSource)}
         oFileReader:ft_fSetGetLine(bSourceGetLine)
         bSourceAppendLine:={|nRecNoAT,uLine|jSourceJSONLine["Line"]:=uLine,jSourceJSONLine:ToJSON()}
         oFileReader:ft_fSetAppend(bSourceAppendLine)
@@ -1111,9 +1111,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             oFWTemporaryTable:Create()
             cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
             SetValue("import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
-            lCanUseBulk:=FwBulk():CanBulk()
-            if (lCanUseBulk)
-                oFWBulk:=FwBulk():New(cFWTemporaryTableRealName,1024)
+            lCanBulk:=FwBulk():CanBulk()
+            if (lCanBulk)
+                oFWBulk:=FwBulk():New(strTran(cFWTemporaryTableRealName,"dbo.",""),1024)
                 oFWBulk:SetFields(aTargetStruct)
                 aFWBulk:=Array(Len(aTargetStruct))
                 aEval(aTargetStruct,{|x,y|aFWBulk[y]:=__GetValType(aTargetStruct[y][DBS_TYPE],aTargetStruct[y][DBS_LEN])})
@@ -1149,9 +1149,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 if (lSeekTable)
                     (cSeekTable)->(dbSetOrder(nSeekTableIndex))
                     cUpdateTableFields:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableFields",""))
-                    aUpdateTableFields:=ctools():StrTokCountArray(cUpdateTableFields,",")
+                    aUpdateTableFields:=ctools():__StrTokCountArray(cUpdateTableFields,",",1)
                     cUpdateTableSource:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableSource",""))
-                    aUpdateTableSource:=ctools():StrTokCountArray(cUpdateTableSource,",")
+                    aUpdateTableSource:=ctools():__StrTokCountArray(cUpdateTableSource,",",1)
                     nUpdateTableSource:=Len(aUpdateTableFields)
                     lUpdateTableFields:=((nUpdateTableSource>0).and.(nUpdateTableSource==Len(aUpdateTableSource)))
                 endif
@@ -1380,7 +1380,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         endif
                     endif
 
-                    if (!lCanUseBulk)
+                    if (!lCanBulk)
                         (cSourceAlias)->(dbAppend(.F.))
                     endif
 
@@ -1451,7 +1451,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                         loop
                                     endif
 
-                                    if (lCanUseBulk)
+                                    if (lCanBulk)
                                         aFWBulk[nTargetFieldPos]:=xValue
                                     else
                                         (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
@@ -1521,7 +1521,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             loop
                         endif
 
-                        if (lCanUseBulk)
+                        if (lCanBulk)
                             aFWBulk[nTargetFieldPos]:=xValue
                         else
                             (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
@@ -1541,7 +1541,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     next nField
 
-                    if (lCanUseBulk)
+                    if (lCanBulk)
                         lAppend:=oFWBulk:AddData(aFWBulk)
                         aFWBulk:=aClone(aFWBulkDefault)
                     endif
@@ -1656,7 +1656,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             lAppend:=.T.
 
-                            if (!lCanUseBulk)
+                            if (!lCanBulk)
                                 (cSourceAlias)->(dbAppend(.F.))
                             endif
 
@@ -1701,7 +1701,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                     loop
                                 endif
 
-                                if (lCanUseBulk)
+                                if (lCanBulk)
                                     aFWBulk[nTargetFieldPos]:=xValue
                                 else
                                     (cSourceAlias)->(FieldPut(nTargetFieldPos,xValue))
@@ -1709,7 +1709,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             next nField
 
-                            if (lCanUseBulk)
+                            if (lCanBulk)
                                 lAppend:=oFWBulk:AddData(aFWBulk)
                                 aFWBulk:=aClone(aFWBulkDefault)
                             endif
@@ -1737,7 +1737,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                 if (lDbCommit)
                     nCommitBuffer:=0
-                    if (lCanUseBulk)
+                    if (lCanBulk)
                         oFWBulk:Flush()
                     else
                         (cSourceAlias)->(dbCommitAll())
@@ -1756,12 +1756,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
             end while
 
-            if (lCanUseBulk)
+            if (lCanBulk)
                 oFWBulk:Close()
                 oFWBulk:Destroy()
                 FreeObj(@oFWBulk)
                 FWFreeArray(@aFWBulk)
                 FWFreeArray(@aFWBulkDefault)
+                (cSourceAlias)->(dbGoTop())
             endif
 
             nRecProcPerc-=1
@@ -2440,7 +2441,7 @@ static function ReadTableDefinition() as logical
                 oFileReader:ft_fSkip()
                 loop
             endif
-            aLineDef:=ctools():StrTokCountArray(cLine," ")
+            aLineDef:=ctools():__StrTokCountArray(cLine," ",1)
             exit
         end while
 
@@ -2601,7 +2602,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
         if (lSourceTransform)
             cSourceField:=SubStr(cSourceField,2)
         endif
-        aSourceField:=ctools():StrTokCountArray(cSourceField,"+")
+        aSourceField:=ctools():__StrTokCountArray(cSourceField,"+",1)
         nSourceFields:=Len(aSourceField)
         aValueField:=Array(nSourceFields,2)
         for nSourceField:=1 to nSourceFields
@@ -3446,7 +3447,7 @@ static function Accentuation(cText as character,lTablesEncodeUTF8 as logical) as
 
 return(cTextNew)
 
-static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character,oTimeRemaining as object) as array
+static function GetLineFromSource(jLine as json,cSourceFile as character,lChkEncode as logical,lTablesEncodeUTF8 as logical,oProgress as object,lSetRegua as logical,nSetRegua as numeric,cCRLF as character,oTimeRemaining as object) as array
 
     local aLine as array
 
@@ -3465,17 +3466,17 @@ static function GetLineFromSource(jJSOnLine as json,cSourceFile as character,lCh
     local nBufferSize as numeric
     local nBytesRead as numeric
 
-    cLine:=jJSOnLine["cLine"]
-    nLine:=jJSOnLine["nLine"]
-    nFileSize:=jJSOnLine["nFileSize"]
-    nBufferSize:=jJSOnLine["nBufferSize"]
-    nBytesRead:=jJSOnLine["nBytesRead"]
+    cLine:=jLine["cLine"]
+    nLine:=jLine["nLine"]
+    nFileSize:=jLine["nFileSize"]
+    nBufferSize:=jLine["nBufferSize"]
+    nBytesRead:=jLine["nBytesRead"]
 
     if (lChkEncode)
         cLine:=Accentuation(cLine,lTablesEncodeUTF8)
     endif
 
-    aLine:=ctools():StrTokCountArray(cLine,";")
+    aLine:=ctools():__StrTokCountArray(cLine,";",1)
 
     if ((lSetRegua).and.(nSetRegua==0).and.(!Empty(aLine)))
         lSetRegua:=.F.
