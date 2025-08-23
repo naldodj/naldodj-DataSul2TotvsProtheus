@@ -785,6 +785,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local lCanBulk:=.F. as logical
     local lDeleted:=Set(_SET_DELETED,"ON") as logical
+    local lHasDeleted:=.F. as logical
 
     local nField as numeric
     local nFields as numeric
@@ -1269,6 +1270,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     lAppend:=.T.
                     lHasError:=.F.
+                    lHasDeleted:=.F.
                     lSeekTableFound:=.F.
 
                     if ((lChkFilial).or.(lEnableFilterBlock).or.(lAddFieldTmp))
@@ -1505,7 +1507,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
                                 cLine:=""
                                 lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
-                                if (lDeleteIfEmpty)
+                                if ((lDeleteIfEmpty).and.(!lHasDeleted))
+                                    lHasDeleted:=.T.
                                     (cSourceAlias)->(dbDelete())
                                     nDeleteIfEmpty++
                                     break
@@ -1549,7 +1552,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
 
                     lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
-                    if (lDeleteIfEmpty)
+                    if ((lDeleteIfEmpty).and.(!lHasDeleted))
+                        lHasDeleted:=.T.
                         (cSourceAlias)->(dbDelete())
                         nDeleteIfEmpty++
                     endif
@@ -1559,8 +1563,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         if (lEnableFilterBlock)
                             lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cSourceAlias)->(!Eval(bEnableFilterBlock,cSourceAlias))},nil,.F.,nil,nil))
                             if ((!lHasError).and.(lFilterBlock))
-                                (cSourceAlias)->(dbDelete())
-                                nDeleteIfEmpty++
+                                if (!lHasDeleted)
+                                    (cSourceAlias)->(dbDelete())
+                                    nDeleteIfEmpty++
+                                endif
                             endif
                         endif
 
@@ -1655,6 +1661,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         while (((++nReplicate)<=nReplicates))
 
                             lAppend:=.T.
+                            lHasDeleted:=.F.
 
                             if (!lCanBulk)
                                 (cSourceAlias)->(dbAppend(.F.))
@@ -1691,8 +1698,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
                                     lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
                                     if ((!lHasError).and.(!lAppend))
-                                        (cSourceAlias)->(dbDelete())
-                                        nDeleteIfEmpty++
+                                        if (!lHasDeleted)
+                                            lHasDeleted:=.T.
+                                            (cSourceAlias)->(dbDelete())
+                                            nDeleteIfEmpty++
+                                        endif
                                         exit
                                     endif
                                 endif
@@ -1718,7 +1728,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             if (lAppend)
                                 lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
-                                if (lDeleteIfEmpty)
+                                if ((lDeleteIfEmpty).and.(!lHasDeleted))
                                     (cSourceAlias)->(dbDelete())
                                     nDeleteIfEmpty++
                                 endif
