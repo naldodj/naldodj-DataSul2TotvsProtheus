@@ -1172,6 +1172,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 nStartLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"StartLine","1")))
             endif
 
+            if (;
+                    (oFileReader:GetMemberData("jData"):HasProperty("cRDDName"));
+                    .and.;
+                    (oFileReader:GetMemberData("jData")["cRDDName"]=="FILE");
+            )
+                oFileReader:ft_fPreLoad()
+            endif
             nRecCount:=oFileReader:ft_fLastRec()
 
             nEndLine:=GetValue(cTableImport+"EndLine",nRecCount)
@@ -2384,6 +2391,7 @@ static function ReadTableDefinition() as logical
     local cTablesDefinition as character
     local cFileTablesDefinition as character
 
+    local lSkip:=.T. as logical
     local lTypeReplicate:=.F. as logical
     local lSkipTable:=.F. as logical
     local lReadTableDefinition:=.F. as logical
@@ -2393,7 +2401,6 @@ static function ReadTableDefinition() as logical
 
     local nAT as numeric
 
-    local nFTfRecNo as numeric
     local nFTfHandle as numeric
 
     local nTypeReplicate as numeric
@@ -2430,7 +2437,7 @@ static function ReadTableDefinition() as logical
             break
         endif
 
-        oFileReader:=fileTools():FileReader()
+        oFileReader:=fileTools():FileReader("HASHMAP")
 
         FWMsgRun(nil,{||nFTfHandle:=oFileReader:ft_fUse(cFileTablesDefinition)},"Wait...",cFileTablesDefinition)
 
@@ -2493,6 +2500,7 @@ static function ReadTableDefinition() as logical
         oFileReader:ft_fGoTop()
 
         while (!oFileReader:ft_fEof())
+            lSkip:=.T.
             cLine:=oFileReader:ft_fReadLN()
             begin sequence
                 if (empty(cLine))
@@ -2506,23 +2514,21 @@ static function ReadTableDefinition() as logical
                     if (lSkipTable)
                         break
                     else
-                        oFileReader:ft_fDelete()
                         oFileReader:ft_fSkip()
                     endif
                     aSize(aFieldsDef,0)
                     while (!oFileReader:ft_fEof())
+                        lSkip:=.T.
                         cLine:=oFileReader:ft_fReadLN()
                         if (empty(cLine).or.("Field Name"==Left(cLine,10)).or.("-"==Left(cLine,1)))
                             cLine:=""
-                            oFileReader:ft_fDelete()
                             oFileReader:ft_fSkip()
+                            lSkip:=.F.
                             loop
                         endif
                         if ("Table:"==Left(cLine,6))
                             SetValue(cTable,aClone(aFieldsDef))
                             aSize(aFieldsDef,0)
-                            nFTfRecNo:=oFileReader:ft_fRecNo()
-                            oFileReader:ft_fGoTo(nFTfRecNo-1)
                             break
                         endif
                         cLine:=Accentuation(cLine,.T.)
@@ -2551,8 +2557,10 @@ static function ReadTableDefinition() as logical
                             aAdd(aFieldsDef,aClone(aFieldDef))
                         endif
                         FWFreeArray(@aFieldDef)
-                        oFileReader:ft_fDelete()
-                        oFileReader:ft_fSkip()
+                        if (lSkip)
+                            lSkip:=.F.
+                            oFileReader:ft_fSkip()
+                        endif
                     end while
                     SetValue(cTable,aClone(aFieldsDef))
                     aSize(aFieldsDef,0)
@@ -2560,8 +2568,9 @@ static function ReadTableDefinition() as logical
                     break
                 endif
             end sequence
-            oFileReader:ft_fDelete()
-            oFileReader:ft_fSkip()
+            if (lSkip)
+                oFileReader:ft_fSkip()
+            endif
         end while
 
     end sequence
