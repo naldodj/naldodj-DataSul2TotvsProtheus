@@ -3478,6 +3478,8 @@ static function GetLineFromSource(jLine as json,cSourceFile as character,lChkEnc
     local cReplicate as character
     local cTimeRemaining as character
 
+    local lIncProc as logical
+
     local nIncProc as numeric
     local nLineSize as numeric
 
@@ -3507,55 +3509,64 @@ static function GetLineFromSource(jLine as json,cSourceFile as character,lChkEnc
         nSetRegua:=nLineSize
         nSetRegua:=Int(nFileSize/nSetRegua)
         oTimeRemaining:=TimeRemaining():New(nSetRegua)
-        MsProcess():SetRegua(nSetRegua,.T.)
+        MsProcess():SetRegua(Int(nSetRegua/100),.T.)
     endif
 
-    cProgress:=oProgress:Eval()
+    lIncProc:=((nLine%100)==0)
+    if (lIncProc)
 
-    cLineMsg:=cCRLF
-    cLineMsg+="["+cProgress+"] ["+cSourceFile+"]"
-    cLineMsg+=cCRLF
+        cProgress:=oProgress:Eval()
 
-    cLineMsg+=cCRLF
-    cLineMsg+="Bytes  Processados ["+StrZero(Min(nFileSize,nBytesRead),16)+"/"+StrZero(nFileSize,16)+"]"
+        cLineMsg:=cCRLF
+        cLineMsg+="["+cProgress+"] ["+cSourceFile+"]"
+        cLineMsg+=cCRLF
 
-    nIncProc:=if((nBytesRead>=nFileSize),100,((nBytesRead/nFileSize)*100))
-    cIncProc:=cTools():NToS(nIncProc)
-    cLineMsg+="["+cIncProc+"%]"
-    cLineMsg+=cCRLF
+        cLineMsg+=cCRLF
+        cLineMsg+="Bytes  Processados ["+StrZero(Min(nFileSize,nBytesRead),16)+"/"+StrZero(nFileSize,16)+"]"
 
-    cLineMsg+="Linhas Processadas ["+StrZero(Min(nSetRegua,nLine),16)+"/"+StrZero(nSetRegua,16)+"]"
-    nIncProc:=if((nLine>=nSetRegua),100,((nLine/nSetRegua)*100))
-    cIncProc:=cTools():NToS(nIncProc)
+        nIncProc:=if((nBytesRead>=nFileSize),100,((nBytesRead/nFileSize)*100))
+        cIncProc:=cTools():NToS(nIncProc)
+        cLineMsg+="["+cIncProc+"%]"
+        cLineMsg+=cCRLF
 
-    cLineMsg+="["+cIncProc+"%]"
+        cLineMsg+="Linhas Processadas ["+StrZero(Min(nSetRegua,nLine),16)+"/"+StrZero(nSetRegua,16)+"]"
+        nIncProc:=if((nLine>=nSetRegua),100,((nLine/nSetRegua)*100))
+        cIncProc:=cTools():NToS(nIncProc)
+
+        cLineMsg+="["+cIncProc+"%]"
+
+    endif
 
     oTimeRemaining:Calcule(.T.)
 
-    cTimeRemaining:="End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
-    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
-    cTimeRemaining+="[+/-]"
-    cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
-    cTimeRemaining+="["+cProgress+"]"
+    if (lIncProc)
 
-    cReplicate:=Replicate("-",Len(cTimeRemaining))
+        cTimeRemaining:="End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+        cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+        cTimeRemaining+="[+/-]"
+        cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+        cTimeRemaining+="["+cProgress+"]"
 
-    cLineMsg+=cCRLF
-    cLineMsg+=cCRLF
+        cReplicate:=Replicate("-",Len(cTimeRemaining))
 
-    cLineMsg+=cReplicate
+        cLineMsg+=cCRLF
+        cLineMsg+=cCRLF
 
-    cLineMsg+=cCRLF
-    cLineMsg+=cCRLF
+        cLineMsg+=cReplicate
 
-    cLineMsg+=cTimeRemaining
+        cLineMsg+=cCRLF
+        cLineMsg+=cCRLF
 
-    cLineMsg+=cCRLF
-    cLineMsg+=cCRLF
+        cLineMsg+=cTimeRemaining
 
-    cLineMsg+=cReplicate
+        cLineMsg+=cCRLF
+        cLineMsg+=cCRLF
 
-    MsProcess():MsProcTxt(cLineMsg,.F.,(Mod(nLine,Min(10,nSetRegua))==0))
+        cLineMsg+=cReplicate
+
+        MsProcess():MsProcTxt(cLineMsg,.F.,(Mod(nLine,Min(10,nSetRegua))==0))
+
+    endif
 
 return(aLine)
 
