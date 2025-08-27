@@ -1,3 +1,5 @@
+#include "jsonarray.ch"
+
 using namespace dna.tech
 
 procedure u_fileIOPF()
@@ -7,353 +9,364 @@ return
 
 procedure u_fileIOPerform()
     __cInternet:=nil
-    FWMsgRun(nil,{|oSay|fileIOPerform(oSay)},"fileIOPerform","Aguarde...")
+    FWMsgRun(nil,{||fileIOPerform()},"fileIOPerform","Aguarde...")
 return
 
-static procedure fileIOPerform(oSay as object)
+static procedure fileIOPerform()
 
-    local aLine as array
     local aFiles:={;
         "\datasul2protheus\tables\funcionario.csv";
+       ,"\datasul2protheus\tablessplit\movto_calcul_func\movto_calcul_func_001_20250618_155811_573656_288.csv";
        ,"\datasul2protheus\tablessplit\marcac_ptoelet\marcac_ptoelet_001_20250618_155833_573656_984.csv";
     } as array
-    local aPerform:={;
-        "TFileRead";
-       ,"FWFileReader";
-       ,"FileReader_FILE";
-       ,"FileReader_HASHMAP";
-       ,"FileReader_SQLITE_MEM";
-       ,"FileReader_SQLITE_TMP";
-       ,"FileReader_TOPCONN";
-       ,"ft_fUse";
-    } as array
+
+    local aPerform as array
+    local aProperties as array
 
     local cLine as character
     local cFile as character
+    local cPerform as character
+    local cProperty as character
+    local cFileReader as character
+
+    local jPerform as json
+
+    local nTo as numeric
+    local nStep as numeric
 
     local nFile as numeric
+    local nRecNo as numeric
+    local nRecNos as numeric
 
-    local nStrTokTime as numeric
-    local nTimeCounter as numeric
-
-    local nElapTimeTotal as numeric
-    local nElapTimeReader as numeric
-
-    local nStrTokElapTime1:=0 as numeric
-    local nStrTokElapTime2:=0 as numeric
-    local nStrTokElapTime3:=0 as numeric
-
+    local oPerform as object
     local oFileReader as object
 
-    local i as numeric
+    local i,j as numeric
 
-    local nCols1:=0 as numeric
-    local nCols2:=0 as numeric
-    local nCols3:=0 as numeric
+    local nSkip as numeric
+    local nLine as numeric
     local nLines:=0 as numeric
 
+    beginContent var cPerform
+{
+     "TFILEREAD"             :  {"RDD":""           ,"StartTime":0,"ReaderTotalTime":0,"ProcessTime":0,"ReaderTime":0,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+    ,"FWFILEREADER"          :  {"RDD":""           ,"StartTime":0,"ReaderTotalTime":0,"ProcessTime":0,"ReaderTime":0,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+    ,"FILEREADER_FILE"       :  {"RDD":"FILE"       ,"StartTime":0,"ReaderTotalTime":0,"ProcessTime":0,"ReaderTime":0,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+    ,"FILEREADER_HASHMAP"    :  {"RDD":"HASHMAP"    ,"StartTime":0,"ReaderTotalTime":0,"ProcessTime":0,"ReaderTime":0,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+    ,"FILEREADER_SQLITE_MEM" :  {"RDD":"SQLITE_MEM" ,"StartTime":0,"ReaderTotalTime":0,"ProcessTime":0,"ReaderTime":0,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+    ,"FILEREADER_SQLITE_TMP" :  {"RDD":"SQLITE_TMP" ,"StartTime":0,"ReaderTotalTime":0,"ProcessTime":0,"ReaderTime":0,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+    ,"FILEREADER_TOPCONN"    :  {"RDD":"TOPCONN"    ,"StartTime":0,"ReaderTotalTime":0,"ProcessTime":0,"ReaderTime":0,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+    ,"FT"                    :  {"RDD":""           ,"StartTime":0,"ReaderTotalTime":0,"ProcessTime":0,"ReaderTime":0,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+}
+    endContent
+
+    //Uso JSONArray para dar suporte a JSONObject do protheus.
+    //Ele se perde ao renderizar o JSON acima
+    oPerform:=JSONArray():New()
+    oPerform:FromJSON(cPerform)
+
+    jPerform:=JSONObject():New()
+    aPerform:=oPerform:GetNames()
+    for i:=1 to Len(aPerform)
+        cFileReader:=aPerform[i]
+        jPerform[cFileReader]:=JSONObject():New()
+        jPerform[cFileReader]["aLines"]:=Array(0)
+        aProperties:=oPerform[#cFileReader]:GetNames()
+        for j:=1 to Len(aProperties)
+            cProperty:=aProperties[j]
+            jPerform[cFileReader][cProperty]:=oPerform[#cFileReader][#cProperty]
+        next j
+    next i
+
+    //Bye Bye JSONArray. Obrigado pelo Suporte!
+    FreeObj(@oPerform)
+
     for nFile:=1 to Len(aFiles)
+        cLine:=""
         cFile:=aFiles[nFile]
         for i:=1 to Len(aPerform)
-            oSay:SetText(aPerform[i])
-            nCols1:=0
-            nCols2:=0
-            nCols3:=0
+            cFileReader:=aPerform[i]
             nLines:=0
-            nStrTokElapTime1:=0
-            nStrTokElapTime2:=0
-            nStrTokElapTime3:=0
-            if (aPerform[i]=="ft_fUse")
-                nTimeCounter:=TimeCounter()
+            jPerform[cFileReader]["StrTokArrTotal"]:=0
+            jPerform[cFileReader]["StrTokArr2Total"]:=0
+            jPerform[cFileReader]["__StrTokArrayTotal"]:=0
+            jPerform[cFileReader]["StrTokArrTime"]:=0
+            jPerform[cFileReader]["StrTokArr2Time"]:=0
+            jPerform[cFileReader]["__StrTokArrayTime"]:=0
+            if (cFileReader=="FT")
+                jPerform[cFileReader]["StartTime"]:=TimeCounter()
                 ft_fUse(cFile)
                 ft_fGoTop()
+                nRecNos:=ft_fLastRec()
                 while (!ft_fEof())
                     nLines++
+                    *****************************************************************
+                    //Teste de Navegacao
+                    *****************************************************************
+                    nRecNo:=ft_fRecNo()
+                    ft_fSkip(Randomize(1,nRecNos))
+                    ft_fGoto(nRecNo)
+                    *****************************************************************
                     cLine:=ft_fReadLn()
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr2(cLine,";")
-                    nStrTokElapTime1+=(TimeCounter()-nStrTokTime)
-                    nCols1+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=cTools():__StrTokArray(cLine,";",1,nil,{})
-                    nStrTokElapTime2+=(TimeCounter()-nStrTokTime)
-                    nCols2+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr(cLine,";")
-                    nStrTokElapTime3+=(TimeCounter()-nStrTokTime)
-                    nCols3+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
+                    TSTStrTokArray(@cFileReader,@cLine,@jPerform)
                     *****************************************************************
                     ft_fSkip()
                 end while
                 ft_fUse()
-                nElapTimeTotal:=(TimeCounter()-nTimeCounter)
-                nElapTimeReader:=(nElapTimeTotal-(nStrTokElapTime1+nStrTokElapTime2+nStrTokElapTime3))
-                ConOut(aPerform[i]+" => ElapTimeReader["+LTrim(Str(nElapTimeReader))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(nElapTimeTotal))+"] => Cols1[("+LTrim(Str(nCols1))+")|("+LTrim(Str(nStrTokElapTime1))+")] => Cols2[("+LTrim(Str(nCols2))+")|("+LTrim(Str(nStrTokElapTime2))+")] => Cols3[("+LTrim(Str(nCols3))+")|("+LTrim(Str(nStrTokElapTime3))+")]")
-            elseif aPerform[i]=="FWFileReader"
-                nTimeCounter:=TimeCounter()
+                jPerform[cFileReader]["ProcessTime"]:=(TimeCounter()-jPerform[cFileReader]["StartTime"])
+                jPerform[cFileReader]["ReaderTime"]:=(jPerform[cFileReader]["ProcessTime"]-(jPerform[cFileReader]["StrTokArrTime"]+jPerform[cFileReader]["StrTokArr2Time"]+jPerform[cFileReader]["__StrTokArrayTime"]))
+                jPerform[cFileReader]["ReaderTotalTime"]+=jPerform[cFileReader]["ReaderTime"]
+                ConOut(cFileReader+" => ElapTimeReader["+LTrim(Str(jPerform[cFileReader]["ReaderTime"]))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(jPerform[cFileReader]["ProcessTime"]))+"] => StrTokArr[("+LTrim(Str(jPerform[cFileReader]["StrTokArrTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArrTime"]))+")] => StrTokArr2[("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Time"]))+")] => __StrTokArray[("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Total"]))+")|("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTime"]))+")]")
+            elseif (cFileReader=="FWFILEREADER")
+                jPerform[cFileReader]["StartTime"]:=TimeCounter()
                 oFileReader:=FWFileReader():New(cFile)
                 oFileReader:Open()
                 while (oFileReader:HasLine())
                     nLines++
                     cLine:=oFileReader:GetLine()
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr2(cLine,";")
-                    nStrTokElapTime1+=(TimeCounter()-nStrTokTime)
-                    nCols1+=Len(aLine)
+                    TSTStrTokArray(@cFileReader,@cLine,@jPerform)
                     *****************************************************************
-                    FWFreeArray(@aLine)
+                    //Sem suporte a Navegacao no Arquivo. Teste pos carga
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=cTools():__StrTokArray(cLine,";",1,nil,{})
-                    nStrTokElapTime2+=(TimeCounter()-nStrTokTime)
-                    nCols2+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr(cLine,";")
-                    nStrTokElapTime3+=(TimeCounter()-nStrTokTime)
-                    nCols3+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
+                    if (nLines>1)
+                        nRecNos:=Len(jPerform[cFileReader]["aLines"])
+                        //Simula o Skip
+                        for nLine:=1 to nRecNos
+                            nRecNo:=nLine
+                            nSkip:=Randomize(1,nRecNos)
+                            nTo:=if(nSkip<nRecNo,1,nRecNos)
+                            nStep:=if(nSkip<nRecNo,(-1),1)
+                            for nLine:=nRecNo to nTo step nStep
+                                if (nLine==nSkip)
+                                    exit
+                                endif
+                            next nLine
+                            //Simula o GoTo
+                            nLine:=nRecNo
+                            cLine:=jPerform[cFileReader]["aLines"][nLine]
+                        next nLine
+                    endif
                 end while
                 oFileReader:Close()
                 FreeObj(@oFileReader)
-                nElapTimeTotal:=(TimeCounter()-nTimeCounter)
-                nElapTimeReader:=(nElapTimeTotal-(nStrTokElapTime1+nStrTokElapTime2+nStrTokElapTime3))
-                ConOut(aPerform[i]+" => ElapTimeReader["+LTrim(Str(nElapTimeReader))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(nElapTimeTotal))+"] => Cols1[("+LTrim(Str(nCols1))+")|("+LTrim(Str(nStrTokElapTime1))+")] => Cols2[("+LTrim(Str(nCols2))+")|("+LTrim(Str(nStrTokElapTime2))+")] => Cols3[("+LTrim(Str(nCols3))+")|("+LTrim(Str(nStrTokElapTime3))+")]")
-            elseif aPerform[i]=="TFileRead"
-                nTimeCounter:=TimeCounter()
+                jPerform[cFileReader]["ProcessTime"]:=(TimeCounter()-jPerform[cFileReader]["StartTime"])
+                jPerform[cFileReader]["ReaderTime"]:=(jPerform[cFileReader]["ProcessTime"]-(jPerform[cFileReader]["StrTokArrTime"]+jPerform[cFileReader]["StrTokArr2Time"]+jPerform[cFileReader]["__StrTokArrayTime"]))
+                jPerform[cFileReader]["ReaderTotalTime"]+=jPerform[cFileReader]["ReaderTime"]
+                ConOut(cFileReader+" => ElapTimeReader["+LTrim(Str(jPerform[cFileReader]["ReaderTime"]))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(jPerform[cFileReader]["ProcessTime"]))+"] => StrTokArr[("+LTrim(Str(jPerform[cFileReader]["StrTokArrTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArrTime"]))+")] => StrTokArr2[("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Time"]))+")] => __StrTokArray[("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Total"]))+")|("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTime"]))+")]")
+            elseif (cFileReader=="TFILEREAD")
+                jPerform[cFileReader]["StartTime"]:=TimeCounter()
                 oFileReader:=TFileRead():New(cFile)
                 oFileReader:Open()
                 while (oFileReader:MoreToRead())
                     nLines++
                     cLine:=oFileReader:ReadLine()
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr2(cLine,";")
-                    nStrTokElapTime1+=(TimeCounter()-nStrTokTime)
-                    nCols1+=Len(aLine)
+                    TSTStrTokArray(@cFileReader,@cLine,@jPerform)
                     *****************************************************************
-                    FWFreeArray(@aLine)
+                    //Sem suporte a Navegacao no Arquivo. Teste pos carga
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=cTools():__StrTokArray(cLine,";",1,nil,{})
-                    nStrTokElapTime2+=(TimeCounter()-nStrTokTime)
-                    nCols2+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr(cLine,";")
-                    nStrTokElapTime3+=(TimeCounter()-nStrTokTime)
-                    nCols3+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
+                    if (nLines>1)
+                        nRecNos:=Len(jPerform[cFileReader]["aLines"])
+                        //Simula o Skip
+                        for nLine:=1 to nRecNos
+                            nRecNo:=nLine
+                            nSkip:=Randomize(1,nRecNos)
+                            nTo:=if(nSkip<nRecNo,1,nRecNos)
+                            nStep:=if(nSkip<nRecNo,(-1),1)
+                            for nLine:=nRecNo to nTo step nStep
+                                if (nLine==nSkip)
+                                    exit
+                                endif
+                            next nLine
+                            //Simula o GoTo
+                            nLine:=nRecNo
+                            cLine:=jPerform[cFileReader]["aLines"][nLine]
+                        next nLine
+                    endif
                 end while
                 oFileReader:Close()
                 FreeObj(@oFileReader)
-                nElapTimeTotal:=(TimeCounter()-nTimeCounter)
-                nElapTimeReader:=(nElapTimeTotal-(nStrTokElapTime1+nStrTokElapTime2+nStrTokElapTime3))
-                ConOut(aPerform[i]+" => ElapTimeReader["+LTrim(Str(nElapTimeReader))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(nElapTimeTotal))+"] => Cols1[("+LTrim(Str(nCols1))+")|("+LTrim(Str(nStrTokElapTime1))+")] => Cols2[("+LTrim(Str(nCols2))+")|("+LTrim(Str(nStrTokElapTime2))+")] => Cols3[("+LTrim(Str(nCols3))+")|("+LTrim(Str(nStrTokElapTime3))+")]")
-            elseif aPerform[i]=="FileReader_HASHMAP"
-                nTimeCounter:=TimeCounter()
-                oFileReader:=fileTools():FileReader("HASHMAP")
+                jPerform[cFileReader]["ProcessTime"]:=(TimeCounter()-jPerform[cFileReader]["StartTime"])
+                jPerform[cFileReader]["ReaderTime"]:=(jPerform[cFileReader]["ProcessTime"]-(jPerform[cFileReader]["StrTokArrTime"]+jPerform[cFileReader]["StrTokArr2Time"]+jPerform[cFileReader]["__StrTokArrayTime"]))
+                ConOut(cFileReader+" => ElapTimeReader["+LTrim(Str(jPerform[cFileReader]["ReaderTime"]))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(jPerform[cFileReader]["ProcessTime"]))+"] => StrTokArr[("+LTrim(Str(jPerform[cFileReader]["StrTokArrTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArrTime"]))+")] => StrTokArr2[("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Time"]))+")] => __StrTokArray[("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Total"]))+")|("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTime"]))+")]")
+                jPerform[cFileReader]["ReaderTotalTime"]+=jPerform[cFileReader]["ReaderTime"]
+            elseif (cFileReader=="FILEREADER_HASHMAP")
+                jPerform[cFileReader]["StartTime"]:=TimeCounter()
+                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
                 oFileReader:ft_fUse(cFile)
+                nRecNos:=oFileReader:ft_fLastRec()
                 while (!oFileReader:ft_fEof())
                     nLines++
+                    *****************************************************************
+                    //Teste de Navegacao
+                    *****************************************************************
+                    nRecNo:=oFileReader:ft_fRecNo()
+                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
+                    oFileReader:ft_fGoto(nRecNo)
+                    *****************************************************************
                     cLine:=oFileReader:ft_fReadLN()
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr2(cLine,";")
-                    nStrTokElapTime1+=(TimeCounter()-nStrTokTime)
-                    nCols1+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=cTools():__StrTokArray(cLine,";",1,nil,{})
-                    nStrTokElapTime2+=(TimeCounter()-nStrTokTime)
-                    nCols2+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr(cLine,";")
-                    nStrTokElapTime3+=(TimeCounter()-nStrTokTime)
-                    nCols3+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
+                    TSTStrTokArray(@cFileReader,@cLine,@jPerform)
                     *****************************************************************
                     oFileReader:ft_fSkip()
                 end while
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
-                nElapTimeTotal:=(TimeCounter()-nTimeCounter)
-                nElapTimeReader:=(nElapTimeTotal-(nStrTokElapTime1+nStrTokElapTime2+nStrTokElapTime3))
-                ConOut(aPerform[i]+" => ElapTimeReader["+LTrim(Str(nElapTimeReader))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(nElapTimeTotal))+"] => Cols1[("+LTrim(Str(nCols1))+")|("+LTrim(Str(nStrTokElapTime1))+")] => Cols2[("+LTrim(Str(nCols2))+")|("+LTrim(Str(nStrTokElapTime2))+")] => Cols3[("+LTrim(Str(nCols3))+")|("+LTrim(Str(nStrTokElapTime3))+")]")
-            elseif aPerform[i]=="FileReader_FILE"
-                nTimeCounter:=TimeCounter()
-                oFileReader:=fileTools():FileReader("FILE")
+                jPerform[cFileReader]["ProcessTime"]:=(TimeCounter()-jPerform[cFileReader]["StartTime"])
+                jPerform[cFileReader]["ReaderTime"]:=(jPerform[cFileReader]["ProcessTime"]-(jPerform[cFileReader]["StrTokArrTime"]+jPerform[cFileReader]["StrTokArr2Time"]+jPerform[cFileReader]["__StrTokArrayTime"]))
+                ConOut(cFileReader+" => ElapTimeReader["+LTrim(Str(jPerform[cFileReader]["ReaderTime"]))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(jPerform[cFileReader]["ProcessTime"]))+"] => StrTokArr[("+LTrim(Str(jPerform[cFileReader]["StrTokArrTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArrTime"]))+")] => StrTokArr2[("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Time"]))+")] => __StrTokArray[("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Total"]))+")|("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTime"]))+")]")
+                jPerform[cFileReader]["ReaderTotalTime"]+=jPerform[cFileReader]["ReaderTime"]
+            elseif (cFileReader=="FILEREADER_FILE")
+                jPerform[cFileReader]["StartTime"]:=TimeCounter()
+                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
                 oFileReader:ft_fUse(cFile)
+                nRecNos:=oFileReader:ft_fLastRec()
                 while (!oFileReader:ft_fEof())
                     nLines++
+                    *****************************************************************
+                    //Teste de Navegacao
+                    *****************************************************************
+                    nRecNo:=oFileReader:ft_fRecNo()
+                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
+                    oFileReader:ft_fGoto(nRecNo)
+                    *****************************************************************
                     cLine:=oFileReader:ft_fReadLN()
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr2(cLine,";")
-                    nStrTokElapTime1+=(TimeCounter()-nStrTokTime)
-                    nCols1+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=cTools():__StrTokArray(cLine,";",1,nil,{})
-                    nStrTokElapTime2+=(TimeCounter()-nStrTokTime)
-                    nCols2+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr(cLine,";")
-                    nStrTokElapTime3+=(TimeCounter()-nStrTokTime)
-                    nCols3+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
+                    TSTStrTokArray(@cFileReader,@cLine,@jPerform)
                     *****************************************************************
                     oFileReader:ft_fSkip()
                 end while
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
-                nElapTimeTotal:=(TimeCounter()-nTimeCounter)
-                nElapTimeReader:=(nElapTimeTotal-(nStrTokElapTime1+nStrTokElapTime2+nStrTokElapTime3))
-                ConOut(aPerform[i]+" => ElapTimeReader["+LTrim(Str(nElapTimeReader))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(nElapTimeTotal))+"] => Cols1[("+LTrim(Str(nCols1))+")|("+LTrim(Str(nStrTokElapTime1))+")] => Cols2[("+LTrim(Str(nCols2))+")|("+LTrim(Str(nStrTokElapTime2))+")] => Cols3[("+LTrim(Str(nCols3))+")|("+LTrim(Str(nStrTokElapTime3))+")]")
-            elseif aPerform[i]=="FileReader_SQLITE_MEM"
-                nTimeCounter:=TimeCounter()
-                oFileReader:=fileTools():FileReader("SQLITE_MEM")
+                jPerform[cFileReader]["ProcessTime"]:=(TimeCounter()-jPerform[cFileReader]["StartTime"])
+                jPerform[cFileReader]["ReaderTime"]:=(jPerform[cFileReader]["ProcessTime"]-(jPerform[cFileReader]["StrTokArrTime"]+jPerform[cFileReader]["StrTokArr2Time"]+jPerform[cFileReader]["__StrTokArrayTime"]))
+                jPerform[cFileReader]["ReaderTotalTime"]+=jPerform[cFileReader]["ReaderTime"]
+                ConOut(cFileReader+" => ElapTimeReader["+LTrim(Str(jPerform[cFileReader]["ReaderTime"]))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(jPerform[cFileReader]["ProcessTime"]))+"] => StrTokArr[("+LTrim(Str(jPerform[cFileReader]["StrTokArrTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArrTime"]))+")] => StrTokArr2[("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Time"]))+")] => __StrTokArray[("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Total"]))+")|("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTime"]))+")]")
+            elseif (cFileReader=="FILEREADER_SQLITE_MEM")
+                jPerform[cFileReader]["StartTime"]:=TimeCounter()
+                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
                 oFileReader:ft_fUse(cFile)
+                nRecNos:=oFileReader:ft_fLastRec()
                 while (!oFileReader:ft_fEof())
                     nLines++
+                    *****************************************************************
+                    //Teste de Navegacao
+                    *****************************************************************
+                    nRecNo:=oFileReader:ft_fRecNo()
+                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
+                    oFileReader:ft_fGoto(nRecNo)
+                    *****************************************************************
                     cLine:=oFileReader:ft_fReadLN()
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr2(cLine,";")
-                    nStrTokElapTime1+=(TimeCounter()-nStrTokTime)
-                    nCols1+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=cTools():__StrTokArray(cLine,";",1,nil,{})
-                    nStrTokElapTime2+=(TimeCounter()-nStrTokTime)
-                    nCols2+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr(cLine,";")
-                    nStrTokElapTime3+=(TimeCounter()-nStrTokTime)
-                    nCols3+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
+                    TSTStrTokArray(@cFileReader,@cLine,@jPerform)
                     *****************************************************************
                     oFileReader:ft_fSkip()
                 end while
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
-                nElapTimeTotal:=(TimeCounter()-nTimeCounter)
-                nElapTimeReader:=(nElapTimeTotal-(nStrTokElapTime1+nStrTokElapTime2+nStrTokElapTime3))
-                ConOut(aPerform[i]+" => ElapTimeReader["+LTrim(Str(nElapTimeReader))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(nElapTimeTotal))+"] => Cols1[("+LTrim(Str(nCols1))+")|("+LTrim(Str(nStrTokElapTime1))+")] => Cols2[("+LTrim(Str(nCols2))+")|("+LTrim(Str(nStrTokElapTime2))+")] => Cols3[("+LTrim(Str(nCols3))+")|("+LTrim(Str(nStrTokElapTime3))+")]")
-            elseif aPerform[i]=="FileReader_SQLITE_TMP"
-                nTimeCounter:=TimeCounter()
-                oFileReader:=fileTools():FileReader("SQLITE_TMP")
+                jPerform[cFileReader]["ProcessTime"]:=(TimeCounter()-jPerform[cFileReader]["StartTime"])
+                jPerform[cFileReader]["ReaderTime"]:=(jPerform[cFileReader]["ProcessTime"]-(jPerform[cFileReader]["StrTokArrTime"]+jPerform[cFileReader]["StrTokArr2Time"]+jPerform[cFileReader]["__StrTokArrayTime"]))
+                jPerform[cFileReader]["ReaderTotalTime"]+=jPerform[cFileReader]["ReaderTime"]
+                ConOut(cFileReader+" => ElapTimeReader["+LTrim(Str(jPerform[cFileReader]["ReaderTime"]))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(jPerform[cFileReader]["ProcessTime"]))+"] => StrTokArr[("+LTrim(Str(jPerform[cFileReader]["StrTokArrTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArrTime"]))+")] => StrTokArr2[("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Time"]))+")] => __StrTokArray[("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Total"]))+")|("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTime"]))+")]")
+            elseif (cFileReader=="FILEREADER_SQLITE_TMP")
+                jPerform[cFileReader]["StartTime"]:=TimeCounter()
+                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
                 oFileReader:ft_fUse(cFile)
+                nRecNos:=oFileReader:ft_fLastRec()
                 while (!oFileReader:ft_fEof())
                     nLines++
+                    *****************************************************************
+                    //Teste de Navegacao
+                    *****************************************************************
+                    nRecNo:=oFileReader:ft_fRecNo()
+                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
+                    oFileReader:ft_fGoto(nRecNo)
+                    *****************************************************************
                     cLine:=oFileReader:ft_fReadLN()
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr2(cLine,";")
-                    nStrTokElapTime1+=(TimeCounter()-nStrTokTime)
-                    nCols1+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=cTools():__StrTokArray(cLine,";",1,nil,{})
-                    nStrTokElapTime2+=(TimeCounter()-nStrTokTime)
-                    nCols2+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr(cLine,";")
-                    nStrTokElapTime3+=(TimeCounter()-nStrTokTime)
-                    nCols3+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
+                    TSTStrTokArray(@cFileReader,@cLine,@jPerform)
                     *****************************************************************
                     oFileReader:ft_fSkip()
                 end while
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
-                nElapTimeTotal:=(TimeCounter()-nTimeCounter)
-                nElapTimeReader:=(nElapTimeTotal-(nStrTokElapTime1+nStrTokElapTime2+nStrTokElapTime3))
-                ConOut(aPerform[i]+" => ElapTimeReader["+LTrim(Str(nElapTimeReader))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(nElapTimeTotal))+"] => Cols1[("+LTrim(Str(nCols1))+")|("+LTrim(Str(nStrTokElapTime1))+")] => Cols2[("+LTrim(Str(nCols2))+")|("+LTrim(Str(nStrTokElapTime2))+")] => Cols3[("+LTrim(Str(nCols3))+")|("+LTrim(Str(nStrTokElapTime3))+")]")
-            elseif aPerform[i]=="FileReader_TOPCONN"
-                nTimeCounter:=TimeCounter()
-                oFileReader:=fileTools():FileReader("TOPCONN")
+                jPerform[cFileReader]["ProcessTime"]:=(TimeCounter()-jPerform[cFileReader]["StartTime"])
+                jPerform[cFileReader]["ReaderTime"]:=(jPerform[cFileReader]["ProcessTime"]-(jPerform[cFileReader]["StrTokArrTime"]+jPerform[cFileReader]["StrTokArr2Time"]+jPerform[cFileReader]["__StrTokArrayTime"]))
+                jPerform[cFileReader]["ReaderTotalTime"]+=jPerform[cFileReader]["ReaderTime"]
+                ConOut(cFileReader+" => ElapTimeReader["+LTrim(Str(jPerform[cFileReader]["ReaderTime"]))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(jPerform[cFileReader]["ProcessTime"]))+"] => StrTokArr[("+LTrim(Str(jPerform[cFileReader]["StrTokArrTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArrTime"]))+")] => StrTokArr2[("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Time"]))+")] => __StrTokArray[("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Total"]))+")|("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTime"]))+")]")
+            elseif (cFileReader=="FILEREADER_TOPCONN")
+                jPerform[cFileReader]["StartTime"]:=TimeCounter()
+                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
                 oFileReader:ft_fUse(cFile)
+                nRecNos:=oFileReader:ft_fLastRec()
                 while (!oFileReader:ft_fEof())
                     nLines++
+                    *****************************************************************
+                    //Teste de Navegacao
+                    *****************************************************************
+                    nRecNo:=oFileReader:ft_fRecNo()
+                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
+                    oFileReader:ft_fGoto(nRecNo)
+                    *****************************************************************
                     cLine:=oFileReader:ft_fReadLN()
                     *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr2(cLine,";")
-                    nStrTokElapTime1+=(TimeCounter()-nStrTokTime)
-                    nCols1+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=cTools():__StrTokArray(cLine,";",1,nil,{})
-                    nStrTokElapTime2+=(TimeCounter()-nStrTokTime)
-                    nCols2+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
-                    *****************************************************************
-                    nStrTokTime:=TimeCounter()
-                        aLine:=StrTokArr(cLine,";")
-                    nStrTokElapTime3+=(TimeCounter()-nStrTokTime)
-                    nCols3+=Len(aLine)
-                    *****************************************************************
-                    FWFreeArray(@aLine)
+                    TSTStrTokArray(@cFileReader,@cLine,@jPerform)
                     *****************************************************************
                     oFileReader:ft_fSkip()
                 end while
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
-                nElapTimeTotal:=(TimeCounter()-nTimeCounter)
-                nElapTimeReader:=(nElapTimeTotal-(nStrTokElapTime1+nStrTokElapTime2+nStrTokElapTime3))
-                ConOut(aPerform[i]+" => ElapTimeReader["+LTrim(Str(nElapTimeReader))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(nElapTimeTotal))+"] => Cols1[("+LTrim(Str(nCols1))+")|("+LTrim(Str(nStrTokElapTime1))+")] => Cols2[("+LTrim(Str(nCols2))+")|("+LTrim(Str(nStrTokElapTime2))+")] => Cols3[("+LTrim(Str(nCols3))+")|("+LTrim(Str(nStrTokElapTime3))+")]")
+                jPerform[cFileReader]["ProcessTime"]:=(TimeCounter()-jPerform[cFileReader]["StartTime"])
+                jPerform[cFileReader]["ReaderTime"]:=(jPerform[cFileReader]["ProcessTime"]-(jPerform[cFileReader]["StrTokArrTime"]+jPerform[cFileReader]["StrTokArr2Time"]+jPerform[cFileReader]["__StrTokArrayTime"]))
+                jPerform[cFileReader]["ReaderTotalTime"]+=jPerform[cFileReader]["ReaderTime"]
+                ConOut(cFileReader+" => ElapTimeReader["+LTrim(Str(jPerform[cFileReader]["ReaderTime"]))+"] => Lines["+LTrim(Str(nLines))+"] => ElapTimeTotal["+LTrim(Str(jPerform[cFileReader]["ProcessTime"]))+"] => StrTokArr[("+LTrim(Str(jPerform[cFileReader]["StrTokArrTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArrTime"]))+")] => StrTokArr2[("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTotal"]))+")|("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Time"]))+")] => __StrTokArray[("+LTrim(Str(jPerform[cFileReader]["StrTokArr2Total"]))+")|("+LTrim(Str(jPerform[cFileReader]["__StrTokArrayTime"]))+")]")
             endif
         next i
     next nFile
 
-    FWFreeArray(@aLine)
+    for i:=1 to Len(aPerform)
+        cFileReader:=cFileReader
+        ConOut(cFileReader+" => ElapTimeReaderTotal["+LTrim(Str(jPerform[cFileReader]["ReaderTotalTime"]))+"]")
+    next i
+
     FWFreeArray(@aFiles)
     FWFreeArray(@aPerform)
+
+    FreeObj(@jPerform)
+
+return
+
+static procedure TSTStrTokArray(cFileReader as character,cLine as character,jPerform as json)
+
+    local aLine as array
+
+    local nStrTokTime as numeric
+
+    *****************************************************************
+    nStrTokTime:=TimeCounter()
+        aLine:=StrTokArr(cLine,";")
+    jPerform[cFileReader]["StrTokArrTime"]+=(TimeCounter()-nStrTokTime)
+    jPerform[cFileReader]["StrTokArrTotal"]+=Len(aLine)
+    *****************************************************************
+    FWFreeArray(@aLine)
+    *****************************************************************
+    nStrTokTime:=TimeCounter()
+        aLine:=StrTokArr2(cLine,";")
+    jPerform[cFileReader]["StrTokArr2Time"]+=(TimeCounter()-nStrTokTime)
+    jPerform[cFileReader]["StrTokArr2Total"]+=Len(aLine)
+    *****************************************************************
+    aAdd(jPerform[cFileReader]["aLines"],aClone(aLine))
+    *****************************************************************
+    FWFreeArray(@aLine)
+    *****************************************************************
+    nStrTokTime:=TimeCounter()
+        aLine:=cTools():__StrTokArray(cLine,";")
+    jPerform[cFileReader]["__StrTokArrayTime"]+=(TimeCounter()-nStrTokTime)
+    jPerform[cFileReader]["__StrTokArrayTotal"]+=Len(aLine)
+    *****************************************************************
+    FWFreeArray(@aLine)
+    *****************************************************************
 
 return
