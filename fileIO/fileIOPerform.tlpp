@@ -111,27 +111,20 @@ static procedure __fileIOPerform()
                     jPerform[cFileReader]["StrHashLogger"]:=FileLogger():New(cFile+"."+cFileReader+"."+UUIDRandomSeq()+".log")
                 endif
                 jPerform[cFileReader]["nFileSize"]:=0
-                if ((cFileReader=="FT").and.(jPerform[cFileReader]["Call"]))
-                    __TST_FT(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
-                elseif ((cFileReader=="FWFILEREADER").and.(jPerform[cFileReader]["Call"]))
-                    __TST_FWFILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
-                elseif ((cFileReader=="TFILEREAD").and.(jPerform[cFileReader]["Call"]))
-                    __TST_TFILEREAD(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
-                elseif ((cFileReader=="FILEREADER_HASHMAP").and.(jPerform[cFileReader]["Call"]))
-                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
-                elseif ((cFileReader=="FILEREADER_FILE").and.(jPerform[cFileReader]["Call"]))
-                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
-                elseif ((cFileReader=="FILEREADER_SQLITE_MEM").and.(jPerform[cFileReader]["Call"]))
-                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
-                elseif ((cFileReader=="FILEREADER_SQLITE_TMP").and.(jPerform[cFileReader]["Call"]))
-                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
-
-                elseif ((cFileReader=="FILEREADER_TOPCONN").and.(jPerform[cFileReader]["Call"]))
-                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                if (jPerform[cFileReader]["Call"])
+                    if (cFileReader=="FT")
+                        __TST_FT(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                    elseif (cFileReader=="FWFILEREADER")
+                        __TST_FWFILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                    elseif (cFileReader=="TFILEREAD")
+                        __TST_TFILEREAD(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                    else
+                        __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                    endif
                 endif
             next k
         next i
-        ConOut(Replicate("*",500))
+        ConOut(Replicate("*",550))
     next nFile
 
     for i:=1 to Len(aPerform)
