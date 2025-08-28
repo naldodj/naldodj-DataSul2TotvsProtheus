@@ -316,13 +316,13 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
     nSections:=Len(aMenu)
     for nSection:=1 to nSections
         cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
-        aMenuItems:=StrTokArr2(oTFIni:GetPropertyValue("Menu",cSection),",")
+        aMenuItems:=StrTokArr2(oTFIni:GetPropertyValue("Menu",cSection),",",.T.)
         oTMenuOptions[#cSection]:=Array(#)
         oTMenuOptions[#cSection][#"Alias"]:=Array(#)
         oTMenuOptions[#cSection][#"Function"]:=Array(#)
         nProperties:=Len(aMenuItems)
         for nProperty:=1 to nProperties
-            aMenuOption:=StrTokArr2(aMenuItems[nProperty],"|")
+            aMenuOption:=StrTokArr2(aMenuItems[nProperty],"|",.T.)
             oTMenuOptions[#cSection][#"Alias"][#StrZero(nProperty,2)]:=aMenuOption[1]
             if ((Len(aMenuOption)>1).and.(!Empty(aMenuOption[2])))
                 oTMenuOptions[#cSection][#"Function"][#StrZero(nProperty,2)]:={"Alias":aMenuOption[1],"Function":aMenuOption[2]}
@@ -443,7 +443,7 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                 nSections:=Len(aMenu)
                 for nSection:=1 to nSections
                     cSection:=aMenu[nSection][HASH_PROPERTY_KEY]
-                    aMenuItems:=StrTokArr2(oTFIni:GetPropertyValue("SplitFiles",cSection),",")
+                    aMenuItems:=StrTokArr2(oTFIni:GetPropertyValue("SplitFiles",cSection),",",.T.)
                     oTMenuOptions[#cSection]:=Array(#)
                     oTMenuOptions[#cSection][#"Alias"]:=Array(#)
                     nProperties:=Len(aMenuItems)
@@ -976,7 +976,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cTmpFields:=allTrim(oTFIni:GetPropertyValue(cTableImport+"_addTmpField","TmpFields",""))
             lAddFieldTmp:=(!Empty(cTmpFields))
             if (lAddFieldTmp)
-                aSourceTmpFields:=StrTokArr2(cTmpFields,",")
+                aSourceTmpFields:=StrTokArr2(cTmpFields,",",.T.)
                 nFields:=Len(aSourceTmpFields)
                 if (nFields>0)
                     aSourceTmpFldStruct:=array(0)
@@ -1036,7 +1036,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         if (lTypeReplicate)
             cNoReplicateValues:=allTrim(oTFIni:GetPropertyValue(cTableImport,"NoReplicateValues",""))
-            aNoReplicateValues:=StrTokArr2(cNoReplicateValues,",")
+            aNoReplicateValues:=StrTokArr2(cNoReplicateValues,",",.T.)
             aTargetReplicateFields:=array(0)
             oHMTargetReplicateFields:=THashMap():New()
         endif
@@ -1151,9 +1151,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 if (lSeekTable)
                     (cSeekTable)->(dbSetOrder(nSeekTableIndex))
                     cUpdateTableFields:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableFields",""))
-                    aUpdateTableFields:=StrTokArr2(cUpdateTableFields,",")
+                    aUpdateTableFields:=StrTokArr2(cUpdateTableFields,",",.T.)
                     cUpdateTableSource:=allTrim(oTFIni:GetPropertyValue(cTableImport,"updateTableSource",""))
-                    aUpdateTableSource:=StrTokArr2(cUpdateTableSource,",")
+                    aUpdateTableSource:=StrTokArr2(cUpdateTableSource,",",.T.)
                     nUpdateTableSource:=Len(aUpdateTableFields)
                     lUpdateTableFields:=((nUpdateTableSource>0).and.(nUpdateTableSource==Len(aUpdateTableSource)))
                 endif
@@ -2454,7 +2454,7 @@ static function ReadTableDefinition() as logical
                 oFileReader:ft_fSkip()
                 loop
             endif
-            aLineDef:=StrTokArr2(cLine," ")
+            aLineDef:=StrTokArr2(cLine," ",.T.)
             exit
         end while
 
@@ -2617,7 +2617,7 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
         if (lSourceTransform)
             cSourceField:=SubStr(cSourceField,2)
         endif
-        aSourceField:=StrTokArr2(cSourceField,"+")
+        aSourceField:=StrTokArr2(cSourceField,"+",.T.)
         nSourceFields:=Len(aSourceField)
         aValueField:=Array(nSourceFields,2)
         for nSourceField:=1 to nSourceFields
@@ -3493,7 +3493,7 @@ static function GetLineFromSource(jLine as json,cSourceFile as character,lChkEnc
         cLine:=Accentuation(cLine,lTablesEncodeUTF8)
     endif
 
-    aLine:=StrTokArr2(cLine,";")
+    aLine:=StrTokArr2(cLine,";",.T.)
 
     if ((lSetRegua).and.(nSetRegua==0).and.(!Empty(aLine)))
         lSetRegua:=.F.

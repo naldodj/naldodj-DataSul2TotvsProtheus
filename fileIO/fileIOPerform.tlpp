@@ -18,41 +18,32 @@ return
 static procedure __fileIOPerform()
 
     local aFiles:={;
-        {"\datasul2protheus\tables\funcionario.csv",.T.};
-       ,{"\datasul2protheus\tablesdefinition\fulltablesdefinition.txt",.F.};
-       ,{"\datasul2protheus\tablessplit\movto_calcul_func\movto_calcul_func_001_20250618_155811_573656_288.csv",.F.};
-       ,{"\datasul2protheus\tablessplit\marcac_ptoelet\marcac_ptoelet_001_20250618_155833_573656_984.csv",.F.};
+        {"\datasul2protheus\tables\funcionario.csv",.T.,.T.};
+       ,{"\datasul2protheus\tablesdefinition\fulltablesdefinition.txt",.F.,.T.};
+       ,{"\datasul2protheus\tablessplit\movto_calcul_func\movto_calcul_func_001_20250618_155811_573656_288.csv",.F.,.T.};
+       ,{"\datasul2protheus\tablessplit\marcac_ptoelet\marcac_ptoelet_001_20250618_155833_573656_984.csv",.F.,.T.};
     } as array
 
     local aPerform as array
     local aProperties as array
 
-    //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
-    local cCRH10:=CHR(10) as character
-    local cCRH13:=CHR(13) as character
-
     local cLine as character
     local cFile as character
     local cPerform as character
     local cProperty as character
-    local cLineSkip as character
     local cFileReader as character
 
     local jPerform as json
 
     local lStrHashLog:=.F. as logical
     local lDecodeUTF8:=.F. as logical
+    local lSequential:=.F. as logical
 
     local nFile as numeric
-    local nRecNo as numeric
-    local nRecNos as numeric
-    local nHandle as numeric
 
     local oPerform as object
-    local oFileReader as object
-    local oFileNavigator as object
 
-    local i,j as numeric
+    local i,j,k as numeric
 
     beginContent var cPerform
 {
@@ -61,7 +52,7 @@ static procedure __fileIOPerform()
     ,"FILEREADER_FILE"      :  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"FILE"       ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
     ,"FILEREADER_HASHMAP"   :  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"HASHMAP"    ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
     ,"FILEREADER_SQLITE_MEM":  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"SQLITE_MEM" ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
-    ,"FILEREADER_SQLITE_TMP":  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"SQLITE_TMP" ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+    ,"FILEREADER_SQLITE_TMP":  {"Reader":"","Call":false,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"SQLITE_TMP" ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
     ,"FILEREADER_TOPCONN"   :  {"Reader":"","Call":false,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"TOPCONN"    ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
     ,"FT"                   :  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":""           ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
 }
@@ -95,296 +86,50 @@ static procedure __fileIOPerform()
     FreeObj(@oPerform)
 
     for nFile:=1 to Len(aFiles)
+        if (!aFiles[nFile][3])
+            loop
+        endif
         cLine:=""
         cFile:=aFiles[nFile][1]
         lDecodeUTF8:=aFiles[nFile][2]
-        ConOut("FileName["+cFile+"]")
-        for i:=1 to Len(aPerform)
-            cFileReader:=aPerform[i]
-            jPerform[cFileReader]["Reader"]:=cFileReader
-            jPerform[cFileReader]["nLines"]:=0
-            jPerform[cFileReader]["StrTokArrTotal"]:=0
-            jPerform[cFileReader]["StrTokArr2Total"]:=0
-            jPerform[cFileReader]["__StrTokArrayTotal"]:=0
-            jPerform[cFileReader]["StrTokArrTime"]:=0
-            jPerform[cFileReader]["StrTokArr2Time"]:=0
-            jPerform[cFileReader]["__StrTokArrayTime"]:=0
-            jPerform[cFileReader]["StrHash"]:=0
-            jPerform[cFileReader]["StrHashTime"]:=0
-            if (lStrHashLog)
-                jPerform[cFileReader]["StrHashLogger"]:=FileLogger():New(cFile+"."+cFileReader+"."+UUIDRandomSeq()+".log")
-            endif
-            jPerform[cFileReader]["nFileSize"]:=0
-            if ((cFileReader=="FT").and.(jPerform[cFileReader]["Call"]))
-                jPerform[cFileReader]["ProcStart"]:=TimeCounter()
-                nHandle:=ft_fUse(cFile)
-                //FT_ nao fornece uma funcao para obter o tamanho do arquivo
-                //Vamos emprestar de FileNavigator
-                oFileNavigator:=FileNavigator():New(;
-                    nHandle;
-                   ,nil;
-                   ,{||.F.};
-                   ,{||""};
-                )
-                jPerform[cFileReader]["nFileSize"]:=oFileNavigator:FileSize()
-                FreeObj(@oFileNavigator)
-                ft_fGoTop()
-                nRecNos:=ft_fLastRec()
-                while (!ft_fEof())
-                    jPerform[cFileReader]["nLines"]++
-                    *****************************************************************
-                    //Teste de Navegacao
-                    *****************************************************************
-                    nRecNo:=ft_fRecNo()
-                    *****************************************************************
-                    ft_fSkip(Randomize(1,nRecNos))
-                    cLineSkip:=ft_fReadLN()
-                    *****************************************************************
-                    ft_fGoto(nRecNo)
-                    *****************************************************************
-                    cLine:=ft_fReadLN()
-                    *****************************************************************
-                    __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
-                    *****************************************************************
-                    __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
-                    *****************************************************************
-                    ft_fSkip()
-                end while
-                ft_fUse()
-                jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform,lStrHashLog)
-            elseif ((cFileReader=="FWFILEREADER").and.(jPerform[cFileReader]["Call"]))
-                jPerform[cFileReader]["ProcStart"]:=TimeCounter()
-                oFileReader:=FWFileReader():New(cFile)
-                oFileReader:Open()
-                jPerform[cFileReader]["nFileSize"]:=oFileReader:GetFileSize()
-                oFileNavigator:=FileNavigator():New(;
-                    oFileReader:nHandLen;
-                   ,{|nHandle|fSeek(nHandle,0)};
-                   ,{||!oFileReader:HasLine()};
-                   ,{||oFileReader:GetLine()};
-                )
-                nRecNos:=oFileNavigator:BuildIndex()
-                //Utilizo, agora, FileNavigator para Navegar pelo arquivo
-                while (oFileNavigator:MoreToRead())
-                    jPerform[cFileReader]["nLines"]++
-                    *****************************************************************
-                    //Teste de Navegacao
-                    //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
-                    *****************************************************************
-                    nRecNo:=oFileNavigator:RecNo()
-                    *****************************************************************
-                    oFileNavigator:Skip(Randomize(1,nRecNos))
-                    cLineSkip:=oFileNavigator:ReadLine()
-                    *****************************************************************
-                    oFileNavigator:GoTo(nRecNo)
-                    cLine:=oFileNavigator:ReadLine()
-                    *****************************************************************
-                    //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
-                    if (cCRH10$cLine)
-                        cLine:=StrTran(cLine,cCRH10,"")
-                    endif
-                    if (cCRH13$cLine)
-                        cLine:=StrTran(cLine,cCRH13,"")
-                    endif
-                    *****************************************************************
-                    __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
-                    *****************************************************************
-                    __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
-                    *****************************************************************
-                end while
-                oFileNavigator:Close({||oFileReader:Close()})
-                FreeObj(@oFileNavigator)
-                FreeObj(@oFileReader)
-                jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform,lStrHashLog)
-            elseif ((cFileReader=="TFILEREAD").and.(jPerform[cFileReader]["Call"]))
-                jPerform[cFileReader]["ProcStart"]:=TimeCounter()
-                oFileReader:=TFileRead():New(cFile)
-                oFileReader:Open()
-                jPerform[cFileReader]["nFileSize"]:=oFileReader:FileSize()
-                oFileNavigator:=FileNavigator():New(;
-                    oFileReader:Handle();
-                   ,{|nHandle|fSeek(nHandle,0)};
-                   ,{||!oFileReader:MoreToRead()};
-                   ,{||oFileReader:ReadLine()};
-                )
-                nRecNos:=oFileNavigator:BuildIndex()
-                //Utilizo, agora, FileNavigator para Navegar pelo arquivo
-                while (oFileNavigator:MoreToRead())
-                    jPerform[cFileReader]["nLines"]++
-                    *****************************************************************
-                    //Teste de Navegacao
-                    //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
-                    *****************************************************************
-                    nRecNo:=oFileNavigator:RecNo()
-                    *****************************************************************
-                    oFileNavigator:Skip(Randomize(1,nRecNos))
-                    cLineSkip:=oFileNavigator:ReadLine()
-                    *****************************************************************
-                    oFileNavigator:GoTo(nRecNo)
-                    cLine:=oFileNavigator:ReadLine()
-                    *****************************************************************
-                    __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
-                    *****************************************************************
-                    __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
-                    *****************************************************************
-                end while
-                oFileNavigator:Close({||oFileReader:Close()})
-                FreeObj(@oFileNavigator)
-                FreeObj(@oFileReader)
-                jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform,lStrHashLog)
-            elseif ((cFileReader=="FILEREADER_HASHMAP").and.(jPerform[cFileReader]["Call"]))
-                jPerform[cFileReader]["ProcStart"]:=TimeCounter()
-                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
-                oFileReader:ft_fUse(cFile)
-                jPerform[cFileReader]["nFileSize"]:=oFileReader:ft_fFileSize()
-                nRecNos:=oFileReader:ft_fLastRec()
-                while (!oFileReader:ft_fEof())
-                    jPerform[cFileReader]["nLines"]++
-                    *****************************************************************
-                    //Teste de Navegacao
-                    *****************************************************************
-                    nRecNo:=oFileReader:ft_fRecNo()
-                    *****************************************************************
-                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
-                    cLineSkip:=oFileReader:ft_fReadLN()
-                    *****************************************************************
-                    oFileReader:ft_fGoto(nRecNo)
-                    *****************************************************************
-                    cLine:=oFileReader:ft_fReadLN()
-                    *****************************************************************
-                    __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
-                    *****************************************************************
-                    __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
-                    *****************************************************************
-                    oFileReader:ft_fSkip()
-                end while
-                oFileReader:ft_fUse()
-                FreeObj(@oFileReader)
-                jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform,lStrHashLog)
-            elseif ((cFileReader=="FILEREADER_FILE").and.(jPerform[cFileReader]["Call"]))
-                jPerform[cFileReader]["ProcStart"]:=TimeCounter()
-                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
-                oFileReader:ft_fUse(cFile)
-                jPerform[cFileReader]["nFileSize"]:=oFileReader:ft_fFileSize()
-                nRecNos:=oFileReader:ft_fLastRec()
-                while (!oFileReader:ft_fEof())
-                    jPerform[cFileReader]["nLines"]++
-                    *****************************************************************
-                    //Teste de Navegacao
-                    *****************************************************************
-                    nRecNo:=oFileReader:ft_fRecNo()
-                    *****************************************************************
-                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
-                    cLineSkip:=oFileReader:ft_fReadLN()
-                    *****************************************************************
-                    oFileReader:ft_fGoto(nRecNo)
-                    *****************************************************************
-                    cLine:=oFileReader:ft_fReadLN()
-                    *****************************************************************
-                    __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
-                    *****************************************************************
-                    __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
-                    *****************************************************************
-                    oFileReader:ft_fSkip()
-                end while
-                oFileReader:ft_fUse()
-                FreeObj(@oFileReader)
-                jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform,lStrHashLog)
-            elseif ((cFileReader=="FILEREADER_SQLITE_MEM").and.(jPerform[cFileReader]["Call"]))
-                jPerform[cFileReader]["ProcStart"]:=TimeCounter()
-                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
-                oFileReader:ft_fUse(cFile)
-                jPerform[cFileReader]["nFileSize"]:=oFileReader:ft_fFileSize()
-                nRecNos:=oFileReader:ft_fLastRec()
-                while (!oFileReader:ft_fEof())
-                    jPerform[cFileReader]["nLines"]++
-                    *****************************************************************
-                    //Teste de Navegacao
-                    *****************************************************************
-                    nRecNo:=oFileReader:ft_fRecNo()
-                    *****************************************************************
-                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
-                    cLineSkip:=oFileReader:ft_fReadLN()
-                    *****************************************************************
-                    oFileReader:ft_fGoto(nRecNo)
-                    *****************************************************************
-                    cLine:=oFileReader:ft_fReadLN()
-                    *****************************************************************
-                    __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
-                    *****************************************************************
-                    __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
-                    *****************************************************************
-                    oFileReader:ft_fSkip()
-                end while
-                oFileReader:ft_fUse()
-                FreeObj(@oFileReader)
-                jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform,lStrHashLog)
-            elseif ((cFileReader=="FILEREADER_SQLITE_TMP").and.(jPerform[cFileReader]["Call"]))
-                jPerform[cFileReader]["ProcStart"]:=TimeCounter()
-                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
-                oFileReader:ft_fUse(cFile)
-                jPerform[cFileReader]["nFileSize"]:=oFileReader:ft_fFileSize()
-                nRecNos:=oFileReader:ft_fLastRec()
-                while (!oFileReader:ft_fEof())
-                    jPerform[cFileReader]["nLines"]++
-                    *****************************************************************
-                    //Teste de Navegacao
-                    *****************************************************************
-                    nRecNo:=oFileReader:ft_fRecNo()
-                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
-                    *****************************************************************
-                    cLineSkip:=oFileReader:ft_fReadLN()
-                    oFileReader:ft_fGoto(nRecNo)
-                    *****************************************************************
-                    cLine:=oFileReader:ft_fReadLN()
-                    *****************************************************************
-                    __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
-                    *****************************************************************
-                    __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
-                    *****************************************************************
-                    oFileReader:ft_fSkip()
-                end while
-                oFileReader:ft_fUse()
-                FreeObj(@oFileReader)
-                jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform,lStrHashLog)
-            elseif ((cFileReader=="FILEREADER_TOPCONN").and.(jPerform[cFileReader]["Call"]))
-                jPerform[cFileReader]["ProcStart"]:=TimeCounter()
-                oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
-                oFileReader:ft_fUse(cFile)
-                jPerform[cFileReader]["nFileSize"]:=oFileReader:ft_fFileSize()
-                nRecNos:=oFileReader:ft_fLastRec()
-                while (!oFileReader:ft_fEof())
-                    jPerform[cFileReader]["nLines"]++
-                    *****************************************************************
-                    //Teste de Navegacao
-                    *****************************************************************
-                    nRecNo:=oFileReader:ft_fRecNo()
-                    *****************************************************************
-                    oFileReader:ft_fSkip(Randomize(1,nRecNos))
-                    cLineSkip:=oFileReader:ft_fReadLN()
-                    *****************************************************************
-                    oFileReader:ft_fGoto(nRecNo)
-                    *****************************************************************
-                    cLine:=oFileReader:ft_fReadLN()
-                    *****************************************************************
-                    __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
-                    *****************************************************************
-                    __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
-                    *****************************************************************
-                    oFileReader:ft_fSkip()
-                end while
-                oFileReader:ft_fUse()
-                FreeObj(@oFileReader)
-                jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform,lStrHashLog)
-            endif
+        for k:=1 to 2
+            lSequential:=(k==1)
+            ConOut("FileName["+cFile+"] "+if(!lSequential,"Not","")+" Sequential reading")
+            for i:=1 to Len(aPerform)
+                cFileReader:=aPerform[i]
+                jPerform[cFileReader]["Reader"]:=cFileReader
+                jPerform[cFileReader]["nLines"]:=0
+                jPerform[cFileReader]["StrTokArrTotal"]:=0
+                jPerform[cFileReader]["StrTokArr2Total"]:=0
+                jPerform[cFileReader]["__StrTokArrayTotal"]:=0
+                jPerform[cFileReader]["StrTokArrTime"]:=0
+                jPerform[cFileReader]["StrTokArr2Time"]:=0
+                jPerform[cFileReader]["__StrTokArrayTime"]:=0
+                jPerform[cFileReader]["StrHash"]:=0
+                jPerform[cFileReader]["StrHashTime"]:=0
+                if (lStrHashLog)
+                    jPerform[cFileReader]["StrHashLogger"]:=FileLogger():New(cFile+"."+cFileReader+"."+UUIDRandomSeq()+".log")
+                endif
+                jPerform[cFileReader]["nFileSize"]:=0
+                if ((cFileReader=="FT").and.(jPerform[cFileReader]["Call"]))
+                    __TST_FT(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                elseif ((cFileReader=="FWFILEREADER").and.(jPerform[cFileReader]["Call"]))
+                    __TST_FWFILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                elseif ((cFileReader=="TFILEREAD").and.(jPerform[cFileReader]["Call"]))
+                    __TST_TFILEREAD(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                elseif ((cFileReader=="FILEREADER_HASHMAP").and.(jPerform[cFileReader]["Call"]))
+                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                elseif ((cFileReader=="FILEREADER_FILE").and.(jPerform[cFileReader]["Call"]))
+                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                elseif ((cFileReader=="FILEREADER_SQLITE_MEM").and.(jPerform[cFileReader]["Call"]))
+                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                elseif ((cFileReader=="FILEREADER_SQLITE_TMP").and.(jPerform[cFileReader]["Call"]))
+                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+
+                elseif ((cFileReader=="FILEREADER_TOPCONN").and.(jPerform[cFileReader]["Call"]))
+                    __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+                endif
+            next k
         next i
         ConOut(Replicate("*",500))
     next nFile
@@ -416,7 +161,7 @@ static procedure __TSTStrTokArray(cFileReader as character,cLine as character,jP
     FWFreeArray(@aLine)
     *****************************************************************
     nStrTokTime:=TimeCounter()
-        aLine:=StrTokArr2(cLine,";")
+        aLine:=StrTokArr2(cLine,";",.T.)
     jPerform[cFileReader]["StrTokArr2Time"]+=(TimeCounter()-nStrTokTime)
     jPerform[cFileReader]["StrTokArr2Total"]+=Len(aLine)
     *****************************************************************
@@ -470,8 +215,8 @@ static procedure __ConOut(cFileReader as character,jPerform as json,lStrHashLog 
 
     jPerformOut:DelName("Call")
 
-    jPerformOut["ProcStart"]:=__MiliSecondsToTime(jPerformOut["ProcStart"])
-    jPerformOut["ProcEnd"]:=__MiliSecondsToTime(jPerformOut["ProcEnd"])
+    jPerformOut["ProcStart"]:=__MiliSecondsToTime(jPerformOut["ProcStart"]-14400000) //Fix for Real Time
+    jPerformOut["ProcEnd"]:=__MiliSecondsToTime(jPerformOut["ProcEnd"]-14400000) //Fix for Real Time
     jPerformOut["ProcTime"]:=__MiliSecondsToTime(jPerformOut["ProcTime"])
     jPerformOut["ReaderTime"]:=__MiliSecondsToTime(jPerformOut["ReaderTime"])
     jPerformOut["ReaderTotalTime"]:=__MiliSecondsToTime(jPerformOut["ReaderTotalTime"])
@@ -487,16 +232,311 @@ static procedure __ConOut(cFileReader as character,jPerform as json,lStrHashLog 
 return
 
 static function __MiliSecondsToTime(nTotalMS as numeric) as character
+return(timeCalc():MiliSecsToTime(nTotalMS))
 
-    local cTime as character
+static procedure __TST_FT(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
 
-    local nSeconds:=Int(nTotalMS/1000) as numeric
-    local nRemaMS:=Mod(nTotalMS,1000) as numeric
+    local cLine as character
+    local cLineSkip as character
 
-    cTime:=timeCalc():SecsToTime(nSeconds)
+    local nHandle as numeric
 
-    if (nRemaMS>0)
-        cTime+=":"+Transform(nRemaMS,cTools():RetPictVal(nRemaMS,.T.,nil,nil,.F.))
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    local oFileNavigator as object
+
+    jPerform[cFileReader]["ProcStart"]:=TimeCounter()
+
+    nHandle:=ft_fUse(cFile)
+
+    //FT_ nao fornece uma funcao para obter o tamanho do arquivo
+    //Vamos emprestar de FileNavigator
+    oFileNavigator:=FileNavigator():New(;
+        nHandle;
+    ,nil;
+    ,{||.F.};
+    ,{||""};
+    )
+    jPerform[cFileReader]["nFileSize"]:=oFileNavigator:FileSize()
+    FreeObj(@oFileNavigator)
+
+    ft_fGoTop()
+
+    if (!lSequential)
+        nRecNos:=ft_fLastRec()
+        while (!ft_fEof())
+            jPerform[cFileReader]["nLines"]++
+            *****************************************************************
+            //Teste de Navegacao
+            *****************************************************************
+            nRecNo:=ft_fRecNo()
+            *****************************************************************
+            ft_fSkip(Randomize(1,nRecNos))
+            cLineSkip:=ft_fReadLN()
+            *****************************************************************
+            ft_fGoto(nRecNo)
+            *****************************************************************
+            cLine:=ft_fReadLN()
+            *****************************************************************
+            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
+            *****************************************************************
+            __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
+            *****************************************************************
+            ft_fSkip()
+        end while
+    else
+        while (!ft_fEof())
+            jPerform[cFileReader]["nLines"]++
+            *****************************************************************
+            cLine:=ft_fReadLN()
+            *****************************************************************
+            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
+            *****************************************************************
+            __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
+            *****************************************************************
+            ft_fSkip()
+        end while
     endif
 
-return(cTime)
+    ft_fUse()
+    jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
+
+    __ConOut(cFileReader,jPerform,lStrHashLog)
+
+return
+
+static procedure __TST_FWFILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+
+    local cLine as character
+    local cLineSkip as character
+
+    //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
+    local cCRH10 as character
+    local cCRH13 as character
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    local oFileReader as object
+    local oFileNavigator as object
+
+    jPerform[cFileReader]["ProcStart"]:=TimeCounter()
+
+    cCRH10:=CHR(10)
+    cCRH13:=CHR(13)
+
+    oFileReader:=FWFileReader():New(cFile)
+    oFileReader:Open()
+
+    jPerform[cFileReader]["nFileSize"]:=oFileReader:GetFileSize()
+
+    if (!lSequential)
+
+        oFileNavigator:=FileNavigator():New(;
+         oFileReader:nHandLen;
+        ,{|nHandle|fSeek(nHandle,0)};
+        ,{||!oFileReader:HasLine()};
+        ,{||oFileReader:GetLine()};
+        )
+
+        if (!lSequential)
+            nRecNos:=oFileNavigator:BuildIndex()
+        endif
+
+        //Utilizo, agora, FileNavigator para Navegar pelo arquivo
+        while (oFileNavigator:HasLine())
+            jPerform[cFileReader]["nLines"]++
+            *****************************************************************
+            //Teste de Navegacao
+            //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+            *****************************************************************
+            nRecNo:=oFileNavigator:RecNo()
+            *****************************************************************
+            oFileNavigator:Skip(Randomize(1,nRecNos))
+            cLineSkip:=oFileNavigator:GetLine()
+            *****************************************************************
+            oFileNavigator:GoTo(nRecNo)
+            cLine:=oFileNavigator:GetLine()
+            *****************************************************************
+            //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
+            if (cCRH10$cLine)
+                cLine:=StrTran(cLine,cCRH10,"")
+            endif
+            if (cCRH13$cLine)
+                cLine:=StrTran(cLine,cCRH13,"")
+            endif
+            *****************************************************************
+            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
+            *****************************************************************
+            __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
+            *****************************************************************
+        end while
+        oFileNavigator:Close({||oFileReader:Close()})
+        FreeObj(@oFileNavigator)
+    else
+        while (oFileReader:HasLine())
+            jPerform[cFileReader]["nLines"]++
+            *****************************************************************
+            cLine:=oFileReader:GetLine()
+            *****************************************************************
+            //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
+            if (cCRH10$cLine)
+                cLine:=StrTran(cLine,cCRH10,"")
+            endif
+            if (cCRH13$cLine)
+                cLine:=StrTran(cLine,cCRH13,"")
+            endif
+            *****************************************************************
+            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
+            *****************************************************************
+            __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
+            *****************************************************************
+        end while
+    endif
+    FreeObj(@oFileReader)
+
+    jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
+
+    __ConOut(cFileReader,jPerform,lStrHashLog)
+
+return
+
+static procedure __TST_TFILEREAD(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+
+    local cLine as character
+    local cLineSkip as character
+
+    local nHandle as numeric
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    local oFileReader as object
+    local oFileNavigator as object
+
+    jPerform[cFileReader]["ProcStart"]:=TimeCounter()
+
+    oFileReader:=TFileRead():New(cFile)
+    oFileReader:Open()
+
+    jPerform[cFileReader]["nFileSize"]:=oFileReader:FileSize()
+
+    if (!lSequential)
+
+        oFileNavigator:=FileNavigator():New(;
+         oFileReader:Handle();
+        ,{|nHandle|fSeek(nHandle,0)};
+        ,{||!oFileReader:HasLine()};
+        ,{||oFileReader:GetLine()};
+        )
+
+        nRecNos:=oFileNavigator:BuildIndex()
+
+        //Utilizo, agora, FileNavigator para Navegar pelo arquivo
+        while (oFileNavigator:HasLine())
+            jPerform[cFileReader]["nLines"]++
+            *****************************************************************
+            //Teste de Navegacao
+            //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+            *****************************************************************
+            nRecNo:=oFileNavigator:RecNo()
+            *****************************************************************
+            oFileNavigator:Skip(Randomize(1,nRecNos))
+            cLineSkip:=oFileNavigator:GetLine()
+            *****************************************************************
+            oFileNavigator:GoTo(nRecNo)
+            cLine:=oFileNavigator:GetLine()
+            *****************************************************************
+            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
+            *****************************************************************
+            __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
+            *****************************************************************
+        end while
+
+        oFileNavigator:Close({||oFileReader:Close()})
+        FreeObj(@oFileNavigator)
+
+    else
+
+        while (oFileReader:HasLine())
+            jPerform[cFileReader]["nLines"]++
+            *****************************************************************
+            cLine:=oFileReader:GetLine()
+            *****************************************************************
+            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
+            *****************************************************************
+            __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
+            *****************************************************************
+        end while
+
+    endif
+    FreeObj(@oFileReader)
+
+    jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
+
+    __ConOut(cFileReader,jPerform,lStrHashLog)
+
+return
+
+static procedure __TST_FILEREADER(cFile,cFileReader,jPerform,lStrHashLog,lSequential,lDecodeUTF8)
+
+    local cLine as character
+    local cLineSkip as character
+
+    local oFileReader as object
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    jPerform[cFileReader]["ProcStart"]:=TimeCounter()
+
+    oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
+    oFileReader:ft_fUse(cFile)
+
+    jPerform[cFileReader]["nFileSize"]:=oFileReader:ft_fFileSize()
+
+    if (!lSequential)
+        nRecNos:=oFileReader:ft_fLastRec()
+        while (!oFileReader:ft_fEof())
+            jPerform[cFileReader]["nLines"]++
+            *****************************************************************
+            //Teste de Navegacao
+            *****************************************************************
+            nRecNo:=oFileReader:ft_fRecNo()
+            *****************************************************************
+            oFileReader:ft_fSkip(Randomize(1,nRecNos))
+            cLineSkip:=oFileReader:ft_fReadLN()
+            *****************************************************************
+            oFileReader:ft_fGoto(nRecNo)
+            *****************************************************************
+            cLine:=oFileReader:ft_fReadLN()
+            *****************************************************************
+            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
+            *****************************************************************
+            __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
+            *****************************************************************
+            oFileReader:ft_fSkip()
+        end while
+    else
+        while (!oFileReader:ft_fEof())
+            jPerform[cFileReader]["nLines"]++
+            *****************************************************************
+            cLine:=oFileReader:ft_fReadLN()
+            *****************************************************************
+            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),cFileReader,jPerform,lStrHashLog)
+            *****************************************************************
+            __TSTStrTokArray(@cFileReader,@cLine,@jPerform)
+            *****************************************************************
+            oFileReader:ft_fSkip()
+        end while
+    endif
+
+    oFileReader:ft_fUse()
+    FreeObj(@oFileReader)
+
+    jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
+
+    __ConOut(cFileReader,jPerform,lStrHashLog)
+
+return

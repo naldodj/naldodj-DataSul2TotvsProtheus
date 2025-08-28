@@ -83,7 +83,7 @@ static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentag
         cIndexKey:=oRHLImport[#cItem][#"cIndexKey"]
         cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey",cIndexKey))
         cAddIndex:=oRHLImport[#cItem][#"AddIndex"]
-        aAddIndex:=StrTokArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",")
+        aAddIndex:=StrTokArr2(allTrim(oTFIni:GetPropertyValue(cTableImport,"AddIndex",cAddIndex)),",",.T.)
         bRHLImport:=oRHLImport[#cItem][#"bRHLImport"]
         bSourceSetFilter:=oRHLImport[#cItem][#"bSourceSetFilter"]
         bEnableFilterBlock:=oRHLImport[#cItem][#"bEnableFilterBlock"]
