@@ -62,7 +62,7 @@ static procedure __fileIOPerform()
     ,"FILEREADER_HASHMAP"   :  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"HASHMAP"    ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
     ,"FILEREADER_SQLITE_MEM":  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"SQLITE_MEM" ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
     ,"FILEREADER_SQLITE_TMP":  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"SQLITE_TMP" ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
-    ,"FILEREADER_TOPCONN"   :  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"TOPCONN"    ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
+    ,"FILEREADER_TOPCONN"   :  {"Reader":"","Call":false,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":"TOPCONN"    ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
     ,"FT"                   :  {"Reader":"","Call":true,"ProcStart":0,"ProcEnd":0,"ProcTime":0,"ReaderTime":0,"ReaderTotalTime":0,"RDD":""           ,"StrTokArrTotal":0,"StrTokArr2Total":0,"__StrTokArrayTotal":0,"StrTokArrTime":0,"StrTokArr2Time":0,"__StrTokArrayTime":0}
 }
     endContent
@@ -152,7 +152,7 @@ static procedure __fileIOPerform()
                 end while
                 ft_fUse()
                 jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform)
+                __ConOut(cFileReader,jPerform,lStrHashLog)
             elseif ((cFileReader=="FWFILEREADER").and.(jPerform[cFileReader]["Call"]))
                 jPerform[cFileReader]["ProcStart"]:=TimeCounter()
                 oFileReader:=FWFileReader():New(cFile)
@@ -197,7 +197,7 @@ static procedure __fileIOPerform()
                 FreeObj(@oFileNavigator)
                 FreeObj(@oFileReader)
                 jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform)
+                __ConOut(cFileReader,jPerform,lStrHashLog)
             elseif ((cFileReader=="TFILEREAD").and.(jPerform[cFileReader]["Call"]))
                 jPerform[cFileReader]["ProcStart"]:=TimeCounter()
                 oFileReader:=TFileRead():New(cFile)
@@ -234,7 +234,7 @@ static procedure __fileIOPerform()
                 FreeObj(@oFileNavigator)
                 FreeObj(@oFileReader)
                 jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform)
+                __ConOut(cFileReader,jPerform,lStrHashLog)
             elseif ((cFileReader=="FILEREADER_HASHMAP").and.(jPerform[cFileReader]["Call"]))
                 jPerform[cFileReader]["ProcStart"]:=TimeCounter()
                 oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
@@ -264,7 +264,7 @@ static procedure __fileIOPerform()
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
                 jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform)
+                __ConOut(cFileReader,jPerform,lStrHashLog)
             elseif ((cFileReader=="FILEREADER_FILE").and.(jPerform[cFileReader]["Call"]))
                 jPerform[cFileReader]["ProcStart"]:=TimeCounter()
                 oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
@@ -294,7 +294,7 @@ static procedure __fileIOPerform()
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
                 jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform)
+                __ConOut(cFileReader,jPerform,lStrHashLog)
             elseif ((cFileReader=="FILEREADER_SQLITE_MEM").and.(jPerform[cFileReader]["Call"]))
                 jPerform[cFileReader]["ProcStart"]:=TimeCounter()
                 oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
@@ -324,7 +324,7 @@ static procedure __fileIOPerform()
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
                 jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform)
+                __ConOut(cFileReader,jPerform,lStrHashLog)
             elseif ((cFileReader=="FILEREADER_SQLITE_TMP").and.(jPerform[cFileReader]["Call"]))
                 jPerform[cFileReader]["ProcStart"]:=TimeCounter()
                 oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
@@ -353,7 +353,7 @@ static procedure __fileIOPerform()
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
                 jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform)
+                __ConOut(cFileReader,jPerform,lStrHashLog)
             elseif ((cFileReader=="FILEREADER_TOPCONN").and.(jPerform[cFileReader]["Call"]))
                 jPerform[cFileReader]["ProcStart"]:=TimeCounter()
                 oFileReader:=fileTools():FileReader(jPerform[cFileReader]["RDD"])
@@ -383,11 +383,7 @@ static procedure __fileIOPerform()
                 oFileReader:ft_fUse()
                 FreeObj(@oFileReader)
                 jPerform[cFileReader]["ProcEnd"]:=TimeCounter()
-                __ConOut(cFileReader,jPerform)
-            endif
-            if ((jPerform[cFileReader]:HasProperty("StrHashLog")).and.(jPerform[cFileReader]["StrHashLog"]))
-                jPerform[cFileReader]["StrHashLogger"]:Close()
-                FreeObj(@jPerform[cFileReader]["StrHashLogger"])
+                __ConOut(cFileReader,jPerform,lStrHashLog)
             endif
         next i
         ConOut(Replicate("*",500))
@@ -395,7 +391,7 @@ static procedure __fileIOPerform()
 
     for i:=1 to Len(aPerform)
         cFileReader:=aPerform[i]
-        ConOut(cFileReader+" => ElapTimeReaderTotal["+LTrim(Str(jPerform[cFileReader]["ReaderTotalTime"]))+"]")
+        ConOut(cFileReader+" => ElapTimeReaderTotal["+__MiliSecondsToTime(jPerform[cFileReader]["ReaderTotalTime"])+"]")
     next i
 
     FWFreeArray(@aFiles)
@@ -447,7 +443,7 @@ static procedure __StrHash(cStr,cFileReader,jPerform,lStrHashLog)
     jPerform[cFileReader]["StrHashTime"]+=(TimeCounter()-nStrHashTime)
 return
 
-static procedure __ConOut(cFileReader as character,jPerform as json)
+static procedure __ConOut(cFileReader as character,jPerform as json,lStrHashLog as logical)
 
     local jPerformOut as json
 
@@ -464,7 +460,15 @@ static procedure __ConOut(cFileReader as character,jPerform as json)
 
     jPerform[cFileReader]["ReaderTotalTime"]+=jPerform[cFileReader]["ReaderTime"]
 
+    if (lStrHashLog)
+        jPerform[cFileReader]["StrHashLogger"]:Close()
+        FreeObj(@jPerform[cFileReader]["StrHashLogger"])
+        jPerform:DelName("StrHashLogger")
+    endif
+
     jPerformOut:=JSONObjectClone():CloneJSON(jPerform[cFileReader])
+
+    jPerformOut:DelName("Call")
 
     jPerformOut["ProcStart"]:=__MiliSecondsToTime(jPerformOut["ProcStart"])
     jPerformOut["ProcEnd"]:=__MiliSecondsToTime(jPerformOut["ProcEnd"])
