@@ -482,15 +482,17 @@ static procedure __ConOut(cFileReader as character,jPerform as json)
 
 return
 
-static function __MiliSecondsToTime(nMiliSecs as numeric) as character
+static function __MiliSecondsToTime(nTotalMS as numeric) as character
+
     local cTime as character
-    local nSeconds:=(nMiliSecs/1000) as numeric
-    local nIntSeconds as numeric
-    nIntSeconds:=Int(nSeconds)
-    nMiliSecs:=(nSeconds-nIntSeconds)
-    cTime:=timeCalc():SecsToTime(nIntSeconds)
-    if (nMiliSecs>0)
-        nMiliSecs*=1000
-        cTime+=":"+Transform(nMiliSecs,cTools():RetPictVal(nMiliSecs,.T.,nil,nil,.F.))
+
+    local nSeconds:=Int(nTotalMS/1000) as numeric
+    local nRemaMS:=Mod(nTotalMS,1000) as numeric
+
+    cTime:=timeCalc():SecsToTime(nSeconds)
+
+    if (nRemaMS>0)
+        cTime+=":"+Transform(nRemaMS,cTools():RetPictVal(nRemaMS,.T.,nil,nil,.F.))
     endif
+
 return(cTime)
