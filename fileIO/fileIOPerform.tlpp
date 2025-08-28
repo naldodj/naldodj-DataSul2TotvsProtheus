@@ -19,9 +19,13 @@ static procedure __fileIOPerform()
 
     local aFiles:={;
         {"\datasul2protheus\tables\funcionario.csv",.T.,.T.};
+       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\funcionario.csv",.T.,.T.};
        ,{"\datasul2protheus\tablesdefinition\fulltablesdefinition.txt",.F.,.T.};
-       ,{"\datasul2protheus\tablessplit\movto_calcul_func\movto_calcul_func_001_20250618_155811_573656_288.csv",.F.,.T.};
-       ,{"\datasul2protheus\tablessplit\marcac_ptoelet\marcac_ptoelet_001_20250618_155833_573656_984.csv",.F.,.T.};
+       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tablesdefinition\fulltablesdefinition.txt",.F.,.T.};
+       ,{"\datasul2protheus\tables\movto_calcul_func.csv",.F.,.T.};
+       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\movto_calcul_func.csv",.F.,.T.};
+       ,{"\datasul2protheus\tables\marcac_ptoelet.csv",.F.,.T.};
+       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\marcac_ptoelet.csv",.F.,.T.};
     } as array
 
     local aPerform as array
