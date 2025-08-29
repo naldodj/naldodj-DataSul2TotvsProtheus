@@ -119,7 +119,8 @@ static procedure __fileIOPerform()
                     jPerform[cFileReader]["StrHashLogger"]:=FileLogger():New(cFile+"."+cFileReader+"."+UUIDRandomSeq()+".log")
                 endif
                 jPerform[cFileReader]["FileSize"]:=0
-                if (NTools():ContainN(jPerform[cFileReader]["Call"],1,2)==jPerform[cFileReader]["Call"])
+                //Call: 0-Not Call,1=Sequential,2=Not Sequential,3=Both
+                if (NTools():ContainN(3,jPerform[cFileReader]["Call"]))
                     if (cFileReader=="FT")
                         __TST_FT(cFile,jPerform[cFileReader],lStrHashLog,lSequential,lDecodeUTF8)
                     elseif (cFileReader=="FWFILEREADER")
@@ -277,8 +278,7 @@ static procedure __TST_FT(cFile,jPerformReader,lStrHashLog,lSequential,lDecodeUT
     jPerformReader["ProcStart"]:=TimeCounter()
     jPerformReader["TimeProcStart"]:=Time()
 
-    nHandle:=ft_fUse(cFile)
-
+    nHandle:=fOpen(cFile)
     //FT_ nao fornece uma funcao para obter o tamanho do arquivo
     //Vamos emprestar de FileNavigator
     oFileNavigator:=FileNavigator():New(;
@@ -288,7 +288,9 @@ static procedure __TST_FT(cFile,jPerformReader,lStrHashLog,lSequential,lDecodeUT
         ,{||""};
     )
     jPerformReader["FileSize"]:=oFileNavigator:FileSize()
-    FreeObj(@oFileNavigator)
+    oFileNavigator:Close()
+
+    nHandle:=ft_fUse(cFile)
 
     ft_fGoTop()
 
