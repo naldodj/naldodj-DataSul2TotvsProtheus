@@ -119,7 +119,8 @@ static procedure __fileIOPerform()
                 jPerform[cFileReader]["IsDisqualifiedByTimeOut"]:=.F.
                 jPerform[cFileReader]["PartialTimeIsDisqualifiedVerify"]:=0
                 if (lStrHashLog)
-                    jPerform[cFileReader]["StrHashLogger"]:=FileLogger():New(cFile+"."+cFileReader+"."+UUIDRandomSeq()+".log")
+                    jPerform[cFileReader]["StrHashLoggerFile"]:=__HashLoggerFile(cFile+"."+cFileReader+"."+UUIDRandomSeq()+".log")
+                    jPerform[cFileReader]["StrHashLogger"]:=FileLogger():New(jPerform[cFileReader]["StrHashLoggerFile"])
                 endif
                 jPerform[cFileReader]["FileSize"]:=0
                 //Call: 0-Not Call,1=Sequential,2=Not Sequential,3=Both
@@ -158,6 +159,18 @@ static procedure __fileIOPerform()
     FreeObj(@jPerform)
 
 return
+
+static function __HashLoggerFile(cFile as character)
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
+    SplitPath(cFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+    cFile:="\tmp\"
+    cFile+=cSPPFile
+    cFile+=cSPPExt
+    DirTools():MakeFileDir(cFile)
+return(cFile)
 
 static procedure __TSTStrTokArray(cLine as character,jPerformReader as json)
 
@@ -236,7 +249,12 @@ static procedure __SendToLogger(oFileLogger,jPerformReader as json,lStrHashLog a
     if (lStrHashLog)
         jPerformReader["StrHashLogger"]:Close()
         FreeObj(@jPerformReader["StrHashLogger"])
+        DirTools():MakeFileDir("c:\"+jPerformReader["StrHashLoggerFile"])
+        if (__CopyFile(jPerformReader["StrHashLoggerFile"],"c:\"+jPerformReader["StrHashLoggerFile"]))
+            fErase(jPerformReader["StrHashLoggerFile"])
+        endif
         jPerformReader:DelName("StrHashLogger")
+        jPerformReader:DelName("StrHashLoggerFile")
     endif
 
     jPerformReaderOut:=JSONObjectClone():CloneJSON(jPerformReader)
