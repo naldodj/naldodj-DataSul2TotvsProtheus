@@ -18,14 +18,14 @@ return
 static procedure __fileIOPerform()
 
     local aFiles:={;
-        {"\datasul2protheus\tables\funcionario.csv",.T.,.T.,1802900.5};
-       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\funcionario.csv",.T.,.T.,1802900.5};
-       ,{"\datasul2protheus\tablesdefinition\fulltablesdefinition.txt",.F.,.T.,1818273};
-       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tablesdefinition\fulltablesdefinition.txt",.F.,.T.,1818273};
-       ,{"\datasul2protheus\tables\movto_calcul_func.csv",.F.,.T.,1821843.5};
-       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\movto_calcul_func.csv",.F.,.T.,1821843.5};
-       ,{"\datasul2protheus\tables\marcac_ptoelet.csv",.F.,.T.,1890893};
-       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\marcac_ptoelet.csv",.F.,.T.,1890893};
+        {"\datasul2protheus\tables\funcionario.csv",.T.,.T.,1802900.5,.T.};
+       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\funcionario.csv",.T.,.T.,1802900.5,.T.};
+       ,{"\datasul2protheus\tablesdefinition\fulltablesdefinition.txt",.F.,.T.,1818273,.F.};
+       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tablesdefinition\fulltablesdefinition.txt",.F.,.T.,1818273,.F.};
+       ,{"\datasul2protheus\tables\movto_calcul_func.csv",.F.,.T.,1821843.5,.T.};
+       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\movto_calcul_func.csv",.F.,.T.,1821843.5,.T.};
+       ,{"\datasul2protheus\tables\marcac_ptoelet.csv",.F.,.T.,1890893,.F.};
+       ,{"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\marcac_ptoelet.csv",.F.,.T.,1890893,.F.};
     } as array
 
     local aPerform as array
@@ -126,6 +126,7 @@ static procedure __fileIOPerform()
                 //Call: 0-Not Call,1=Sequential,2=Not Sequential,3=Both
                 if (NTools():ContainN(3,jPerform[cFileReader]["Call"]))
                     if (cFileReader=="FT")
+                        jPerform[cFileReader]["HasBreakLine"]:=aFiles[nFile][5]
                         __TST_FT(oFileLogger,cFile,jPerform[cFileReader],lStrHashLog,lSequential,lDecodeUTF8)
                     elseif (cFileReader=="FWFILEREADER")
                         __TST_FWFILEREADER(oFileLogger,cFile,jPerform[cFileReader],lStrHashLog,lSequential,lDecodeUTF8)
@@ -308,6 +309,8 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
     local cLine as character
     local cLineSkip as character
 
+    local lBreakLine as logical
+
     local nHandle as numeric
 
     local nRecNo as numeric
@@ -317,6 +320,8 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
 
     jPerformReader["ProcStart"]:=TimeCounter()
     jPerformReader["TimeProcStart"]:=Time()
+
+    lBreakLine:=jPerformReader["HasBreakLine"]
 
     nHandle:=fOpen(cFile)
     //FT_ nao fornece uma funcao para obter o tamanho do arquivo
@@ -354,6 +359,11 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
             ft_fGoto(nRecNo)
             *****************************************************************
             cLine:=ft_fReadLN()
+            if (lBreakLine)
+                ft_fSkip()
+                cLine+=ft_fReadLN()
+            endif
+            *****************************************************************
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader,lStrHashLog)
             *****************************************************************
@@ -371,6 +381,10 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
             endif
             *****************************************************************
             cLine:=ft_fReadLN()
+            if (lBreakLine)
+                ft_fSkip()
+                cLine+=ft_fReadLN()
+            endif
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader,lStrHashLog)
             *****************************************************************
@@ -381,6 +395,8 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
     endif
 
     ft_fUse()
+
+    jPerformReader:DelName("HasBreakLine")
 
     jPerformReader["TimeProcEnd"]:=Time()
     jPerformReader["ProcEnd"]:=TimeCounter()
