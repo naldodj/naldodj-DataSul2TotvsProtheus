@@ -132,7 +132,7 @@ static procedure __fileIOPerform()
                     jPerform[cFileReader]["StrHashLoggerFile"]:=__HashLoggerFile(cFile+"."+cFileReader+"."+UUIDRandomSeq()+".log")
                     jPerform[cFileReader]["StrHashLogger"]:=FileLogger():New(jPerform[cFileReader]["StrHashLoggerFile"])
                 endif
-                jPerform[cFileReader]["TimeOutThresHold"]:=(jFiles[nFile]["TimeOutThresHold"]*if(jPerform[cFileReader]["StrHashLog"],.5,.25))
+                jPerform[cFileReader]["TimeOutThresHold"]:=(jFiles[nFile]["TimeOutThresHold"]*if(jPerform[cFileReader]["StrHashLog"],1,.50))
                 //Call: 0-Not Call,1=Sequential,2=Not Sequential,3=Both
                 if (NTools():ContainN(3,jPerform[cFileReader]["Call"]))
                     if (cFileReader=="FT")
