@@ -65,15 +65,15 @@ static procedure __fileIOPerform()
     //Call: 0-Not Call;1=Sequential;2=Not Sequential;3=Both
     beginContent var cPerform
 {
-     "TFILEREAD"            :  {"Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
-    ,"FILENAVIGATOR"        :  {"Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
-    ,"FILEREADER_FILE"      :  {"Reader":"","RDD":"FILE"      ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
-    ,"FILEREADER_HASHMAP"   :  {"Reader":"","RDD":"HASHMAP"   ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
-    ,"FILEREADER_SQLITE_MEM":  {"Reader":"","RDD":"SQLITE_MEM","Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
-    ,"FILEREADER_SQLITE_TMP":  {"Reader":"","RDD":"SQLITE_TMP","Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
-    ,"FILEREADER_TOPCONN"   :  {"Reader":"","RDD":"TOPCONN"   ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
-    ,"FWFILEREADER"         :  {"Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
-    ,"FT"                   :  {"Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
+     "TFILEREAD"            :  {"Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
+    ,"FILENAVIGATOR"        :  {"Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
+    ,"FILEREADER_FILE"      :  {"Reader":"","RDD":"FILE"      ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
+    ,"FILEREADER_HASHMAP"   :  {"Reader":"","RDD":"HASHMAP"   ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
+    ,"FILEREADER_SQLITE_MEM":  {"Reader":"","RDD":"SQLITE_MEM","Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
+    ,"FILEREADER_SQLITE_TMP":  {"Reader":"","RDD":"SQLITE_TMP","Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
+    ,"FILEREADER_TOPCONN"   :  {"Reader":"","RDD":"TOPCONN"   ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
+    ,"FWFILEREADER"         :  {"Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
+    ,"FT"                   :  {"Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0"TotalLinesRead":0,"FileSize":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false}
 }
     endContent
 
@@ -364,6 +364,8 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
     local nRecNo as numeric
     local nRecNos as numeric
 
+    local nLineSize as numeric
+
     local oFileNavigator as object
 
     jPerformReader["ProcStart"]:=TimeCounter()
@@ -412,6 +414,9 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
                 cLine+=ft_fReadLN()
             endif
             *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
@@ -433,6 +438,10 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
                 ft_fSkip()
                 cLine+=ft_fReadLN()
             endif
+            *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
@@ -464,6 +473,8 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
 
     local nRecNo as numeric
     local nRecNos as numeric
+
+    local nLineSize as numeric
 
     local oFileReader as object
     local oFileNavigator as object
@@ -520,6 +531,10 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
                 cLine:=StrTran(cLine,cCRH13,"")
             endif
             *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
+            *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
             __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
@@ -546,6 +561,10 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
                 cLine:=StrTran(cLine,cCRH13,"")
             endif
             *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
+            *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
             __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
@@ -571,6 +590,8 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
 
     local nRecNo as numeric
     local nRecNos as numeric
+
+    local nLineSize as numeric
 
     local oFileReader as object
     local oFileNavigator as object
@@ -614,6 +635,10 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
             oFileNavigator:GoTo(nRecNo)
             cLine:=oFileNavigator:GetLine()
             *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
+            *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
             __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
@@ -634,6 +659,10 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
             endif
             *****************************************************************
             cLine:=oFileReader:GetLine()
+            *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
@@ -661,6 +690,8 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
 
     local nRecNo as numeric
     local nRecNos as numeric
+
+    local nLineSize as numeric
 
     jPerformReader["ProcStart"]:=TimeCounter()
     jPerformReader["TimeProcStart"]:=Time()
@@ -691,6 +722,10 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
             *****************************************************************
             cLine:=oFileReader:ft_fReadLN()
             *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
+            *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
             __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
@@ -707,6 +742,10 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
             endif
             *****************************************************************
             cLine:=oFileReader:ft_fReadLN()
+            *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
@@ -735,6 +774,8 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
 
     local nRecNo as numeric
     local nRecNos as numeric
+
+    local nLineSize as numeric
 
     local oFileReadLine as object
     local oFileNavigator as object
@@ -776,6 +817,10 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
             oFileNavigator:GoTo(nRecNo)
             cLine:=oFileNavigator:GetLine()
             *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
+            *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
             __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
@@ -790,6 +835,10 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
                 exit
             endif
             cLine:=oFileReadLine:GetLine()
+            *****************************************************************
+            nLineSize:=Len(cLine)
+            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
             *****************************************************************
