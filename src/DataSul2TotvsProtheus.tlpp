@@ -747,6 +747,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local cUpdateTableFields as character
     local cUpdateTableSource as character
 
+    local cFWBulkTable as character
     local cFWTemporaryTableRealName as character
 
     local cFieldsFilterBlock as character
@@ -920,7 +921,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 cGetFileMask:=(cSourceTable+" | "+cSourceTable+"*.csv")
                 cGetFileTitle:=cSourceTable
                 nGetFileOptions:=nOR(GETF_LOCALHARD,GETF_NETWORKDRIVE)
-                cDataPathSplit:=strTran("SERVIDOR"+cDataPathSplit,"\ini\..","")
+                cDataPathSplit:=StrTran("SERVIDOR"+cDataPathSplit,"\ini\..","")
                 cSourceFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cDataPathSplit,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
             endif
             FWFreeArray(@aDataPathSplit)
@@ -1113,9 +1114,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             oFWTemporaryTable:Create()
             cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
             SetValue("import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
-            lCanBulk:=FwBulk():CanBulk()
+            lCanBulk:=FWBulk():CanBulk()
             if (lCanBulk)
-                oFWBulk:=FwBulk():New(strTran(cFWTemporaryTableRealName,"dbo.",""),1024)
+                cFWBulkTable:=StrTran(cFWTemporaryTableRealName,"dbo.","")
+                oFWBulk:=FWBulk():New(cFWBulkTable,1024)
                 oFWBulk:SetFields(aTargetStruct)
                 aFWBulk:=Array(Len(aTargetStruct))
                 aEval(aTargetStruct,{|x,y|aFWBulk[y]:=__GetValType(aTargetStruct[y][DBS_TYPE],aTargetStruct[y][DBS_LEN])})
@@ -1775,6 +1777,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 FreeObj(@oFWBulk)
                 FWFreeArray(@aFWBulk)
                 FWFreeArray(@aFWBulkDefault)
+                TCRefresh(cFWBulkTable)
                 (cSourceAlias)->(dbGoTop())
             endif
 
@@ -2503,7 +2506,7 @@ static function ReadTableDefinition() as logical
                 endif
                 cTable:=""
                 if ("Table:"==Left(cLine,6))
-                    cTable:=strTran(cLine,"Table:","")
+                    cTable:=StrTran(cLine,"Table:","")
                     cTable:=allTrim(cTable)
                     lSkipTable:=(!oHMTablesImport:Get(cTable,@xDummy))
                     if (lSkipTable)
@@ -2710,12 +2713,12 @@ static function NormalizeData(lHasError as logical,xValue as variant,cType as ch
     else
         if (valType(xValue)=="C")
             if ("char"$cType)
-                xValue:=strTran(xValue,'"',"")
+                xValue:=StrTran(xValue,'"',"")
             elseif ("inte"$cType)
                 xValue:=Int(val(xValue))
             elseif ("deci"$cType)
                 if (","$xValue)
-                    xValue:=strTran(xValue,",",".")
+                    xValue:=StrTran(xValue,",",".")
                 endif
                 xValue:=val(xValue)
             elseif ("date"$cType)
@@ -3003,7 +3006,7 @@ static function ChgCFGFile(cINIFile as character,cMemoEdit as character,cSVMemoE
         cFWWSBKP+="-"
         cFWWSBKP+=DToS(Date())
         cFWWSBKP+="-"
-        cFWWSBKP+=strTran(Time(),":","-")
+        cFWWSBKP+=StrTran(Time(),":","-")
         cFWWSBKP+="-"
         cFWWSBKP+=__cUserID
         cFWWSBKP+="-"
@@ -3709,7 +3712,7 @@ static function SplitFileAdd(cSourceTable as character) as logical
             next nFile
 
             cLogFile:=oDNATechLog:FormatLogFile("\log\html\",cSourceTable)
-            cLogFile:=strTran(cLogFile,".log",".html")
+            cLogFile:=StrTran(cLogFile,".log",".html")
 
             oDNATechLog:LogAsHtmlFile(cLogFile,cSourceTable)
 

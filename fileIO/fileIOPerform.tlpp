@@ -30,16 +30,20 @@ static procedure __fileIOPerform()
 
     local jPerform as json
 
-    local lStrHashLog:=(Aviso("StrHash","Selecione a opção",{"Sim","Não"},2,"Gerar Hash das Linhas para comparação?",2)==1) as logical
+    local lStrHashLog as logical
     local lDecodeUTF8:=.F. as logical
     local lSequential:=.F. as logical
     local lExecuteProc as logical
 
     local nFile as numeric
+    local nStrHashLog as numeric
 
     local oFileLogger:=FileLogger():New(cFileLogger) as object
 
     local i,j,k as numeric
+
+    nStrHashLog:=Aviso("StrHash","Selecione a opção",{"Sim","Não"},2,"Gerar Hash das Linhas para comparação?",2)
+    lStrHashLog:=NTools():ContainN(1,nStrHashLog)
 
     //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
     beginContent var cJFiles
@@ -138,6 +142,9 @@ static procedure __fileIOPerform()
 
     for k:=1 to Len(aPerform)
         cFileReader:=aPerform[k]
+        if (Empty(jPerform[cFileReader]["TotalTimeReader"]))
+            loop
+        endif
         oFileLogger:WriteLine(cFileReader+" => ElapTimeReaderTotal["+__MiliSecondsToTime(jPerform[cFileReader]["TotalTimeReader"])+"]")
     next i
 
@@ -476,7 +483,7 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
 
         oFileNavigator:=FileNavigator():New(;
             oFileReader:nHandLen;
-            ,{|nHandle|fSeek(nHandle,0)};
+            ,{|nHandle|fSeek(nHandle,0,FS_SET)};
             ,{||!oFileReader:HasLine()};
             ,{||oFileReader:GetLine()};
         )
@@ -580,7 +587,7 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
 
         oFileNavigator:=FileNavigator():New(;
             oFileReader:Handle();
-            ,{|nHandle|fSeek(nHandle,0)};
+            ,{|nHandle|fSeek(nHandle,0,FS_SET)};
             ,{||!oFileReader:HasLine()};
             ,{||oFileReader:GetLine()};
         )
@@ -737,7 +744,7 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
 
     oFileNavigator:=FileNavigator():New(;
          nHandle;
-        ,{|nHandle|fSeek(nHandle,0)};
+        ,{|nHandle|fSeek(nHandle,0,FS_SET)};
         ,{||!oFileReadLine:HasLine()};
         ,{||oFileReadLine:GetLine()};
     )
