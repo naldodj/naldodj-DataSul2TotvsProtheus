@@ -415,7 +415,11 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
             endif
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
@@ -440,7 +444,11 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
             endif
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
@@ -532,7 +540,11 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
             endif
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
@@ -562,7 +574,11 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
             endif
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
@@ -636,7 +652,11 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
             cLine:=oFileNavigator:GetLine()
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
@@ -661,7 +681,11 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
             cLine:=oFileReader:GetLine()
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
@@ -723,7 +747,11 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
             cLine:=oFileReader:ft_fReadLN()
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
@@ -744,7 +772,11 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
             cLine:=oFileReader:ft_fReadLN()
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
@@ -818,7 +850,11 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
             cLine:=oFileNavigator:GetLine()
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
@@ -837,7 +873,11 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
             cLine:=oFileReadLine:GetLine()
             *****************************************************************
             nLineSize:=Len(cLine)
-            jPerformReader["MinLineSize"]:=Max(jPerformReader["MinLineSize"],nLineSize)
+            if (jPerformReader["MinLineSize"]==0)
+                jPerformReader["MinLineSize"]:=nLineSize
+            else
+                jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],nLineSize)
+            endif
             jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
             *****************************************************************
             __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
