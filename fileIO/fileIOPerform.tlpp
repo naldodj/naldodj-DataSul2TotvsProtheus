@@ -327,8 +327,8 @@ static procedure __SendToLogger(oFileLogger as object,jPerformReader as json)
     jPerformReader["TotalTimeLineSize"]+=jPerformReader["PartialTimeLineSize"]
 
     if (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
-        jPerform[cFileReader]["TotalStrTokArrayInDB"]+=jPerform[cFileReader]["PartialStrTokArrayInDB"]
-        jPerform[cFileReader]["TotalTimeStrTokArrayInDB"]+=jPerform[cFileReader]["PartialTimeStrTokArrayInDB"]
+        jPerformReader["TotalStrTokArrayInDB"]+=jPerformReader["PartialStrTokArrayInDB"]
+        jPerformReader["TotalTimeStrTokArrayInDB"]+=jPerformReader["PartialTimeStrTokArrayInDB"]
     endif
 
     lStrHashLog:=jPerformReader["StrHashLog"]
