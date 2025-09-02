@@ -3,6 +3,16 @@
 #include "parmtype.ch"
 #include "jsonarray.ch"
 
+/*
+
+    TODO: FILEREADER_TOPCONN_TOKARRAYDB
+
+    oStrTokArrayDB:=StrTokArrayDB():New(StrTran(self:jData["cDbFile"],"dbo.",""),"LINE","M","ID")
+    oStrTokArrayDB:Tokenize(";")
+    oStrTokArrayDB:Close()
+
+*/
+
 using namespace dna.tech
 
 procedure u_fileIOPF()
@@ -137,6 +147,8 @@ static procedure __fileIOPerform()
                         __TST_FWFILEREADER(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
                     elseif (cFileReader=="TFILEREAD")
                         __TST_TFILEREAD(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
+                    elseif (cFileReader=="FILENAVIGATOR")
+                        __TST_FILENAVIGATOR(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
                     else
                         __TST_FILEREADER(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
                     endif
