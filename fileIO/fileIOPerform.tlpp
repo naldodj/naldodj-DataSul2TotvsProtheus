@@ -32,7 +32,6 @@ static procedure __fileIOPerform()
     local jPerform as json
 
     local lStrHashLog as logical
-    local lDecodeUTF8:=.F. as logical
     local lSequential:=.F. as logical
     local lExecuteProc as logical
 
@@ -49,33 +48,34 @@ static procedure __fileIOPerform()
     //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
     beginContent var cJFiles
 [
-     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0}
-    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0}
-    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0}
-    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0}
+     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0,"LinesExpected":3678}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0,"LinesExpected":3678}
+    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0,"LinesExpected":57733}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0,"LinesExpected":57733}
+    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0,"LinesExpected":93156}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0,"LinesExpected":93156}
+    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0,"LinesExpected":2539558}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0,"LinesExpected":2539558}
 ]
     endContent
 
     jFiles:=JSONObject():New()
     jFiles:FromJSON(cJFiles)
+    __SendToLogger(oFileLogger,jFiles,1)
 
     //Call: 0-Not Call;1=Sequential;2=Not Sequential;3=Both
     beginContent var cPerform
 {
-     "TFILEREAD"                        :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILENAVIGATOR"                    :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_FILE"                  :  {"Owner":"DNATech","Reader":"","RDD":"FILE"      ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_HASHMAP"               :  {"Owner":"DNATech","Reader":"","RDD":"HASHMAP"   ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_SQLITE_MEM"            :  {"Owner":"DNATech","Reader":"","RDD":"SQLITE_MEM","Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_SQLITE_TMP"            :  {"Owner":"DNATech","Reader":"","RDD":"SQLITE_TMP","Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_TOPCONN"               :  {"Owner":"DNATech","Reader":"","RDD":"TOPCONN"   ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_TOPCONN_TOKARRAYDB"    :  {"Owner":"DNATech","Reader":"","RDD":"TOPCONN"   ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FWFILEREADER"                     :  {"Owner":"TOTVS  ","Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FT"                               :  {"Owner":"TOTVS  ","Reader":"","RDD":""          ,"Call":3,"Token":"","TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"StrHashExpected":0,"StrHash":0,"StrTokArrHashExpected":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TimeOutThresHold":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"StrHashLog":false,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+     "TFILEREAD"                        :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+    ,"FILENAVIGATOR"                    :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+    ,"FILEREADER_FILE"                  :  {"Owner":"DNATech","Reader":"","RDD":"FILE"      ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+    ,"FILEREADER_HASHMAP"               :  {"Owner":"DNATech","Reader":"","RDD":"HASHMAP"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+    ,"FILEREADER_SQLITE_MEM"            :  {"Owner":"DNATech","Reader":"","RDD":"SQLITE_MEM","Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+    ,"FILEREADER_SQLITE_TMP"            :  {"Owner":"DNATech","Reader":"","RDD":"SQLITE_TMP","Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+    ,"FILEREADER_TOPCONN"               :  {"Owner":"DNATech","Reader":"","RDD":"TOPCONN"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+    ,"FILEREADER_TOPCONN_TOKARRAYDB"    :  {"Owner":"DNATech","Reader":"","RDD":"TOPCONN"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+    ,"FWFILEREADER"                     :  {"Owner":"TOTVS  ","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+    ,"FT"                               :  {"Owner":"TOTVS  ","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
 }
     endContent
 
@@ -89,7 +89,11 @@ static procedure __fileIOPerform()
         endif
         cLine:=""
         cFile:=jFiles[nFile]["File"]
-        lDecodeUTF8:=jFiles[nFile]["DecodeUTF8"]
+        if ((lStrHashLog).and.(jFiles[nFile]["StrHashLog"]))
+            jFiles[nFile]["TimeOutThresHold"]*=4
+        else
+            jFiles[nFile]["TimeOutThresHold"]*=2
+        endif
         for i:=1 to 2
             lExecuteProc:=NTools():ContainN(jFiles[nFile]["Call"],i)
             if (!lExecuteProc)
@@ -108,16 +112,11 @@ static procedure __fileIOPerform()
                     if ("MSSQL"!=cTCGETDB)
                         loop
                     else
-                        if (!jPerform[cFileReader]:HasProperty("TotalStrTokArrayInDB"))
-                            jPerform[cFileReader]["TotalStrTokArrayInDB"]:=0
-                            jPerform[cFileReader]["TotalTimeStrTokArrayInDB"]:=0
-                        endif
                         jPerform[cFileReader]["PartialStrTokArrayInDB"]:=0
                         jPerform[cFileReader]["PartialTimeStrTokArrayInDB"]:=0
                     endif
                 endif
                 jPerform[cFileReader]["Reader"]:=cFileReader
-                jPerform[cFileReader]["Token"]:=jFiles[nFile]["Token"]
                 jPerform[cFileReader]["Lines"]:=0
                 jPerform[cFileReader]["FileSize"]:=0
                 jPerform[cFileReader]["PartialBytesRead"]:=0
@@ -133,32 +132,28 @@ static procedure __fileIOPerform()
                 jPerform[cFileReader]["StrTokArrHash"]:=0
                 jPerform[cFileReader]["StrTokArr2Hash"]:=0
                 jPerform[cFileReader]["__StrTokArrayHash"]:=0
-                jPerform[cFileReader]["StrHashExpected"]:=jFiles[nFile]["StrHashExpected"]
-                jPerform[cFileReader]["StrTokArrHashExpected"]:=jFiles[nFile]["StrTokArrHashExpected"]
                 jPerform[cFileReader]["PartialTimeStrHash"]:=0
                 jPerform[cFileReader]["IsDisqualifiedByTimeOut"]:=.F.
                 jPerform[cFileReader]["PartialTimeIsDisqualifiedVerify"]:=0
                 jPerform[cFileReader]["PartialTimeRandom"]:=0
                 jPerform[cFileReader]["PartialTimeLineSize"]:=0
                 if ((lStrHashLog).and.(jFiles[nFile]["StrHashLog"]))
-                    jPerform[cFileReader]["StrHashLog"]:=.T.
-                    jPerform[cFileReader]["StrHashLoggerFile"]:=__HashLoggerFile(cFile+"."+cFileReader+"."+UUIDRandomSeq()+".log")
+                    jPerform[cFileReader]["StrHashLoggerFile"]:=__HashLoggerFile(cFile+"."+cFileReader+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log")
                     jPerform[cFileReader]["StrHashLogger"]:=FileLogger():New(jPerform[cFileReader]["StrHashLoggerFile"])
                 endif
-                jPerform[cFileReader]["TimeOutThresHold"]:=(jFiles[nFile]["TimeOutThresHold"]*if(jPerform[cFileReader]["StrHashLog"],4,2))
                 if (cFileReader=="FT")
                     jPerform[cFileReader]["HasBreakLine"]:=jFiles[nFile]["HasBreakLine"]
-                    __TST_FT(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
+                    __TST_FT(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 elseif (cFileReader=="FWFILEREADER")
-                    __TST_FWFILEREADER(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
+                    __TST_FWFILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 elseif (cFileReader=="TFILEREAD")
-                    __TST_TFILEREAD(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
+                    __TST_TFILEREAD(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 elseif (cFileReader=="FILENAVIGATOR")
-                    __TST_FILENAVIGATOR(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
+                    __TST_FILENAVIGATOR(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 elseif (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
-                    __TST_FILEREADER_StrTokArrayInDB(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
+                    __TST_FILEREADER_StrTokArrayInDB(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 else
-                    __TST_FILEREADER(oFileLogger,cFile,jPerform[cFileReader],lSequential,lDecodeUTF8)
+                    __TST_FILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 endif
             next j
         next i
@@ -201,12 +196,12 @@ static function __HashLoggerFile(cFile as character)
     DirTools():MakeFileDir(cFile)
 return(cFile)
 
-static procedure __TSTStrTokArray(cLine as character,jPerformReader as json,lDecodeUTF8 as logical)
-
-    local cToken:=jPerformReader["Token"] as character
-    local cLineStrHash as character
+static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReader as json)
 
     local aLine as array
+
+    local cToken:=jFile["Token"] as character
+    local cLineStrHash as character
 
     local nStrTokTime as numeric
 
@@ -262,11 +257,12 @@ static procedure __TSTStrTokArray(cLine as character,jPerformReader as json,lDec
 
 return
 
-static procedure __StrHash(cStr as character,jPerformReader as json)
-    local lStrHashLog:=jPerformReader["StrHashLog"] as logical
-    local nStrHash as numeric
+static procedure __StrHash(cStr as character,jFile as json,jPerformReader as json)
     local nPartialTimeStrHash:=TimeCounter() as numeric
-    nStrHash:=cTools():StrHash(cStr)
+    local lStrHashLog:=jFile["StrHashLog"] as logical
+    local lDecodeUTF8:=jFile["DecodeUTF8"] as logical
+    local nStrHash as numeric
+    nStrHash:=cTools():StrHash(if(lDecodeUTF8,DecodeUTF8(cStr),cStr))
     jPerformReader["StrHash"]+=nStrHash
     if (lStrHashLog)
         jPerformReader["StrHashLogger"]:WriteLine(StrZero(nStrHash,16)+" "+cStr)
@@ -282,123 +278,136 @@ static procedure __StrHashTokArr(cStr as character,jPerformReader as json,cTokAr
     jPerformReader["PartialTimeStrHash"]+=(TimeCounter()-nPartialTimeStrHash)
 return
 
-static procedure __SendToLogger(oFileLogger as object,jPerformReader as json)
+static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as numeric)
 
     local cFileReader as character
-    local jPerformReaderOut as json
+
+    local jLoggerOut as json
 
     local lStrHashLog as logical
 
-    cFileReader:=jPerformReader["Reader"]
+    local i as numeric
 
-    jPerformReader["PartialTimeProc"]:=(jPerformReader["ProcEnd"]-jPerformReader["ProcStart"])
-    jPerformReader["PartialTimeReader"]:=(;
-        jPerformReader["PartialTimeProc"]-(;
-            jPerformReader["PartialTimeStrTokArr"];
-           +jPerformReader["PartialTimeStrTokArr2"];
-           +jPerformReader["PartialTime__StrTokArray"];
-           +jPerformReader["PartialTimeStrHash"];
-           +jPerformReader["PartialTimeIsDisqualifiedVerify"];
-           +jPerformReader["PartialTimeRandom"];
-           +jPerformReader["PartialTimeLineSize"];
-           +if(cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB",jPerformReader["PartialTimeStrTokArrayInDB"],0);
-        );
-    )
+    if (nOption==1)
 
-    jPerformReader["TotalTimeProc"]+=jPerformReader["PartialTimeProc"]
-    jPerformReader["TotalTimeReader"]+=jPerformReader["PartialTimeReader"]
-    jPerformReader["TotalTimeStrTokArr"]+=jPerformReader["PartialTimeStrTokArr"]
-    jPerformReader["TotalTimeStrTokArr2"]+=jPerformReader["PartialTimeStrTokArr2"]
-    jPerformReader["TotalTime__StrTokArray"]+=jPerformReader["PartialTime__StrTokArray"]
+        jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
 
-    jPerformReader["TotalStrTokArr"]+=jPerformReader["PartialStrTokArr"]
-    jPerformReader["TotalStrTokArr2"]+=jPerformReader["PartialStrTokArr2"]
-    jPerformReader["Total__StrTokArray"]+=jPerformReader["Partial__StrTokArray"]
+        for i:=1 to Len(jLoggerOut)
+            jLoggerOut[i]["TimeOutThresHold"]:=__MiliSecondsToTime(jLoggerOut[i]["TimeOutThresHold"])
+        next i
 
-    jPerformReader["TotalLinesRead"]+=jPerformReader["Lines"]
-    jPerformReader["TotalBytesRead"]+=jPerformReader["PartialBytesRead"]
+    elseif (nOption==2)
 
-    jPerformReader["TotalTimeStrHash"]+=jPerformReader["PartialTimeStrHash"]
+        cFileReader:=jLogger["Reader"]
 
-    jPerformReader["TotalTimeIsDisqualifiedVerify"]+=jPerformReader["PartialTimeIsDisqualifiedVerify"]
+        jLogger["PartialTimeProc"]:=(jLogger["ProcEnd"]-jLogger["ProcStart"])
+        jLogger["PartialTimeReader"]:=(;
+            jLogger["PartialTimeProc"]-(;
+                jLogger["PartialTimeStrTokArr"];
+            +jLogger["PartialTimeStrTokArr2"];
+            +jLogger["PartialTime__StrTokArray"];
+            +jLogger["PartialTimeStrHash"];
+            +jLogger["PartialTimeIsDisqualifiedVerify"];
+            +jLogger["PartialTimeRandom"];
+            +jLogger["PartialTimeLineSize"];
+            +if(cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB",jLogger["PartialTimeStrTokArrayInDB"],0);
+            );
+        )
 
-    jPerformReader["TotalTimeRandom"]+=jPerformReader["PartialTimeRandom"]
+        jLogger["TotalTimeProc"]+=jLogger["PartialTimeProc"]
+        jLogger["TotalTimeReader"]+=jLogger["PartialTimeReader"]
+        jLogger["TotalTimeStrTokArr"]+=jLogger["PartialTimeStrTokArr"]
+        jLogger["TotalTimeStrTokArr2"]+=jLogger["PartialTimeStrTokArr2"]
+        jLogger["TotalTime__StrTokArray"]+=jLogger["PartialTime__StrTokArray"]
 
-    jPerformReader["TotalTimeLineSize"]+=jPerformReader["PartialTimeLineSize"]
+        jLogger["TotalStrTokArr"]+=jLogger["PartialStrTokArr"]
+        jLogger["TotalStrTokArr2"]+=jLogger["PartialStrTokArr2"]
+        jLogger["Total__StrTokArray"]+=jLogger["Partial__StrTokArray"]
 
-    if (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
-        jPerformReader["TotalStrTokArrayInDB"]+=jPerformReader["PartialStrTokArrayInDB"]
-        jPerformReader["TotalTimeStrTokArrayInDB"]+=jPerformReader["PartialTimeStrTokArrayInDB"]
-    endif
+        jLogger["TotalLinesRead"]+=jLogger["Lines"]
+        jLogger["TotalBytesRead"]+=jLogger["PartialBytesRead"]
 
-    lStrHashLog:=jPerformReader["StrHashLog"]
-    if (lStrHashLog)
-        jPerformReader["StrHashLogger"]:Close()
-        FreeObj(@jPerformReader["StrHashLogger"])
-        DirTools():MakeFileDir("c:\"+jPerformReader["StrHashLoggerFile"])
-        if (__CopyFile(jPerformReader["StrHashLoggerFile"],"c:\"+jPerformReader["StrHashLoggerFile"]))
-            fErase(jPerformReader["StrHashLoggerFile"])
+        jLogger["TotalTimeStrHash"]+=jLogger["PartialTimeStrHash"]
+
+        jLogger["TotalTimeIsDisqualifiedVerify"]+=jLogger["PartialTimeIsDisqualifiedVerify"]
+
+        jLogger["TotalTimeRandom"]+=jLogger["PartialTimeRandom"]
+
+        jLogger["TotalTimeLineSize"]+=jLogger["PartialTimeLineSize"]
+
+        if (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
+            jLogger["TotalStrTokArrayInDB"]+=jLogger["PartialStrTokArrayInDB"]
+            jLogger["TotalTimeStrTokArrayInDB"]+=jLogger["PartialTimeStrTokArrayInDB"]
         endif
-        jPerformReader:DelName("StrHashLogger")
-        jPerformReader:DelName("StrHashLoggerFile")
+
+        lStrHashLog:=jLogger["StrHashLog"]
+        if (lStrHashLog)
+            jLogger["StrHashLogger"]:Close()
+            FreeObj(@jLogger["StrHashLogger"])
+            DirTools():MakeFileDir("c:\"+jLogger["StrHashLoggerFile"])
+            if (__CopyFile(jLogger["StrHashLoggerFile"],"c:\"+jLogger["StrHashLoggerFile"]))
+                fErase(jLogger["StrHashLoggerFile"])
+            endif
+            jLogger:DelName("StrHashLogger")
+            jLogger:DelName("StrHashLoggerFile")
+        endif
+        jLogger:DelName("StrHashLog")
+
+        jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
+
+        jLoggerOut["Reader"]:=PadR(jLoggerOut["Reader"],29)
+        jLoggerOut["Owner"]:=PadR(jLoggerOut["Owner"],7)
+        jLoggerOut["RDD"]:=PadR(jLoggerOut["RDD"],10)
+
+        jLoggerOut["TotalTimeProc"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeProc"])
+        jLoggerOut["PartialTimeProc"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeProc"])
+
+        jLoggerOut["TotalTimeReader"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeReader"])
+        jLoggerOut["PartialTimeReader"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeReader"])
+
+        jLoggerOut["TotalTimeStrTokArr"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArr"])
+        jLoggerOut["PartialTimeStrTokArr"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeStrTokArr"])
+
+        jLoggerOut["TotalTimeStrTokArr2"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArr2"])
+        jLoggerOut["PartialTimeStrTokArr2"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeStrTokArr2"])
+
+        jLoggerOut["TotalTime__StrTokArray"]:=__MiliSecondsToTime(jLoggerOut["TotalTime__StrTokArray"])
+        jLoggerOut["PartialTime__StrTokArray"]:=__MiliSecondsToTime(jLoggerOut["PartialTime__StrTokArray"])
+
+        jLoggerOut["TotalTimeStrHash"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrHash"])
+        jLoggerOut["PartialTimeStrHash"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeStrHash"])
+
+        jLoggerOut["TotalTimeIsDisqualifiedVerify"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeIsDisqualifiedVerify"])
+        jLoggerOut["PartialTimeIsDisqualifiedVerify"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeIsDisqualifiedVerify"])
+
+        jLoggerOut["TotalTimeRandom"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeRandom"])
+        jLoggerOut["PartialTimeRandom"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeRandom"])
+
+        jLoggerOut["TotalTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeLineSize"])
+        jLoggerOut["PartialTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeLineSize"])
+
+        jLoggerOut["IsDisqualifiedByTimeOut"]:=if(jLoggerOut["IsDisqualifiedByTimeOut"],1,0)
+
+        if (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
+            jLoggerOut["TotalTimeStrTokArrayInDB"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArrayInDB"])
+            jLoggerOut["PartialTimeStrTokArrayInDB"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeStrTokArrayInDB"])
+        endif
     endif
-    jPerformReader:DelName("StrHashLog")
 
-    jPerformReaderOut:=JSONObjectClone():CloneJSON(jPerformReader)
+    oFileLogger:WriteLine(jLoggerOut:ToJSON())
 
-    jPerformReaderOut["Reader"]:=PadR(jPerformReaderOut["Reader"],29)
-    jPerformReaderOut["Owner"]:=PadR(jPerformReaderOut["Owner"],7)
-    jPerformReaderOut["RDD"]:=PadR(jPerformReaderOut["RDD"],10)
-
-    jPerformReaderOut["TotalTimeProc"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTimeProc"])
-    jPerformReaderOut["PartialTimeProc"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTimeProc"])
-
-    jPerformReaderOut["TotalTimeReader"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTimeReader"])
-    jPerformReaderOut["PartialTimeReader"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTimeReader"])
-
-    jPerformReaderOut["TotalTimeStrTokArr"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTimeStrTokArr"])
-    jPerformReaderOut["PartialTimeStrTokArr"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTimeStrTokArr"])
-
-    jPerformReaderOut["TotalTimeStrTokArr2"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTimeStrTokArr2"])
-    jPerformReaderOut["PartialTimeStrTokArr2"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTimeStrTokArr2"])
-
-    jPerformReaderOut["TotalTime__StrTokArray"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTime__StrTokArray"])
-    jPerformReaderOut["PartialTime__StrTokArray"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTime__StrTokArray"])
-
-    jPerformReaderOut["TotalTimeStrHash"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTimeStrHash"])
-    jPerformReaderOut["PartialTimeStrHash"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTimeStrHash"])
-
-    jPerformReaderOut["TotalTimeIsDisqualifiedVerify"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTimeIsDisqualifiedVerify"])
-    jPerformReaderOut["PartialTimeIsDisqualifiedVerify"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTimeIsDisqualifiedVerify"])
-
-    jPerformReaderOut["TotalTimeRandom"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTimeRandom"])
-    jPerformReaderOut["PartialTimeRandom"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTimeRandom"])
-
-    jPerformReaderOut["TotalTimeLineSize"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTimeLineSize"])
-    jPerformReaderOut["PartialTimeLineSize"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTimeLineSize"])
-
-    jPerformReaderOut["TimeOutThresHold"]:=__MiliSecondsToTime(jPerformReaderOut["TimeOutThresHold"])
-    jPerformReaderOut["IsDisqualifiedByTimeOut"]:=if(jPerformReaderOut["IsDisqualifiedByTimeOut"],1,0)
-
-    if (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
-        jPerformReaderOut["TotalTimeStrTokArrayInDB"]:=__MiliSecondsToTime(jPerformReaderOut["TotalTimeStrTokArrayInDB"])
-        jPerformReaderOut["PartialTimeStrTokArrayInDB"]:=__MiliSecondsToTime(jPerformReaderOut["PartialTimeStrTokArrayInDB"])
-    endif
-
-    oFileLogger:WriteLine(jPerformReaderOut:ToJSON())
-
-    FreeObj(@jPerformReaderOut)
+    FreeObj(@jLoggerOut)
 
 return
 
 static function __MiliSecondsToTime(nTotalMS as numeric) as character
 return(timeCalc():MiliSecsToTime(nTotalMS))
 
-static function __IsDisqualifiedByTimeOut(jPerformReader as json) as logical
+static function __IsDisqualifiedByTimeOut(jFile as json,jPerformReader as json) as logical
     local nTimeCounter:=TimeCounter() as numeric
     local lIsDisqualifiedByTimeOut as logical
     jPerformReader["PartialTimeProc"]:=(nTimeCounter-jPerformReader["ProcStart"])
-    lIsDisqualifiedByTimeOut:=(jPerformReader["PartialTimeProc"]>jPerformReader["TimeOutThresHold"])
+    lIsDisqualifiedByTimeOut:=(jPerformReader["PartialTimeProc"]>jFile["TimeOutThresHold"])
     jPerformReader["IsDisqualifiedByTimeOut"]:=lIsDisqualifiedByTimeOut
     jPerformReader["PartialTimeIsDisqualifiedVerify"]+=(TimeCounter()-nTimeCounter)
 return(lIsDisqualifiedByTimeOut)
@@ -423,8 +432,9 @@ static procedure __GetLineSize(cLine,jPerformReader)
     jPerformReader["PartialTimeLineSize"]+=(TimeCounter()-nTimeCounter)
 return
 
-static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReader as json,lSequential as logical,lDecodeUTF8 as logical)
+static procedure __TST_FT(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
 
+    local cFile:=jFile["File"] as character
     local cLine as character
     local cLineSkip as character
 
@@ -464,7 +474,7 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -485,9 +495,9 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
             ft_fSkip()
         end while
@@ -496,7 +506,7 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -508,9 +518,9 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
             ft_fSkip()
         end while
@@ -523,12 +533,13 @@ static procedure __TST_FT(oFileLogger as object,cFile as character,jPerformReade
     jPerformReader["TimeProcEnd"]:=Time()
     jPerformReader["ProcEnd"]:=TimeCounter()
 
-    __SendToLogger(oFileLogger,jPerformReader)
+    __SendToLogger(oFileLogger,jPerformReader,2)
 
 return
 
-static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPerformReader as json,lSequential as logical,lDecodeUTF8 as logical)
+static procedure __TST_FWFILEREADER(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
 
+    local cFile:=jFile["File"] as character
     local cLine as character
     local cLineSkip as character
 
@@ -571,7 +582,7 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -596,9 +607,9 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
         end while
         oFileNavigator:Close({||oFileReader:Close()})
@@ -608,7 +619,7 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -625,9 +636,9 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
         end while
     endif
@@ -637,12 +648,13 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,cFile as character,jPe
     jPerformReader["TimeProcEnd"]:=Time()
     jPerformReader["ProcEnd"]:=TimeCounter()
 
-    __SendToLogger(oFileLogger,jPerformReader)
+    __SendToLogger(oFileLogger,jPerformReader,2)
 
 return
 
-static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerformReader as json,lSequential as logical,lDecodeUTF8 as logical)
+static procedure __TST_TFILEREAD(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
 
+    local cFile:=jFile["File"] as character
     local cLine as character
     local cLineSkip as character
 
@@ -678,7 +690,7 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -695,9 +707,9 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
         end while
 
@@ -710,7 +722,7 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -718,9 +730,9 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
         end while
 
@@ -731,12 +743,13 @@ static procedure __TST_TFILEREAD(oFileLogger as object,cFile as character,jPerfo
     jPerformReader["TimeProcEnd"]:=Time()
     jPerformReader["ProcEnd"]:=TimeCounter()
 
-    __SendToLogger(oFileLogger,jPerformReader)
+    __SendToLogger(oFileLogger,jPerformReader,2)
 
 return
 
-static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerformReader as json,lSequential as logical,lDecodeUTF8 as logical)
+static procedure __TST_FILEREADER(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
 
+    local cFile:=jFile["File"] as character
     local cLine as character
     local cLineSkip as character
 
@@ -759,7 +772,7 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -776,9 +789,9 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
             oFileReader:ft_fSkip()
         end while
@@ -787,7 +800,7 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -795,9 +808,9 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
             oFileReader:ft_fSkip()
         end while
@@ -809,14 +822,15 @@ static procedure __TST_FILEREADER(oFileLogger as object,cFile as character,jPerf
     jPerformReader["TimeProcEnd"]:=Time()
     jPerformReader["ProcEnd"]:=TimeCounter()
 
-    __SendToLogger(oFileLogger,jPerformReader)
+    __SendToLogger(oFileLogger,jPerformReader,2)
 
 return
 
-static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,cFile as character,jPerformReader as json,lSequential as logical,lDecodeUTF8 as logical)
+static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
 
     local aAllTokenizedLines as array
 
+    local cFile:=jFile["File"] as character
     local cLine as character
     local cLineSkip as character
 
@@ -840,7 +854,7 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,cFile as
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -857,7 +871,7 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,cFile as
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
             oFileReader:ft_fSkip()
         end while
@@ -866,7 +880,7 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,cFile as
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -874,7 +888,7 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,cFile as
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
             oFileReader:ft_fSkip()
         end while
@@ -897,13 +911,14 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,cFile as
     jPerformReader["TimeProcEnd"]:=Time()
     jPerformReader["ProcEnd"]:=TimeCounter()
 
-    __SendToLogger(oFileLogger,jPerformReader)
+    __SendToLogger(oFileLogger,jPerformReader,2)
 
 return
 
 
-static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jPerformReader as json,lSequential as logical,lDecodeUTF8 as logical)
+static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
 
+    local cFile:=jFile["File"] as character
     local cLine as character
     local cLineSkip as character
 
@@ -937,7 +952,7 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             *****************************************************************
@@ -954,9 +969,9 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
         end while
     else
@@ -964,16 +979,16 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
             *****************************************************************
             jPerformReader["Lines"]++
             *****************************************************************
-            if (__IsDisqualifiedByTimeOut(jPerformReader))
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
                 exit
             endif
             cLine:=oFileReadLine:GetLine()
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
-            __StrHash(if(lDecodeUTF8,DecodeUTF8(cLine),cLine),jPerformReader)
+            __StrHash(cLine,jFile,jPerformReader)
             *****************************************************************
-            __TSTStrTokArray(@cLine,@jPerformReader,lDecodeUTF8)
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
             *****************************************************************
         end while
     endif
@@ -987,6 +1002,6 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,cFile as character,jP
     jPerformReader["TimeProcEnd"]:=Time()
     jPerformReader["ProcEnd"]:=TimeCounter()
 
-    __SendToLogger(oFileLogger,jPerformReader)
+    __SendToLogger(oFileLogger,jPerformReader,2)
 
 return
