@@ -30,7 +30,6 @@ static procedure __fileIOPerform()
     local cFileLogger:="\tmp\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log" as character
 
     local jPerform as json
-    local jPerformTotal as json
 
     local lStrHashLog as logical
     local lSequential:=.F. as logical
@@ -41,7 +40,7 @@ static procedure __fileIOPerform()
 
     local oFileLogger as object
 
-    local i,j,k as numeric
+    local i,j as numeric
 
     nStrHashLog:=Aviso("StrHash","Selecione a opção",{"Sim","Não"},2,"Gerar Hash das Linhas para comparação?",2)
     lStrHashLog:=(nStrHashLog==1)
@@ -51,14 +50,14 @@ static procedure __fileIOPerform()
     //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
     beginContent var cJFiles
 [
-     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0,"LinesExpected":3678}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0,"LinesExpected":3678}
-    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0,"LinesExpected":57733}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0,"LinesExpected":57733}
-    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0,"LinesExpected":93156}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0,"LinesExpected":93156}
-    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0,"LinesExpected":2539558}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0,"LinesExpected":2539558}
+     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680,"ExpectedLines":3678}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680,"ExpectedLines":3678}
+    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656,"ExpectedLines":57733}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656,"ExpectedLines":57733}
+    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750,"ExpectedLines":93156}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750,"ExpectedLines":93156}
+    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
 ]
     endContent
 
@@ -163,20 +162,7 @@ static procedure __fileIOPerform()
         oFileLogger:WriteLine("")
     next nFile
 
-    jPerformTotal:=JSONObjectClone():CloneJSON(jPerform)
-
-    for k:=1 to Len(aPerform)
-        cFileReader:=aPerform[k]
-        if (jPerform[cFileReader]["TotalTimeReader"]==0)
-            jPerformTotal:DelName(cFileReader)
-            loop
-        endif
-        jPerformTotal[cFileReader]["TotalElapTimeReader"]:=__MiliSecondsToTime(jPerform[cFileReader]["TotalTimeReader"])
-    next i
-
-    if (Len(jPerformTotal:GetNames())>0)
-        __SendToLogger(oFileLogger,jPerformTotal,3)
-    endif
+    __SendToLogger(oFileLogger,jPerform,3)
 
     oFileLogger:Close()
     FreeObj(@oFileLogger)
@@ -191,7 +177,6 @@ static procedure __fileIOPerform()
     FWFreeArray(@aPerform)
 
     FreeObj(@jPerform)
-    FWFreeObj(@jPerformTotal)
 
 return
 
@@ -300,7 +285,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
 
     local lStrHashLog as logical
 
-    local i as numeric
+    local i,j as numeric
 
     if (nOption==1)
 
@@ -397,45 +382,49 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
         endif
 
         aLoggerItem:=jLoggerOut:GetNames()
-        for i:=1 to Len(aLoggerItem)
-            cName:=aLoggerItem[i]
-            if ("Total"$cName)
-                jLoggerOut:DelName(cName)
-            endif
-        next i
-
+            for i:=1 to Len(aLoggerItem)
+                cName:=aLoggerItem[i]
+                if ("Total"$cName)
+                    jLoggerOut:DelName(cName)
+                endif
+            next i
         FWFreeArray(@aLoggerItem)
 
     elseif (nOption==3)
 
         jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
 
-        aLoggerItem:=jLoggerOut:GetNames()
-        for i:=1 to Len(aLoggerItem)
-            cName:=aLoggerItem[i]
-            if (!"Total"$cName)
-                jLoggerOut:DelName(cName)
+        for i:=1 to Len(aPerform)
+            cFileReader:=aPerform[i]
+            if (jPerform[cFileReader]["TotalTimeReader"]==0)
+                jLoggerOut:DelName(cFileReader)
+                loop
+            endif
+            jLoggerOut[cFileReader]["TotalElapTimeReader"]:=__MiliSecondsToTime(jPerform[cFileReader]["TotalTimeReader"])
+            aLoggerItem:=jLoggerOut[cFileReader]:GetNames()
+            for j:=1 to Len(aLoggerItem)
+                cName:=aLoggerItem[j]
+                if (!"Total"$cName)
+                    jLoggerOut[cFileReader]:DelName(cName)
+                endif
+            next j
+            FWFreeArray(@aLoggerItem)
+            jLoggerOut[cFileReader]["TotalTimeProc"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeProc"])
+            jLoggerOut[cFileReader]["TotalTimeReader"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeReader"])
+            jLoggerOut[cFileReader]["TotalTimeStrTokArr"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeStrTokArr"])
+            jLoggerOut[cFileReader]["TotalTimeStrTokArr2"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeStrTokArr2"])
+            jLoggerOut[cFileReader]["TotalTime__StrTokArray"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTime__StrTokArray"])
+            jLoggerOut[cFileReader]["TotalTimeStrHash"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeStrHash"])
+            jLoggerOut[cFileReader]["TotalTimeIsDisqualifiedVerify"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeIsDisqualifiedVerify"])
+            jLoggerOut[cFileReader]["TotalTimeRandom"]:=if(jLoggerOut[cFileReader]["TotalTimeRandom"]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut["TotalTimeRandom"]))
+            jLoggerOut[cFileReader]["TotalTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeLineSize"])
+            if (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
+                jLoggerOut[cFileReader]["TotalTimeStrTokArrayInDB"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeStrTokArrayInDB"])
+            else
+                //Only to a Pretty Print
+                jLoggerOut[cFileReader]["TotalTimeStrTokArrayInDB"]:="00:00:00:00.000000"
             endif
         next i
-
-        FWFreeArray(@aLoggerItem)
-
-        jLoggerOut["TotalTimeProc"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeProc"])
-        jLoggerOut["TotalTimeReader"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeReader"])
-        jLoggerOut["TotalTimeStrTokArr"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArr"])
-        jLoggerOut["TotalTimeStrTokArr2"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArr2"])
-        jLoggerOut["TotalTime__StrTokArray"]:=__MiliSecondsToTime(jLoggerOut["TotalTime__StrTokArray"])
-        jLoggerOut["TotalTimeStrHash"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrHash"])
-        jLoggerOut["TotalTimeIsDisqualifiedVerify"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeIsDisqualifiedVerify"])
-        jLoggerOut["TotalTimeRandom"]:=if(jLoggerOut["TotalTimeRandom"]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut["TotalTimeRandom"]))
-        jLoggerOut["TotalTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeLineSize"])
-
-        if (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
-            jLoggerOut["TotalTimeStrTokArrayInDB"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArrayInDB"])
-        else
-            //Only to a Pretty Print
-            jLoggerOut["TotalTimeStrTokArrayInDB"]:="00:00:00:00.000000"
-        endif
 
     endif
 
@@ -941,7 +930,7 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,jFile as
 
     jPerformReader["PartialTimeStrTokArrayInDB"]:=TimeCounter()
         oStrTokArrayInDB:=StrTokArrayInDB():New(StrTran(oFileReader:ft_fGetDbFile(),"dbo.",""),"LINE","M","ID")
-        if (oStrTokArrayInDB:Tokenize(";"))
+        if (oStrTokArrayInDB:Tokenize(jFile["Token"]))
             aAllTokenizedLines:=oStrTokArrayInDB:GetAllTokenizedLines()
             aEval(aAllTokenizedLines,{|aLine as array|jPerformReader["PartialStrTokArrayInDB"]+=Len(aLine)})
             FWFreeArray(@aAllTokenizedLines)
