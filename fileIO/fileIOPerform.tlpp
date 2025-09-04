@@ -217,7 +217,11 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
         if (cLineStrHash==cToken)
             cLineStrHash:=""
         endif
-        jPerformReader["PartialStrTokArr"]+=Len(aLine)
+        if ("fulltablesdefinition.txt"$jFile["File"])
+            aEval(aLine,{|e as character|jPerformReader["PartialStrTokArr"]+=if(e=="",0,1)})
+        else
+            jPerformReader["PartialStrTokArr"]+=Len(aLine)
+        endif
         FWFreeArray(@aLine)
     jPerformReader["PartialTimeStrTokArr"]+=(TimeCounter()-nStrTokTime)
     *****************************************************************
@@ -233,7 +237,11 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
         if (cLineStrHash==cToken)
             cLineStrHash:=""
         endif
-        jPerformReader["PartialStrTokArr2"]+=Len(aLine)
+        if ("fulltablesdefinition.txt"$jFile["File"])
+            aEval(aLine,{|e as character|jPerformReader["PartialStrTokArr"]+=if(e=="",0,1)})
+        else
+            jPerformReader["PartialStrTokArr2"]+=Len(aLine)
+        endif
         FWFreeArray(@aLine)
     jPerformReader["PartialTimeStrTokArr2"]+=(TimeCounter()-nStrTokTime)
     *****************************************************************
@@ -249,7 +257,11 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
         if (cLineStrHash==cToken)
             cLineStrHash:=""
         endif
-        jPerformReader["Partial__StrTokArray"]+=Len(aLine)
+        if ("fulltablesdefinition.txt"$jFile["File"])
+            aEval(aLine,{|e as character|jPerformReader["PartialStrTokArr"]+=if(e=="",0,1)})
+        else
+            jPerformReader["Partial__StrTokArray"]+=Len(aLine)
+        endif
         FWFreeArray(@aLine)
     jPerformReader["PartialTime__StrTokArray"]+=(TimeCounter()-nStrTokTime)
     *****************************************************************
@@ -947,7 +959,7 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,jFile as
             aEval(;
                 aAllTokenizedLines;
                ,{|aLine as array|;
-                    aEval(aLine,{|e as character|jPerformReader["PartialStrTokArrayInDB"]+=if(Empty(e),0,1)});
+                    aEval(aLine,{|e as character|jPerformReader["PartialStrTokArrayInDB"]+=if(e=="",0,1)});
                     ,FWFreeArray(@aLine);
                 };
             )
