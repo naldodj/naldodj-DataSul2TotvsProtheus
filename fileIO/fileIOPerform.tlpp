@@ -30,6 +30,7 @@ static procedure __fileIOPerform()
     local cFileLogger:="\tmp\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log" as character
 
     local jPerform as json
+    local jPerformTotal as json
 
     local lStrHashLog as logical
     local lSequential:=.F. as logical
@@ -38,24 +39,26 @@ static procedure __fileIOPerform()
     local nFile as numeric
     local nStrHashLog as numeric
 
-    local oFileLogger:=FileLogger():New(cFileLogger) as object
+    local oFileLogger as object
 
     local i,j,k as numeric
 
     nStrHashLog:=Aviso("StrHash","Selecione a opção",{"Sim","Não"},2,"Gerar Hash das Linhas para comparação?",2)
     lStrHashLog:=(nStrHashLog==1)
 
+    oFileLogger:=FileLogger():New(cFileLogger)
+
     //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
     beginContent var cJFiles
 [
-     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0,"LinesExpected":3678}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0,"LinesExpected":3678}
-    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0,"LinesExpected":57733}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0,"LinesExpected":57733}
-    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0,"LinesExpected":93156}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0,"LinesExpected":93156}
-    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0,"LinesExpected":2539558}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0,"LinesExpected":2539558}
+     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0,"LinesExpected":3678}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":165561739286 ,"StrTokArrHashExpected":0,"LinesExpected":3678}
+    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0,"LinesExpected":57733}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":4152189391   ,"StrTokArrHashExpected":0,"LinesExpected":57733}
+    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0,"LinesExpected":93156}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"StrHashExpected":3040479861552,"StrTokArrHashExpected":0,"LinesExpected":93156}
+    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0,"LinesExpected":2539558}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"StrHashExpected":2212744737698,"StrTokArrHashExpected":0,"LinesExpected":2539558}
 ]
     endContent
 
@@ -66,16 +69,16 @@ static procedure __fileIOPerform()
     //Call: 0-Not Call;1=Sequential;2=Not Sequential;3=Both
     beginContent var cPerform
 {
-     "TFILEREAD"                        :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILENAVIGATOR"                    :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_FILE"                  :  {"Owner":"DNATech","Reader":"","RDD":"FILE"      ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_HASHMAP"               :  {"Owner":"DNATech","Reader":"","RDD":"HASHMAP"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_SQLITE_MEM"            :  {"Owner":"DNATech","Reader":"","RDD":"SQLITE_MEM","Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_SQLITE_TMP"            :  {"Owner":"DNATech","Reader":"","RDD":"SQLITE_TMP","Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_TOPCONN"               :  {"Owner":"DNATech","Reader":"","RDD":"TOPCONN"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FILEREADER_TOPCONN_TOKARRAYDB"    :  {"Owner":"DNATech","Reader":"","RDD":"TOPCONN"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FWFILEREADER"                     :  {"Owner":"TOTVS  ","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
-    ,"FT"                               :  {"Owner":"TOTVS  ","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0}
+     "TFILEREAD"                        :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILENAVIGATOR"                    :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILEREADER_FILE"                  :  {"Owner":"DNATech","Reader":"","RDD":"FILE"      ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILEREADER_HASHMAP"               :  {"Owner":"DNATech","Reader":"","RDD":"HASHMAP"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILEREADER_SQLITE_MEM"            :  {"Owner":"DNATech","Reader":"","RDD":"SQLITE_MEM","Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILEREADER_SQLITE_TMP"            :  {"Owner":"DNATech","Reader":"","RDD":"SQLITE_TMP","Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILEREADER_TOPCONN"               :  {"Owner":"DNATech","Reader":"","RDD":"TOPCONN"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILEREADER_TOPCONN_TOKARRAYDB"    :  {"Owner":"DNATech","Reader":"","RDD":"TOPCONN"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FWFILEREADER"                     :  {"Owner":"TOTVS  ","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FT"                               :  {"Owner":"TOTVS  ","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
 }
     endContent
 
@@ -160,13 +163,20 @@ static procedure __fileIOPerform()
         oFileLogger:WriteLine("")
     next nFile
 
+    jPerformTotal:=JSONObjectClone():CloneJSON(jPerform)
+
     for k:=1 to Len(aPerform)
         cFileReader:=aPerform[k]
         if (jPerform[cFileReader]["TotalTimeReader"]==0)
+            jPerformTotal:DelName(cFileReader)
             loop
         endif
-        oFileLogger:WriteLine(cFileReader+" => ElapTimeReaderTotal["+__MiliSecondsToTime(jPerform[cFileReader]["TotalTimeReader"])+"]")
+        jPerformTotal[cFileReader]["TotalElapTimeReader"]:=__MiliSecondsToTime(jPerform[cFileReader]["TotalTimeReader"])
     next i
+
+    if (Len(jPerformTotal:GetNames())>0)
+        __SendToLogger(oFileLogger,jPerformTotal,3)
+    endif
 
     oFileLogger:Close()
     FreeObj(@oFileLogger)
@@ -181,6 +191,7 @@ static procedure __fileIOPerform()
     FWFreeArray(@aPerform)
 
     FreeObj(@jPerform)
+    FWFreeObj(@jPerformTotal)
 
 return
 
@@ -280,6 +291,9 @@ return
 
 static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as numeric)
 
+    local aLoggerItem as array
+
+    local cName as character
     local cFileReader as character
 
     local jLoggerOut as json
@@ -359,39 +373,68 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
         jLoggerOut["Owner"]:=PadR(jLoggerOut["Owner"],7)
         jLoggerOut["RDD"]:=PadR(jLoggerOut["RDD"],10)
 
-        jLoggerOut["TotalTimeProc"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeProc"])
         jLoggerOut["PartialTimeProc"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeProc"])
-
-        jLoggerOut["TotalTimeReader"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeReader"])
         jLoggerOut["PartialTimeReader"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeReader"])
-
-        jLoggerOut["TotalTimeStrTokArr"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArr"])
         jLoggerOut["PartialTimeStrTokArr"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeStrTokArr"])
-
-        jLoggerOut["TotalTimeStrTokArr2"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArr2"])
         jLoggerOut["PartialTimeStrTokArr2"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeStrTokArr2"])
-
-        jLoggerOut["TotalTime__StrTokArray"]:=__MiliSecondsToTime(jLoggerOut["TotalTime__StrTokArray"])
         jLoggerOut["PartialTime__StrTokArray"]:=__MiliSecondsToTime(jLoggerOut["PartialTime__StrTokArray"])
-
-        jLoggerOut["TotalTimeStrHash"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrHash"])
         jLoggerOut["PartialTimeStrHash"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeStrHash"])
-
-        jLoggerOut["TotalTimeIsDisqualifiedVerify"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeIsDisqualifiedVerify"])
         jLoggerOut["PartialTimeIsDisqualifiedVerify"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeIsDisqualifiedVerify"])
-
-        jLoggerOut["TotalTimeRandom"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeRandom"])
-        jLoggerOut["PartialTimeRandom"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeRandom"])
-
-        jLoggerOut["TotalTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeLineSize"])
+        jLoggerOut["PartialTimeRandom"]:=if(jLoggerOut["PartialTimeRandom"]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut["PartialTimeRandom"]))
         jLoggerOut["PartialTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeLineSize"])
 
         jLoggerOut["IsDisqualifiedByTimeOut"]:=if(jLoggerOut["IsDisqualifiedByTimeOut"],1,0)
 
         if (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
-            jLoggerOut["TotalTimeStrTokArrayInDB"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArrayInDB"])
             jLoggerOut["PartialTimeStrTokArrayInDB"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeStrTokArrayInDB"])
+            //Only to a Pretty Print
+            jLoggerOut["PartialTimeStrTokArr"]:="00:00:00:00.000000"
+            jLoggerOut["PartialTimeStrTokArr2"]:="00:00:00:00.000000"
+            jLoggerOut["PartialTime__StrTokArray"]:="00:00:00:00.000000"
+        else
+            //Only to a Pretty Print
+            jLoggerOut["PartialTimeStrTokArrayInDB"]:="00:00:00:00.000000"
         endif
+
+        aLoggerItem:=jLoggerOut:GetNames()
+        for i:=1 to Len(aLoggerItem)
+            cName:=aLoggerItem[i]
+            if ("Total"$cName)
+                jLoggerOut:DelName(cName)
+            endif
+        next i
+
+        FWFreeArray(@aLoggerItem)
+
+    elseif (nOption==3)
+
+        aLoggerItem:=jLoggerOut:GetNames()
+        for i:=1 to Len(aLoggerItem)
+            cName:=aLoggerItem[i]
+            if (!"Total"$cName)
+                jLoggerOut:DelName(cName)
+            endif
+        next i
+
+        FWFreeArray(@aLoggerItem)
+
+        jLoggerOut["TotalTimeProc"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeProc"])
+        jLoggerOut["TotalTimeReader"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeReader"])
+        jLoggerOut["TotalTimeStrTokArr"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArr"])
+        jLoggerOut["TotalTimeStrTokArr2"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArr2"])
+        jLoggerOut["TotalTime__StrTokArray"]:=__MiliSecondsToTime(jLoggerOut["TotalTime__StrTokArray"])
+        jLoggerOut["TotalTimeStrHash"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrHash"])
+        jLoggerOut["TotalTimeIsDisqualifiedVerify"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeIsDisqualifiedVerify"])
+        jLoggerOut["TotalTimeRandom"]:=if(jLoggerOut["TotalTimeRandom"]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut["TotalTimeRandom"]))
+        jLoggerOut["TotalTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeLineSize"])
+
+        if (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
+            jLoggerOut["TotalTimeStrTokArrayInDB"]:=__MiliSecondsToTime(jLoggerOut["TotalTimeStrTokArrayInDB"])
+        else
+            //Only to a Pretty Print
+            jLoggerOut["TotalTimeStrTokArrayInDB"]:="00:00:00:00.000000"
+        endif
+
     endif
 
     oFileLogger:WriteLine(jLoggerOut:ToJSON())
