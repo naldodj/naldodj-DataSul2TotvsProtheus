@@ -408,6 +408,8 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
 
     elseif (nOption==3)
 
+        jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
+
         aLoggerItem:=jLoggerOut:GetNames()
         for i:=1 to Len(aLoggerItem)
             cName:=aLoggerItem[i]
