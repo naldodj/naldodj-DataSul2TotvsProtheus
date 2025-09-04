@@ -63,7 +63,9 @@ static procedure __fileIOPerform()
 
     jFiles:=JSONObject():New()
     jFiles:FromJSON(cJFiles)
+
     __SendToLogger(oFileLogger,jFiles,1)
+    oFileLogger:WriteLine("")
 
     //Call: 0-Not Call;1=Sequential;2=Not Sequential;3=Both
     beginContent var cPerform
@@ -277,6 +279,7 @@ return
 static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as numeric)
 
     local aLoggerItem as array
+    local aLoggerPerform as array
 
     local cName as character
     local cFileReader as character
@@ -394,13 +397,14 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
 
         jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
 
-        for i:=1 to Len(aPerform)
-            cFileReader:=aPerform[i]
-            if (jPerform[cFileReader]["TotalTimeReader"]==0)
+        aLoggerPerform:=jLoggerOut:GetNames()
+        for i:=1 to Len(aLoggerPerform)
+            cFileReader:=aLoggerPerform[i]
+            if (jLoggerOut[cFileReader]["TotalTimeReader"]==0)
                 jLoggerOut:DelName(cFileReader)
                 loop
             endif
-            jLoggerOut[cFileReader]["TotalElapTimeReader"]:=__MiliSecondsToTime(jPerform[cFileReader]["TotalTimeReader"])
+            jLoggerOut[cFileReader]["TotalElapTimeReader"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeReader"])
             aLoggerItem:=jLoggerOut[cFileReader]:GetNames()
             for j:=1 to Len(aLoggerItem)
                 cName:=aLoggerItem[j]
@@ -932,7 +936,7 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,jFile as
         oStrTokArrayInDB:=StrTokArrayInDB():New(StrTran(oFileReader:ft_fGetDbFile(),"dbo.",""),"LINE","M","ID")
         if (oStrTokArrayInDB:Tokenize(jFile["Token"]))
             aAllTokenizedLines:=oStrTokArrayInDB:GetAllTokenizedLines()
-            aEval(aAllTokenizedLines,{|aLine as array|jPerformReader["PartialStrTokArrayInDB"]+=Len(aLine)})
+            aEval(aAllTokenizedLines,{|aLine as array|jPerformReader["PartialStrTokArrayInDB"]+=Len(aLine),FWFreeArray(@aLine)})
             FWFreeArray(@aAllTokenizedLines)
         endif
         oStrTokArrayInDB:Close()
