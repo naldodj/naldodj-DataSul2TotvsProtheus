@@ -50,14 +50,14 @@ static procedure __fileIOPerform()
     //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
     beginContent var cJFiles
 [
-     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680,"ExpectedLines":3678}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680,"ExpectedLines":3678}
-    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656,"ExpectedLines":57733}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656,"ExpectedLines":57733}
-    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750,"ExpectedLines":93156}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750,"ExpectedLines":93156}
-    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
+     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArr":1070298 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680  ,"ExpectedLines":3678}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArr":1070298 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680  ,"ExpectedLines":3678}
+    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArr":185741  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656  ,"ExpectedLines":57733}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArr":185741  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656  ,"ExpectedLines":57733}
+    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArr":31486728,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750 ,"ExpectedLines":93156}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArr":31486728,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750 ,"ExpectedLines":93156}
+    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArr":95111600,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArr":95111600,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
 ]
     endContent
 
@@ -204,10 +204,15 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
     local nStrTokTime as numeric
 
     *****************************************************************
+    //Remove Tokens Desnecessários
+    if ("fulltablesdefinition.txt"$jFile["File"])
+        cLine:=cTools():StrReplace(cLine,{"  "," "})
+    endif
+    *****************************************************************
     nStrTokTime:=TimeCounter()
         aLine:=StrTokArr(cLine,cToken)
         cLineStrHash:=""
-        aEval(aLine,{|e|cLineStrHash+=(e+cToken)})
+        aEval(aLine,{|e as character|cLineStrHash+=(e+cToken)})
         cLineStrHash:=StrTran(cLineStrHash,cLine,"")
         if (cLineStrHash==cToken)
             cLineStrHash:=""
@@ -223,7 +228,7 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
     nStrTokTime:=TimeCounter()
         aLine:=StrTokArr2(cLine,cToken,.T.)
         cLineStrHash:=""
-        aEval(aLine,{|e|cLineStrHash+=(e+cToken)})
+        aEval(aLine,{|e as character|cLineStrHash+=(e+cToken)})
         cLineStrHash:=StrTran(cLineStrHash,cLine,"")
         if (cLineStrHash==cToken)
             cLineStrHash:=""
@@ -239,7 +244,7 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
     nStrTokTime:=TimeCounter()
         aLine:=cTools():__StrTokArray(cLine,cToken)
         cLineStrHash:=""
-        aEval(aLine,{|e|cLineStrHash+=(e+cToken)})
+        aEval(aLine,{|e as character|cLineStrHash+=(e+cToken)})
         cLineStrHash:=StrTran(cLineStrHash,cLine,"")
         if (cLineStrHash==cToken)
             cLineStrHash:=""
@@ -432,7 +437,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
 
     endif
 
-    oFileLogger:WriteLine(jLoggerOut:ToJSON())
+    oFileLogger:WriteLine(if((nOption==1),JSONTools():JSONPrettify(jLoggerOut:ToJSON()),jLoggerOut:ToJSON()))
 
     FreeObj(@jLoggerOut)
 
@@ -934,9 +939,18 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,jFile as
 
     jPerformReader["PartialTimeStrTokArrayInDB"]:=TimeCounter()
         oStrTokArrayInDB:=StrTokArrayInDB():New(StrTran(oFileReader:ft_fGetDbFile(),"dbo.",""),"LINE","M","ID")
+        if ("fulltablesdefinition.txt"$jFile["File"])
+            oStrTokArrayInDB:RemoveExtraTokens(jFile["Token"])
+        endif
         if (oStrTokArrayInDB:Tokenize(jFile["Token"]))
             aAllTokenizedLines:=oStrTokArrayInDB:GetAllTokenizedLines()
-            aEval(aAllTokenizedLines,{|aLine as array|jPerformReader["PartialStrTokArrayInDB"]+=Len(aLine),FWFreeArray(@aLine)})
+            aEval(;
+                aAllTokenizedLines;
+               ,{|aLine as array|;
+                    aEval(aLine,{|e as character|jPerformReader["PartialStrTokArrayInDB"]+=if(Empty(e),0,1)});
+                    ,FWFreeArray(@aLine);
+                };
+            )
             FWFreeArray(@aAllTokenizedLines)
         endif
         oStrTokArrayInDB:Close()
@@ -952,7 +966,6 @@ static procedure __TST_FILEREADER_StrTokArrayInDB(oFileLogger as object,jFile as
     __SendToLogger(oFileLogger,jPerformReader,2)
 
 return
-
 
 static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
 
