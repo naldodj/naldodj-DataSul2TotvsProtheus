@@ -297,6 +297,7 @@ static procedure __TST_FT(oFileLogger as object,jFile as json,jPerformReader as 
 
     //BUG: ft_fEof() quando arquivo inexistente nunca chega em EOF. Vamos verificar se tem dados a serem lidos antes
     if (jPerformReader["FileSize"]>0)
+
         if (!lSequential)
             nRecNos:=ft_fLastRec()
             while (!ft_fEof())
@@ -338,6 +339,7 @@ static procedure __TST_FT(oFileLogger as object,jFile as json,jPerformReader as 
                 ft_fSkip()
             end while
         endif
+
     endif
 
     ft_fUse()
@@ -380,67 +382,72 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,jFile as json,jPerform
         jPerformReader["FileSize"]:=0
     endif
 
-    if (!lSequential)
-
-        oFileNavigator:=FileNavigator():New(;
-            oFileReader:nHandLen;
-            ,{|nHandle|fSeek(nHandle,0,FS_SET)};
-            ,{||(jPerformReader["FileSize"]==0).or.(!oFileReader:HasLine())};//BUG FWFileReader():HasLine() Processa ao menos uma linha mesmo com arquivo inexistente.
-            ,{||oFileReader:GetLine()};
-        )
+    //BUG FWFileReader():HasLine() Processa ao menos uma linha mesmo com arquivo inexistente.
+    if (jPerformReader["FileSize"]>0)
 
         if (!lSequential)
-            nRecNos:=oFileNavigator:BuildIndex()
+
+            oFileNavigator:=FileNavigator():New(;
+                oFileReader:nHandLen;
+                ,{|nHandle|fSeek(nHandle,0,FS_SET)};
+                ,{||!oFileReader:HasLine()};
+                ,{||oFileReader:GetLine()};
+            )
+
+            if (!lSequential)
+                nRecNos:=oFileNavigator:BuildIndex()
+            endif
+
+            //Utilizo, agora, FileNavigator para Navegar pelo arquivo
+            while (oFileNavigator:HasLine())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                //Teste de Navegacao
+                //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+                *****************************************************************
+                nRecNo:=oFileNavigator:RecNo()
+                *****************************************************************
+                oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
+                cLineSkip:=oFileNavigator:GetLine()
+                *****************************************************************
+                oFileNavigator:GoTo(nRecNo)
+                cLine:=oFileNavigator:GetLine()
+                *****************************************************************
+                //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
+                if (cCRH10$cLine)
+                    cLine:=StrTran(cLine,cCRH10,"")
+                endif
+                if (cCRH13$cLine)
+                    cLine:=StrTran(cLine,cCRH13,"")
+                endif
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+            end while
+            oFileNavigator:Close({||oFileReader:Close()})
+            FreeObj(@oFileNavigator)
+        else
+            while (oFileReader:HasLine())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                //Fix Return Error GetLine(.T.)
+                cLine:=oFileReader:GetLine(.T.)
+                *****************************************************************
+                //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
+                if (cCRH10$cLine)
+                    cLine:=StrTran(cLine,cCRH10,"")
+                endif
+                if (cCRH13$cLine)
+                    cLine:=StrTran(cLine,cCRH13,"")
+                endif
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+            end while
         endif
 
-        //Utilizo, agora, FileNavigator para Navegar pelo arquivo
-        while (oFileNavigator:HasLine())
-            *****************************************************************
-            jPerformReader["Lines"]++
-            *****************************************************************
-            //Teste de Navegacao
-            //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
-            *****************************************************************
-            nRecNo:=oFileNavigator:RecNo()
-            *****************************************************************
-            oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
-            cLineSkip:=oFileNavigator:GetLine()
-            *****************************************************************
-            oFileNavigator:GoTo(nRecNo)
-            cLine:=oFileNavigator:GetLine()
-            *****************************************************************
-            //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
-            if (cCRH10$cLine)
-                cLine:=StrTran(cLine,cCRH10,"")
-            endif
-            if (cCRH13$cLine)
-                cLine:=StrTran(cLine,cCRH13,"")
-            endif
-            *****************************************************************
-            __GetLineSize(cLine,jPerformReader)
-            *****************************************************************
-        end while
-        oFileNavigator:Close({||oFileReader:Close()})
-        FreeObj(@oFileNavigator)
-    else
-        while (oFileReader:HasLine())
-            *****************************************************************
-            jPerformReader["Lines"]++
-            *****************************************************************
-            //Fix Return Error GetLine(.T.)
-            cLine:=oFileReader:GetLine(.T.)
-            *****************************************************************
-            //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
-            if (cCRH10$cLine)
-                cLine:=StrTran(cLine,cCRH10,"")
-            endif
-            if (cCRH13$cLine)
-                cLine:=StrTran(cLine,cCRH13,"")
-            endif
-            *****************************************************************
-            __GetLineSize(cLine,jPerformReader)
-            *****************************************************************
-        end while
     endif
 
     FreeObj(@oFileReader)
@@ -474,51 +481,55 @@ static procedure __TST_TFILEREAD(oFileLogger as object,jFile as json,jPerformRea
 
     jPerformReader["FileSize"]:=oFileReader:FileSize()
 
-    if (!lSequential)
+    if (jPerformReader["FileSize"]>0)
 
-        oFileNavigator:=FileNavigator():New(;
-            oFileReader:Handle();
-            ,{|nHandle|fSeek(nHandle,0,FS_SET)};
-            ,{||!oFileReader:HasLine()};
-            ,{||oFileReader:GetLine()};
-        )
+        if (!lSequential)
 
-        nRecNos:=oFileNavigator:BuildIndex()
+            oFileNavigator:=FileNavigator():New(;
+                oFileReader:Handle();
+                ,{|nHandle|fSeek(nHandle,0,FS_SET)};
+                ,{||!oFileReader:HasLine()};
+                ,{||oFileReader:GetLine()};
+            )
 
-        //Utilizo, agora, FileNavigator para Navegar pelo arquivo
-        while (oFileNavigator:HasLine())
-            *****************************************************************
-            jPerformReader["Lines"]++
-            *****************************************************************
-            //Teste de Navegacao
-            //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
-            *****************************************************************
-            nRecNo:=oFileNavigator:RecNo()
-            *****************************************************************
-            oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
-            cLineSkip:=oFileNavigator:GetLine()
-            *****************************************************************
-            oFileNavigator:GoTo(nRecNo)
-            cLine:=oFileNavigator:GetLine()
-            *****************************************************************
-            __GetLineSize(cLine,jPerformReader)
-            *****************************************************************
-        end while
+            nRecNos:=oFileNavigator:BuildIndex()
 
-        oFileNavigator:Close({||oFileReader:Close()})
-        FreeObj(@oFileNavigator)
+            //Utilizo, agora, FileNavigator para Navegar pelo arquivo
+            while (oFileNavigator:HasLine())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                //Teste de Navegacao
+                //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+                *****************************************************************
+                nRecNo:=oFileNavigator:RecNo()
+                *****************************************************************
+                oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
+                cLineSkip:=oFileNavigator:GetLine()
+                *****************************************************************
+                oFileNavigator:GoTo(nRecNo)
+                cLine:=oFileNavigator:GetLine()
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+            end while
 
-    else
+            oFileNavigator:Close({||oFileReader:Close()})
+            FreeObj(@oFileNavigator)
 
-        while (oFileReader:HasLine())
-            *****************************************************************
-            jPerformReader["Lines"]++
-            *****************************************************************
-            cLine:=oFileReader:GetLine()
-            *****************************************************************
-            __GetLineSize(cLine,jPerformReader)
-            *****************************************************************
-        end while
+        else
+
+            while (oFileReader:HasLine())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                cLine:=oFileReader:GetLine()
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+            end while
+
+        endif
 
     endif
 
@@ -550,38 +561,42 @@ static procedure __TST_FILEREADER(oFileLogger as object,jFile as json,jPerformRe
 
     jPerformReader["FileSize"]:=oFileReader:ft_fFileSize()
 
-    if (!lSequential)
-        nRecNos:=oFileReader:ft_fLastRec()
-        while (!oFileReader:ft_fEof())
-            *****************************************************************
-            jPerformReader["Lines"]++
-            *****************************************************************
-            //Teste de Navegacao
-            *****************************************************************
-            nRecNo:=oFileReader:ft_fRecNo()
-            *****************************************************************
-            oFileReader:ft_fSkip(__Randomize(1,nRecNos,jPerformReader))
-            cLineSkip:=oFileReader:ft_fReadLN()
-            *****************************************************************
-            oFileReader:ft_fGoto(nRecNo)
-            *****************************************************************
-            cLine:=oFileReader:ft_fReadLN()
-            *****************************************************************
-            __GetLineSize(cLine,jPerformReader)
-            *****************************************************************
-            oFileReader:ft_fSkip()
-        end while
-    else
-        while (!oFileReader:ft_fEof())
-            *****************************************************************
-            jPerformReader["Lines"]++
-            *****************************************************************
-            cLine:=oFileReader:ft_fReadLN()
-            *****************************************************************
-            __GetLineSize(cLine,jPerformReader)
-            *****************************************************************
-            oFileReader:ft_fSkip()
-        end while
+    if (jPerformReader["FileSize"]>0)
+
+        if (!lSequential)
+            nRecNos:=oFileReader:ft_fLastRec()
+            while (!oFileReader:ft_fEof())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                //Teste de Navegacao
+                *****************************************************************
+                nRecNo:=oFileReader:ft_fRecNo()
+                *****************************************************************
+                oFileReader:ft_fSkip(__Randomize(1,nRecNos,jPerformReader))
+                cLineSkip:=oFileReader:ft_fReadLN()
+                *****************************************************************
+                oFileReader:ft_fGoto(nRecNo)
+                *****************************************************************
+                cLine:=oFileReader:ft_fReadLN()
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+                oFileReader:ft_fSkip()
+            end while
+        else
+            while (!oFileReader:ft_fEof())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                cLine:=oFileReader:ft_fReadLN()
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+                oFileReader:ft_fSkip()
+            end while
+        endif
+
     endif
 
     oFileReader:ft_fUse()
@@ -622,42 +637,46 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerfor
     nHandle:=oFileNavigator:Handle()
     jPerformReader["FileSize"]:=oFileNavigator:FileSize()
 
-    oFileReadLine:=FileReadLine():New(nHandle,jPerformReader["FileSize"])
+    if (jPerformReader["FileSize"]>0)
 
-    if (!lSequential)
-        nRecNos:=oFileNavigator:BuildIndex()
-        while (oFileNavigator:HasLine())
-            *****************************************************************
-            jPerformReader["Lines"]++
-            *****************************************************************
-            //Teste de Navegacao
-            //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
-            *****************************************************************
-            nRecNo:=oFileNavigator:RecNo()
-            *****************************************************************
-            oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
-            cLineSkip:=oFileNavigator:GetLine()
-            *****************************************************************
-            oFileNavigator:GoTo(nRecNo)
-            cLine:=oFileNavigator:GetLine()
-            *****************************************************************
-            __GetLineSize(cLine,jPerformReader)
-            *****************************************************************
-        end while
-    else
-        while (oFileReadLine:HasLine())
-            *****************************************************************
-            jPerformReader["Lines"]++
-            *****************************************************************
-            cLine:=oFileReadLine:GetLine()
-            *****************************************************************
-            __GetLineSize(cLine,jPerformReader)
-            *****************************************************************
-        end while
+        oFileReadLine:=FileReadLine():New(nHandle,jPerformReader["FileSize"])
+
+        if (!lSequential)
+            nRecNos:=oFileNavigator:BuildIndex()
+            while (oFileNavigator:HasLine())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                //Teste de Navegacao
+                //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+                *****************************************************************
+                nRecNo:=oFileNavigator:RecNo()
+                *****************************************************************
+                oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
+                cLineSkip:=oFileNavigator:GetLine()
+                *****************************************************************
+                oFileNavigator:GoTo(nRecNo)
+                cLine:=oFileNavigator:GetLine()
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+            end while
+        else
+            while (oFileReadLine:HasLine())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                cLine:=oFileReadLine:GetLine()
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+            end while
+        endif
+
+        oFileReadLine:Clean()
+        FreeObj(@oFileReadLine)
+
     endif
-
-    oFileReadLine:Clean()
-    FreeObj(@oFileReadLine)
 
     oFileNavigator:Close()
     FreeObj(@oFileNavigator)
