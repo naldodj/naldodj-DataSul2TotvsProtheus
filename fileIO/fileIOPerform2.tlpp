@@ -1,0 +1,670 @@
+#include "totvs.ch"
+#include "fileio.ch"
+#include "directry.ch"
+#include "parmtype.ch"
+#include "jsonarray.ch"
+
+using namespace dna.tech
+
+procedure u_fileIOP2()
+    __cInternet:=nil
+    u_fileIOPerform2()
+return
+
+procedure u_fileIOPerform2()
+    __cInternet:=nil
+    FWMsgRun(nil,{||__fileIOPerform2()},"fileIOPerform2","Aguarde...")
+return
+
+static procedure __fileIOPerform2()
+
+    local aFiles as array
+    local aPerform as array
+
+    local cLine as character
+    local cFile as character
+    local cPerform as character
+    local cFileReader as character
+    local cFileLogger:="\tmp\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log" as character
+
+    local jFiles as json
+    local jPerform as json
+
+    local lSequential:=.F. as logical
+    local lExecuteProc as logical
+
+    local nFile as numeric
+
+    local oFileLogger as object
+
+    local i,j as numeric
+
+    aPerform:=Array(0)
+    aFiles:=Directory("C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\*.csv")
+    nFiles:=Len(aFiles)
+    for nFile:=1 to nFiles
+        //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
+        if (File("\datasul2protheus\tables\"+aFiles[nFile][F_NAME]))
+            aAdd(aPerform,{"File":"\datasul2protheus\tables\"+aFiles[nFile][F_NAME],"Process":.T.,"Call":7,"Token":";","DecodeUTF8":.T.})
+        endif
+        aAdd(aPerform,{"File":"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\"+aFiles[nFile][F_NAME],"Process":.T.,"Call":7,"Token":";","DecodeUTF8":.T.})
+    next nFile
+    jFiles:=JSONObject():New()
+    jFiles:Set(aPerform)
+
+    oFileLogger:=FileLogger():New(cFileLogger)
+
+    __SendToLogger(oFileLogger,jFiles,1)
+    oFileLogger:WriteLine("")
+
+    //Call: 0-Not Call;1=Sequential;2=Not Sequential;3=Both
+    beginContent var cPerform
+{
+     "TFILEREAD"       :  {"Owner":"DNATech","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILENAVIGATOR"   :  {"Owner":"DNATech","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILEREADER_FILE" :  {"Owner":"DNATech","Reader":"","RDD":"FILE" ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FWFILEREADER"    :  {"Owner":"TOTVS  ","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FT"              :  {"Owner":"TOTVS  ","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+}
+    endContent
+
+    jPerform:=JSONObject():New()
+    jPerform:FromJSON(cPerform)
+    aPerform:=jPerform:GetNames()
+
+    for nFile:=1 to Len(jFiles)
+        if (!jFiles[nFile]["Process"])
+            loop
+        endif
+        cLine:=""
+        cFile:=jFiles[nFile]["File"]
+        for i:=1 to 2
+            lExecuteProc:=NTools():ContainN(jFiles[nFile]["Call"],i)
+            if (!lExecuteProc)
+                loop
+            endif
+            lSequential:=(i==1)
+            oFileLogger:WriteLine("FileName["+cFile+"] "+if(!lSequential,"Not ","")+"Sequential reading")
+            for j:=1 to Len(aPerform)
+                cFileReader:=aPerform[j]
+                //Call: 0-Not Call;1=Sequential;2=Not Sequential;3=Both
+                lExecuteProc:=NTools():ContainN(jFiles[nFile]["Call"],jPerform[cFileReader]["Call"])
+                if (!lExecuteProc)
+                    loop
+                endif
+                jPerform[cFileReader]["Reader"]:=cFileReader
+                jPerform[cFileReader]["Lines"]:=0
+                jPerform[cFileReader]["FileSize"]:=0
+                jPerform[cFileReader]["PartialBytesRead"]:=0
+                jPerform[cFileReader]["MinLineSize"]:=0
+                jPerform[cFileReader]["MaxLineSize"]:=0
+                jPerform[cFileReader]["PartialTimeRandom"]:=0
+                jPerform[cFileReader]["PartialTimeLineSize"]:=0
+                if (cFileReader=="FT")
+                    __TST_FT(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                elseif (cFileReader=="FWFILEREADER")
+                    __TST_FWFILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                elseif (cFileReader=="TFILEREAD")
+                    __TST_TFILEREAD(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                elseif (cFileReader=="FILENAVIGATOR")
+                    __TST_FILENAVIGATOR(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                else
+                    __TST_FILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                endif
+            next j
+        next i
+        oFileLogger:WriteLine("")
+    next nFile
+
+    __SendToLogger(oFileLogger,jPerform,3)
+
+    oFileLogger:Close()
+    FreeObj(@oFileLogger)
+
+    if (DirTools():MakeFileDir("c:"+cFileLogger))
+        __CopyFile(cFileLogger,"c:"+cFileLogger)
+        fErase(cFileLogger)
+    endif
+
+    FWFreeArray(@jFiles)
+
+    FWFreeArray(@aPerform)
+
+    FreeObj(@jPerform)
+
+return
+
+static function __HashLoggerFile(cFile as character)
+    local cSPPDrive as character
+    local cSPPPath as character
+    local cSPPFile as character
+    local cSPPExt as character
+    SplitPath(cFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
+    cFile:="\tmp\"
+    cFile+=cSPPFile
+    cFile+=cSPPExt
+    DirTools():MakeFileDir(cFile)
+return(cFile)
+
+static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as numeric)
+
+    local aLoggerItem as array
+    local aLoggerPerform as array
+
+    local cName as character
+    local cFileReader as character
+
+    local jLoggerOut as json
+
+    local i,j as numeric
+
+    if (nOption==1)
+
+        jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
+
+    elseif (nOption==2)
+
+        cFileReader:=jLogger["Reader"]
+
+        jLogger["PartialTimeProc"]:=(jLogger["ProcEnd"]-jLogger["ProcStart"])
+        jLogger["PartialTimeReader"]:=(;
+            jLogger["PartialTimeProc"]-(;
+             jLogger["PartialTimeRandom"];
+            +jLogger["PartialTimeLineSize"];
+            );
+        )
+
+        jLogger["TotalTimeProc"]+=jLogger["PartialTimeProc"]
+        jLogger["TotalTimeReader"]+=jLogger["PartialTimeReader"]
+
+        jLogger["TotalLinesRead"]+=jLogger["Lines"]
+        jLogger["TotalBytesRead"]+=jLogger["PartialBytesRead"]
+
+        jLogger["TotalTimeRandom"]+=jLogger["PartialTimeRandom"]
+
+        jLogger["TotalTimeLineSize"]+=jLogger["PartialTimeLineSize"]
+
+        jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
+
+        jLoggerOut["Reader"]:=PadR(jLoggerOut["Reader"],15)
+        jLoggerOut["Owner"]:=PadR(jLoggerOut["Owner"],7)
+        jLoggerOut["RDD"]:=PadR(jLoggerOut["RDD"],10)
+
+        jLoggerOut["PartialTimeProc"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeProc"])
+        jLoggerOut["PartialTimeReader"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeReader"])
+        jLoggerOut["PartialTimeRandom"]:=if(jLoggerOut["PartialTimeRandom"]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut["PartialTimeRandom"]))
+        jLoggerOut["PartialTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeLineSize"])
+
+        aLoggerItem:=jLoggerOut:GetNames()
+            for i:=1 to Len(aLoggerItem)
+                cName:=aLoggerItem[i]
+                if ("Total"$cName)
+                    jLoggerOut:DelName(cName)
+                endif
+            next i
+        FWFreeArray(@aLoggerItem)
+
+    elseif (nOption==3)
+
+        jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
+
+        aLoggerPerform:=jLoggerOut:GetNames()
+        for i:=1 to Len(aLoggerPerform)
+            cFileReader:=aLoggerPerform[i]
+            if (jLoggerOut[cFileReader]["TotalTimeReader"]==0)
+                jLoggerOut:DelName(cFileReader)
+                loop
+            endif
+            jLoggerOut[cFileReader]["TotalElapTimeReader"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeReader"])
+            aLoggerItem:=jLoggerOut[cFileReader]:GetNames()
+            for j:=1 to Len(aLoggerItem)
+                cName:=aLoggerItem[j]
+                if (!"Total"$cName)
+                    jLoggerOut[cFileReader]:DelName(cName)
+                endif
+            next j
+            FWFreeArray(@aLoggerItem)
+            jLoggerOut[cFileReader]["TotalTimeProc"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeProc"])
+            jLoggerOut[cFileReader]["TotalTimeReader"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeReader"])
+            jLoggerOut[cFileReader]["TotalTimeRandom"]:=if(jLoggerOut[cFileReader]["TotalTimeRandom"]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut["TotalTimeRandom"]))
+            jLoggerOut[cFileReader]["TotalTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeLineSize"])
+        next i
+
+    endif
+
+    oFileLogger:WriteLine(if((nOption==1),JSONTools():JSONPrettify(jLoggerOut:ToJSON()),jLoggerOut:ToJSON()))
+
+    FreeObj(@jLoggerOut)
+
+return
+
+static function __MiliSecondsToTime(nTotalMS as numeric) as character
+return(timeCalc():MiliSecsToTime(nTotalMS))
+
+static function __Randomize(nX as numeric,nY as numeric,jPerformReader as json) as numeric
+    local nTimeCounter:=TimeCounter() as numeric
+    local nRandom as numeric
+    nRandom:=Randomize(nX,nY)
+    jPerformReader["PartialTimeRandom"]+=(TimeCounter()-nTimeCounter)
+return(nRandom)
+
+static procedure __GetLineSize(cLine,jPerformReader)
+    local nTimeCounter:=TimeCounter() as numeric
+    local nLineSize:=Len(cLine) as numeric
+    jPerformReader["PartialBytesRead"]+=nLineSize
+    if (jPerformReader["MinLineSize"]==0)
+        jPerformReader["MinLineSize"]:=nLineSize
+    else
+        jPerformReader["MinLineSize"]:=Min(jPerformReader["MinLineSize"],Max(nLineSize,jPerformReader["MinLineSize"]))
+    endif
+    jPerformReader["MaxLineSize"]:=Max(jPerformReader["MaxLineSize"],nLineSize)
+    jPerformReader["PartialTimeLineSize"]+=(TimeCounter()-nTimeCounter)
+return
+
+static procedure __TST_FT(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
+
+    local cFile:=jFile["File"] as character
+    local cLine as character
+    local cLineSkip as character
+
+    local lBreakLine as logical
+
+    local nHandle as numeric
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    local oFileNavigator as object
+
+    jPerformReader["ProcStart"]:=TimeCounter()
+    jPerformReader["TimeProcStart"]:=Time()
+
+    nHandle:=fOpen(cFile)
+    //FT_ nao fornece uma funcao para obter o tamanho do arquivo
+    //Vamos emprestar de FileNavigator
+    oFileNavigator:=FileNavigator():New(;
+        nHandle;
+        ,nil;
+        ,{||.F.};
+        ,{||""};
+    )
+    jPerformReader["FileSize"]:=oFileNavigator:FileSize()
+    oFileNavigator:Close()
+
+    nHandle:=ft_fUse(cFile)
+
+    ft_fGoTop()
+
+    //BUG: ft_fEof() quando arquivo inexistente nunca chega em EOF. Vamos verificar se tem dados a serem lidos antes
+    if (jPerformReader["FileSize"]>0)
+        if (!lSequential)
+            nRecNos:=ft_fLastRec()
+            while (!ft_fEof())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                //Teste de Navegacao
+                *****************************************************************
+                nRecNo:=ft_fRecNo()
+                *****************************************************************
+                ft_fSkip(__Randomize(1,nRecNos,jPerformReader))
+                cLineSkip:=ft_fReadLN()
+                *****************************************************************
+                ft_fGoto(nRecNo)
+                *****************************************************************
+                cLine:=ft_fReadLN()
+                if (lBreakLine)
+                    ft_fSkip()
+                    cLine+=ft_fReadLN()
+                endif
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+                ft_fSkip()
+            end while
+        else
+            while (!ft_fEof())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                cLine:=ft_fReadLN()
+                if (lBreakLine)
+                    ft_fSkip()
+                    cLine+=ft_fReadLN()
+                endif
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+                ft_fSkip()
+            end while
+        endif
+    endif
+
+    ft_fUse()
+
+    jPerformReader["TimeProcEnd"]:=Time()
+    jPerformReader["ProcEnd"]:=TimeCounter()
+
+    __SendToLogger(oFileLogger,jPerformReader,2)
+
+return
+
+static procedure __TST_FWFILEREADER(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
+
+    local cFile:=jFile["File"] as character
+    local cLine as character
+    local cLineSkip as character
+
+    //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
+    local cCRH10 as character
+    local cCRH13 as character
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    local oFileReader as object
+    local oFileNavigator as object
+
+    jPerformReader["ProcStart"]:=TimeCounter()
+    jPerformReader["TimeProcStart"]:=Time()
+
+    cCRH10:=CHR(10)
+    cCRH13:=CHR(13)
+
+    oFileReader:=FWFileReader():New(cFile)
+    oFileReader:Open()
+
+    jPerformReader["FileSize"]:=oFileReader:GetFileSize()
+    //BUG FWFileReader():GetFileSize() quando arquivo inexistente
+    if (jPerformReader["FileSize"]==NIL)
+        jPerformReader["FileSize"]:=0
+    endif
+
+    if (!lSequential)
+
+        oFileNavigator:=FileNavigator():New(;
+            oFileReader:nHandLen;
+            ,{|nHandle|fSeek(nHandle,0,FS_SET)};
+            ,{||(jPerformReader["FileSize"]==0).or.(!oFileReader:HasLine())};//BUG FWFileReader():HasLine() Processa ao menos uma linha mesmo com arquivo inexistente.
+            ,{||oFileReader:GetLine()};
+        )
+
+        if (!lSequential)
+            nRecNos:=oFileNavigator:BuildIndex()
+        endif
+
+        //Utilizo, agora, FileNavigator para Navegar pelo arquivo
+        while (oFileNavigator:HasLine())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            //Teste de Navegacao
+            //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+            *****************************************************************
+            nRecNo:=oFileNavigator:RecNo()
+            *****************************************************************
+            oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
+            cLineSkip:=oFileNavigator:GetLine()
+            *****************************************************************
+            oFileNavigator:GoTo(nRecNo)
+            cLine:=oFileNavigator:GetLine()
+            *****************************************************************
+            //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
+            if (cCRH10$cLine)
+                cLine:=StrTran(cLine,cCRH10,"")
+            endif
+            if (cCRH13$cLine)
+                cLine:=StrTran(cLine,cCRH13,"")
+            endif
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+        end while
+        oFileNavigator:Close({||oFileReader:Close()})
+        FreeObj(@oFileNavigator)
+    else
+        while (oFileReader:HasLine())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            //Fix Return Error GetLine(.T.)
+            cLine:=oFileReader:GetLine(.T.)
+            *****************************************************************
+            //FWFILEREADER tem Bug e retorna cCRH10 ou cCRH13 indevidamente e não bate o Hash da Linha
+            if (cCRH10$cLine)
+                cLine:=StrTran(cLine,cCRH10,"")
+            endif
+            if (cCRH13$cLine)
+                cLine:=StrTran(cLine,cCRH13,"")
+            endif
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+        end while
+    endif
+
+    FreeObj(@oFileReader)
+
+    jPerformReader["TimeProcEnd"]:=Time()
+    jPerformReader["ProcEnd"]:=TimeCounter()
+
+    __SendToLogger(oFileLogger,jPerformReader,2)
+
+return
+
+static procedure __TST_TFILEREAD(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
+
+    local cFile:=jFile["File"] as character
+    local cLine as character
+    local cLineSkip as character
+
+    local nHandle as numeric
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    local oFileReader as object
+    local oFileNavigator as object
+
+    jPerformReader["ProcStart"]:=TimeCounter()
+    jPerformReader["TimeProcStart"]:=Time()
+
+    oFileReader:=TFileRead():New(cFile)
+    oFileReader:Open()
+
+    jPerformReader["FileSize"]:=oFileReader:FileSize()
+
+    if (!lSequential)
+
+        oFileNavigator:=FileNavigator():New(;
+            oFileReader:Handle();
+            ,{|nHandle|fSeek(nHandle,0,FS_SET)};
+            ,{||!oFileReader:HasLine()};
+            ,{||oFileReader:GetLine()};
+        )
+
+        nRecNos:=oFileNavigator:BuildIndex()
+
+        //Utilizo, agora, FileNavigator para Navegar pelo arquivo
+        while (oFileNavigator:HasLine())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            //Teste de Navegacao
+            //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+            *****************************************************************
+            nRecNo:=oFileNavigator:RecNo()
+            *****************************************************************
+            oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
+            cLineSkip:=oFileNavigator:GetLine()
+            *****************************************************************
+            oFileNavigator:GoTo(nRecNo)
+            cLine:=oFileNavigator:GetLine()
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+        end while
+
+        oFileNavigator:Close({||oFileReader:Close()})
+        FreeObj(@oFileNavigator)
+
+    else
+
+        while (oFileReader:HasLine())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            cLine:=oFileReader:GetLine()
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+        end while
+
+    endif
+
+    FreeObj(@oFileReader)
+
+    jPerformReader["TimeProcEnd"]:=Time()
+    jPerformReader["ProcEnd"]:=TimeCounter()
+
+    __SendToLogger(oFileLogger,jPerformReader,2)
+
+return
+
+static procedure __TST_FILEREADER(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
+
+    local cFile:=jFile["File"] as character
+    local cLine as character
+    local cLineSkip as character
+
+    local oFileReader as object
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    jPerformReader["ProcStart"]:=TimeCounter()
+    jPerformReader["TimeProcStart"]:=Time()
+
+    oFileReader:=fileTools():FileReader(jPerformReader["RDD"])
+    oFileReader:ft_fUse(cFile)
+
+    jPerformReader["FileSize"]:=oFileReader:ft_fFileSize()
+
+    if (!lSequential)
+        nRecNos:=oFileReader:ft_fLastRec()
+        while (!oFileReader:ft_fEof())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            //Teste de Navegacao
+            *****************************************************************
+            nRecNo:=oFileReader:ft_fRecNo()
+            *****************************************************************
+            oFileReader:ft_fSkip(__Randomize(1,nRecNos,jPerformReader))
+            cLineSkip:=oFileReader:ft_fReadLN()
+            *****************************************************************
+            oFileReader:ft_fGoto(nRecNo)
+            *****************************************************************
+            cLine:=oFileReader:ft_fReadLN()
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+            oFileReader:ft_fSkip()
+        end while
+    else
+        while (!oFileReader:ft_fEof())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            cLine:=oFileReader:ft_fReadLN()
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+            oFileReader:ft_fSkip()
+        end while
+    endif
+
+    oFileReader:ft_fUse()
+    FreeObj(@oFileReader)
+
+    jPerformReader["TimeProcEnd"]:=Time()
+    jPerformReader["ProcEnd"]:=TimeCounter()
+
+    __SendToLogger(oFileLogger,jPerformReader,2)
+
+return
+
+static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
+
+    local cFile:=jFile["File"] as character
+    local cLine as character
+    local cLineSkip as character
+
+    local nHandle:=(-1) as numeric
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    local oFileReadLine as object
+    local oFileNavigator as object
+
+    jPerformReader["ProcStart"]:=TimeCounter()
+    jPerformReader["TimeProcStart"]:=Time()
+
+    oFileNavigator:=FileNavigator():New(;
+         nHandle;
+        ,{|nHandle|fSeek(nHandle,0,FS_SET)};
+        ,{||!oFileReadLine:HasLine()};
+        ,{||oFileReadLine:GetLine()};
+    )
+
+    oFileNavigator:Open(cFile)
+    nHandle:=oFileNavigator:Handle()
+    jPerformReader["FileSize"]:=oFileNavigator:FileSize()
+
+    oFileReadLine:=FileReadLine():New(nHandle,jPerformReader["FileSize"])
+
+    if (!lSequential)
+        nRecNos:=oFileNavigator:BuildIndex()
+        while (oFileNavigator:HasLine())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            //Teste de Navegacao
+            //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+            *****************************************************************
+            nRecNo:=oFileNavigator:RecNo()
+            *****************************************************************
+            oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
+            cLineSkip:=oFileNavigator:GetLine()
+            *****************************************************************
+            oFileNavigator:GoTo(nRecNo)
+            cLine:=oFileNavigator:GetLine()
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+        end while
+    else
+        while (oFileReadLine:HasLine())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            cLine:=oFileReadLine:GetLine()
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+        end while
+    endif
+
+    oFileReadLine:Clean()
+    FreeObj(@oFileReadLine)
+
+    oFileNavigator:Close()
+    FreeObj(@oFileNavigator)
+
+    jPerformReader["TimeProcEnd"]:=Time()
+    jPerformReader["ProcEnd"]:=TimeCounter()
+
+    __SendToLogger(oFileLogger,jPerformReader,2)
+
+return

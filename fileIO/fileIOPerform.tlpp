@@ -17,8 +17,6 @@ return
 
 static procedure __fileIOPerform()
 
-    local jFiles as json
-
     local aPerform as array
 
     local cLine as character
@@ -29,6 +27,7 @@ static procedure __fileIOPerform()
     local cFileReader as character
     local cFileLogger:="\tmp\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log" as character
 
+    local jFiles as json
     local jPerform as json
 
     local lStrHashLog as logical
@@ -52,6 +51,8 @@ static procedure __fileIOPerform()
 [
      {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArr":1070298 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680  ,"ExpectedLines":3678}
     ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArr":1070298 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680  ,"ExpectedLines":3678}
+    ,{"File":"\\datasul2protheus\\tables\\rh_pessoa_fisic.csv"                                                          ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":41223708344 ,"ExpectedStrTokArr":402546 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2982225  ,"ExpectedLines":5834}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\rh_pessoa_fisic.csv"                 ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":41223708344 ,"ExpectedStrTokArr":402546 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2982225  ,"ExpectedLines":5834}
     ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArr":185741  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656  ,"ExpectedLines":57733}
     ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArr":185741  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656  ,"ExpectedLines":57733}
     ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArr":31486728,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750 ,"ExpectedLines":93156}
@@ -217,7 +218,11 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
         if (cLineStrHash==cToken)
             cLineStrHash:=""
         endif
-        jPerformReader["PartialStrTokArr"]+=Len(aLine)
+        if ("fulltablesdefinition.txt"$jFile["File"])
+            aEval(aLine,{|e as character|jPerformReader["PartialStrTokArr"]+=if(e=="",0,1)})
+        else
+            jPerformReader["PartialStrTokArr"]+=Len(aLine)
+        endif
         FWFreeArray(@aLine)
     jPerformReader["PartialTimeStrTokArr"]+=(TimeCounter()-nStrTokTime)
     *****************************************************************
