@@ -217,11 +217,7 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
         if (cLineStrHash==cToken)
             cLineStrHash:=""
         endif
-        if ("fulltablesdefinition.txt"$jFile["File"])
-            aEval(aLine,{|e as character|jPerformReader["PartialStrTokArr"]+=if(e=="",0,1)})
-        else
-            jPerformReader["PartialStrTokArr"]+=Len(aLine)
-        endif
+        jPerformReader["PartialStrTokArr"]+=Len(aLine)
         FWFreeArray(@aLine)
     jPerformReader["PartialTimeStrTokArr"]+=(TimeCounter()-nStrTokTime)
     *****************************************************************
@@ -238,7 +234,7 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
             cLineStrHash:=""
         endif
         if ("fulltablesdefinition.txt"$jFile["File"])
-            aEval(aLine,{|e as character|jPerformReader["PartialStrTokArr"]+=if(e=="",0,1)})
+            aEval(aLine,{|e as character|jPerformReader["PartialStrTokArr2"]+=if(e=="",0,1)})
         else
             jPerformReader["PartialStrTokArr2"]+=Len(aLine)
         endif
@@ -258,7 +254,7 @@ static procedure __TSTStrTokArray(cLine as character,jFile as json,jPerformReade
             cLineStrHash:=""
         endif
         if ("fulltablesdefinition.txt"$jFile["File"])
-            aEval(aLine,{|e as character|jPerformReader["PartialStrTokArr"]+=if(e=="",0,1)})
+            aEval(aLine,{|e as character|jPerformReader["Partial__StrTokArray"]+=if(e=="",0,1)})
         else
             jPerformReader["Partial__StrTokArray"]+=Len(aLine)
         endif
