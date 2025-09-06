@@ -41,6 +41,8 @@ static procedure __fileIOPerform2()
 
     aPerform:=Array(0)
     aFiles:=Directory("C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\*.csv")
+    aSort(@aFiles,nil,nil,{|x,y|x[F_SIZE]<y[F_SIZE]})
+
     nFiles:=Len(aFiles)
     for nFile:=1 to nFiles
         //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
@@ -60,11 +62,11 @@ static procedure __fileIOPerform2()
     //Call: 0-Not Call;1=Sequential;2=Not Sequential;3=Both
     beginContent var cPerform
 {
-     "TFILEREAD"       :  {"Owner":"DNATech","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
-    ,"FILENAVIGATOR"   :  {"Owner":"DNATech","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
-    ,"FILEREADER_FILE" :  {"Owner":"DNATech","Reader":"","RDD":"FILE" ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
-    ,"FWFILEREADER"    :  {"Owner":"TOTVS  ","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
-    ,"FT"              :  {"Owner":"TOTVS  ","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+     "TFILEREAD"       :  {"Owner":"DNATech","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0}
+    ,"FILENAVIGATOR"   :  {"Owner":"DNATech","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0}
+    ,"FILEREADER_FILE" :  {"Owner":"DNATech","Reader":"","RDD":"FILE" ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0}
+    ,"FWFILEREADER"    :  {"Owner":"TOTVS  ","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0}
+    ,"FT"              :  {"Owner":"TOTVS  ","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0}
 }
     endContent
 
@@ -94,11 +96,13 @@ static procedure __fileIOPerform2()
                 endif
                 jPerform[cFileReader]["Reader"]:=cFileReader
                 jPerform[cFileReader]["Lines"]:=0
+                jPerform[cFileReader]["StrHash"]:=0
                 jPerform[cFileReader]["FileSize"]:=0
-                jPerform[cFileReader]["PartialBytesRead"]:=0
                 jPerform[cFileReader]["MinLineSize"]:=0
                 jPerform[cFileReader]["MaxLineSize"]:=0
+                jPerform[cFileReader]["PartialBytesRead"]:=0
                 jPerform[cFileReader]["PartialTimeRandom"]:=0
+                jPerform[cFileReader]["PartialTimeStrHash"]:=0
                 jPerform[cFileReader]["PartialTimeLineSize"]:=0
                 if (cFileReader=="FT")
                     __TST_FT(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
@@ -132,6 +136,14 @@ static procedure __fileIOPerform2()
 
     FreeObj(@jPerform)
 
+return
+
+static procedure __StrHash(cStr as character,jFile as json,jPerformReader as json)
+    local nPartialTimeStrHash:=TimeCounter() as numeric
+    local nStrHash as numeric
+    nStrHash:=cTools():StrHash(cStr)
+    jPerformReader["StrHash"]+=nStrHash
+    jPerformReader["PartialTimeStrHash"]+=(TimeCounter()-nPartialTimeStrHash)
 return
 
 static function __HashLoggerFile(cFile as character)
@@ -170,6 +182,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
         jLogger["PartialTimeReader"]:=(;
             jLogger["PartialTimeProc"]-(;
              jLogger["PartialTimeRandom"];
+            +jLogger["PartialTimeStrHash"];
             +jLogger["PartialTimeLineSize"];
             );
         )
@@ -179,6 +192,9 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
 
         jLogger["TotalLinesRead"]+=jLogger["Lines"]
         jLogger["TotalBytesRead"]+=jLogger["PartialBytesRead"]
+
+        jLogger["TotalStrHash"]+=jLogger["StrHash"]
+        jLogger["TotalTimeStrHash"]+=jLogger["PartialTimeStrHash"]
 
         jLogger["TotalTimeRandom"]+=jLogger["PartialTimeRandom"]
 
@@ -190,16 +206,17 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
         jLoggerOut["Owner"]:=PadR(jLoggerOut["Owner"],7)
         jLoggerOut["RDD"]:=PadR(jLoggerOut["RDD"],10)
 
-        jLoggerOut["PartialTimeProc"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeProc"])
-        jLoggerOut["PartialTimeReader"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeReader"])
-        jLoggerOut["PartialTimeRandom"]:=if(jLoggerOut["PartialTimeRandom"]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut["PartialTimeRandom"]))
-        jLoggerOut["PartialTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut["PartialTimeLineSize"])
-
         aLoggerItem:=jLoggerOut:GetNames()
             for i:=1 to Len(aLoggerItem)
                 cName:=aLoggerItem[i]
                 if ("Total"$cName)
                     jLoggerOut:DelName(cName)
+                elseif ("PartialTime"$cName)
+                    if ("PartialTimeRandom"==cName)
+                        jLoggerOut[cName]:=if(jLoggerOut[cName]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut[cName]))
+                    else
+                        jLoggerOut[cName]:=__MiliSecondsToTime(jLoggerOut[cName])
+                    endif
                 endif
             next i
         FWFreeArray(@aLoggerItem)
@@ -222,12 +239,13 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
                 if (!"Total"$cName)
                     jLoggerOut[cFileReader]:DelName(cName)
                 endif
+                if ("TotalTimeRandom"==cName)
+                    jLoggerOut[cName]:=if(jLoggerOut[cName]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut[cName]))
+                else
+                    jLoggerOut[cFileReader][cName]:=__MiliSecondsToTime(jLoggerOut[cFileReader][cName])
+                endif
             next j
             FWFreeArray(@aLoggerItem)
-            jLoggerOut[cFileReader]["TotalTimeProc"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeProc"])
-            jLoggerOut[cFileReader]["TotalTimeReader"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeReader"])
-            jLoggerOut[cFileReader]["TotalTimeRandom"]:=if(jLoggerOut[cFileReader]["TotalTimeRandom"]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut["TotalTimeRandom"]))
-            jLoggerOut[cFileReader]["TotalTimeLineSize"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeLineSize"])
         next i
 
     endif
@@ -266,8 +284,6 @@ static procedure __TST_FT(oFileLogger as object,jFile as json,jPerformReader as 
     local cFile:=jFile["File"] as character
     local cLine as character
     local cLineSkip as character
-
-    local lBreakLine as logical
 
     local nHandle as numeric
 
@@ -314,10 +330,8 @@ static procedure __TST_FT(oFileLogger as object,jFile as json,jPerformReader as 
                 ft_fGoto(nRecNo)
                 *****************************************************************
                 cLine:=ft_fReadLN()
-                if (lBreakLine)
-                    ft_fSkip()
-                    cLine+=ft_fReadLN()
-                endif
+                *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
                 *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************
@@ -329,10 +343,8 @@ static procedure __TST_FT(oFileLogger as object,jFile as json,jPerformReader as 
                 jPerformReader["Lines"]++
                 *****************************************************************
                 cLine:=ft_fReadLN()
-                if (lBreakLine)
-                    ft_fSkip()
-                    cLine+=ft_fReadLN()
-                endif
+                *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
                 *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************
@@ -422,6 +434,8 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,jFile as json,jPerform
                     cLine:=StrTran(cLine,cCRH13,"")
                 endif
                 *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
+                *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************
             end while
@@ -442,6 +456,8 @@ static procedure __TST_FWFILEREADER(oFileLogger as object,jFile as json,jPerform
                 if (cCRH13$cLine)
                     cLine:=StrTran(cLine,cCRH13,"")
                 endif
+                *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
                 *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************
@@ -510,6 +526,8 @@ static procedure __TST_TFILEREAD(oFileLogger as object,jFile as json,jPerformRea
                 oFileNavigator:GoTo(nRecNo)
                 cLine:=oFileNavigator:GetLine()
                 *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
+                *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************
             end while
@@ -524,6 +542,8 @@ static procedure __TST_TFILEREAD(oFileLogger as object,jFile as json,jPerformRea
                 jPerformReader["Lines"]++
                 *****************************************************************
                 cLine:=oFileReader:GetLine()
+                *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
                 *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************
@@ -580,6 +600,8 @@ static procedure __TST_FILEREADER(oFileLogger as object,jFile as json,jPerformRe
                 *****************************************************************
                 cLine:=oFileReader:ft_fReadLN()
                 *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
+                *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************
                 oFileReader:ft_fSkip()
@@ -590,6 +612,8 @@ static procedure __TST_FILEREADER(oFileLogger as object,jFile as json,jPerformRe
                 jPerformReader["Lines"]++
                 *****************************************************************
                 cLine:=oFileReader:ft_fReadLN()
+                *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
                 *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************
@@ -642,7 +666,7 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerfor
         oFileReadLine:=FileReadLine():New(nHandle,jPerformReader["FileSize"])
 
         if ("marcac_ptoelet.csv"$Lower(cFile))
-            oFileReadLine:SetMaxBufferLines(1000)
+            oFileReadLine:SetMaxBufferLines(500)
         endif
 
         if (!lSequential)
@@ -662,6 +686,8 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerfor
                 oFileNavigator:GoTo(nRecNo)
                 cLine:=oFileNavigator:GetLine()
                 *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
+                *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************
             end while
@@ -671,6 +697,8 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerfor
                 jPerformReader["Lines"]++
                 *****************************************************************
                 cLine:=oFileReadLine:GetLine()
+                *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
                 *****************************************************************
                 __GetLineSize(cLine,jPerformReader)
                 *****************************************************************

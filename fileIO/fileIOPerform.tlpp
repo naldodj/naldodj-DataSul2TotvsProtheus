@@ -1009,6 +1009,9 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerfor
     jPerformReader["FileSize"]:=oFileNavigator:FileSize()
 
     oFileReadLine:=FileReadLine():New(nHandle,jPerformReader["FileSize"])
+    if ("marcac_ptoelet.csv"$Lower(cFile))
+        oFileReadLine:SetMaxBufferLines(500)
+    endif
 
     if (!lSequential)
         nRecNos:=oFileNavigator:BuildIndex()
