@@ -107,6 +107,7 @@ static function Activate() as logical
     local aSections as array
     local aProperties as array
 
+    local cINIFile as character
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
     local cGetFileTitle as character
@@ -118,6 +119,10 @@ static function Activate() as logical
     local lSendDataToServer as logical
     local lRedefineBottom:=FwIsInCallStack("DNA.TECH.EXECUTE") as logical
 
+    local nTop as numeric
+    local nLeft as numeric
+    local nBottom as numeric
+    local nRight as numeric
     local nGetFileOptions as numeric
 
     local oTDlg as object
