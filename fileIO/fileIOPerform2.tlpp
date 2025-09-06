@@ -205,6 +205,8 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
 
         jLogger["TotalTimeLineSize"]+=jLogger["PartialTimeLineSize"]
 
+        jLogger["TotalTimeIsDisqualifiedVerify"]+=jLogger["PartialTimeIsDisqualifiedVerify"]
+
         jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
 
         jLoggerOut["Reader"]:=PadR(jLoggerOut["Reader"],15)
