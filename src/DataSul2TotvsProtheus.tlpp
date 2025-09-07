@@ -9,6 +9,7 @@
 #include "shell.ch"
 
 #include "dbstruct.ch"
+#include "directry.ch"
 
 #include "jsonhash.ch"
 #include "jsonarray.ch"
@@ -3663,6 +3664,8 @@ static function SplitFileAdd(cSourceTable as character) as logical
     local cBaseURL as character
     local cHTMLTempFile as character
 
+    local jTableDetail as json
+
     local lSplitFile as logical
 
     local nFile as numeric
@@ -3700,7 +3703,7 @@ static function SplitFileAdd(cSourceTable as character) as logical
             break
         endif
 
-        nTargetSize:=(aFileInfo[1][2]/((47/10)*(1024^2)))
+        nTargetSize:=(aFileInfo[1][F_SIZE]/((47/10)*(1024^2)))
         FWFreeArray(@aFileInfo)
 
         SplitOptions(@nTargetSize)
@@ -3713,7 +3716,16 @@ static function SplitFileAdd(cSourceTable as character) as logical
         if ((lSplitFile).and.(ApMsgYesNo("Deseja Consultar os arquivos gerados?",cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))))
 
             for nFile:=1 to nFiles
-                oDNATechLog:FormatLogEntryTbl(cSourceTable,aFiles[nFile],"FILE")
+                aFileInfo:=Directory(aFiles[nFile])
+                jTableDetail:=JSONObject():New()
+                jTableDetail["F_NAME"]:=aFileInfo[1][F_NAME]
+                jTableDetail["F_SIZE"]:=aFileInfo[1][F_SIZE]
+                jTableDetail["F_DATE"]:=aFileInfo[1][F_DATE]
+                jTableDetail["F_TIME"]:=aFileInfo[1][F_TIME]
+                jTableDetail["F_ATTR"]:=aFileInfo[1][F_ATTR]
+                FWFreeArray(@aFileInfo)
+                oDNATechLog:FormatLogEntryTbl(cSourceTable,oDNATechLog:FormatJSONDetailTbl(jTableDetail),"FILE")
+                FreeObj(@jTableDetail)
             next nFile
 
             cLogFile:=oDNATechLog:FormatLogFile("\log\html\",cSourceTable)

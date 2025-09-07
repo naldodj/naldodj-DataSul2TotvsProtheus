@@ -251,7 +251,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
                 if ("TotalTimeRandom"==cName)
                     jLoggerOut[cName]:=if(jLoggerOut[cName]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut[cName]))
                 else
-                    jLoggerOut[cFileReader][cName]:=__MiliSecondsToTime(jLoggerOut[cFileReader][cName])
+                    jLoggerOut[cName]:=__MiliSecondsToTime(jLoggerOut[cName])
                 endif
             next j
             FWFreeArray(@aLoggerItem)
