@@ -46,7 +46,7 @@ static procedure __fileIOPerform2()
     nFiles:=Len(aFiles)
     for nFile:=1 to nFiles
         //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
-        if (.F..and.File("\datasul2protheus\tables\"+aFiles[nFile][F_NAME]))
+        if (File("\datasul2protheus\tables\"+aFiles[nFile][F_NAME]))
             aAdd(aPerform,{"File":"\datasul2protheus\tables\"+aFiles[nFile][F_NAME],"Process":.T.,"Call":7,"Token":";","TimeOutThresHold":1890893*2})
         endif
         aAdd(aPerform,{"File":"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\"+aFiles[nFile][F_NAME],"Process":.T.,"Call":7,"Token":";","TimeOutThresHold":1890893*2})

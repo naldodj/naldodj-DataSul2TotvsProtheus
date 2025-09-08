@@ -30,35 +30,37 @@ static procedure __fileIOPerform()
     local jFiles as json
     local jPerform as json
 
-    local lStrHashLog as logical
+    local lStrHashDump as logical
     local lSequential:=.F. as logical
     local lExecuteProc as logical
 
     local nFile as numeric
-    local nStrHashLog as numeric
+    local nStrHashDump as numeric
 
     local oFileLogger as object
 
     local i,j as numeric
 
-    nStrHashLog:=Aviso("StrHash","Selecione a opção",{"Sim","Não"},2,"Gerar Hash das Linhas para comparação?",2)
-    lStrHashLog:=(nStrHashLog==1)
+    nStrHashDump:=Aviso("StrHash","Selecione a opção",{"Sim","Não"},2,"Gerar Hash das Linhas para comparação?",2)
+    lStrHashDump:=(nStrHashDump==1)
 
     oFileLogger:=FileLogger():New(cFileLogger)
 
     //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
     beginContent var cJFiles
 [
-     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArr":1070298 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680  ,"ExpectedLines":3678}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArr":1070298 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680  ,"ExpectedLines":3678}
-    ,{"File":"\\datasul2protheus\\tables\\rh_pessoa_fisic.csv"                                                          ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":41223708344 ,"ExpectedStrTokArr":402546 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2982225  ,"ExpectedLines":5834}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\rh_pessoa_fisic.csv"                 ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":41223708344 ,"ExpectedStrTokArr":402546 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2982225  ,"ExpectedLines":5834}
-    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArr":185741  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656  ,"ExpectedLines":57733}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArr":185741  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656  ,"ExpectedLines":57733}
-    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArr":31486728,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750 ,"ExpectedLines":93156}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashLog":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArr":31486728,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750 ,"ExpectedLines":93156}
-    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArr":95111600,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
-    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashLog":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArr":95111600,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
+     {"File":"\\datasul2protheus\\tables\\funcionario.csv"                                                              ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashDump":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArr":1070298 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680  ,"ExpectedLines":3678}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\funcionario.csv"                     ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashDump":false,"ExpectedStrHash":165561739286 ,"ExpectedStrTokArr":1070298 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":4829680  ,"ExpectedLines":3678}
+    ,{"File":"\\datasul2protheus\\tables\\rh_pessoa_fisic.csv"                                                          ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashDump":false,"ExpectedStrHash":41223708344  ,"ExpectedStrTokArr":402546  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2982225  ,"ExpectedLines":5834}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\rh_pessoa_fisic.csv"                 ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":true  ,"TimeOutThresHold":1802900.5 ,"HasBreakLine":true  ,"StrHashDump":false,"ExpectedStrHash":41223708344  ,"ExpectedStrTokArr":402546  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2982225  ,"ExpectedLines":5834}
+    ,{"File":"\\datasul2protheus\\tablesdefinition\\fulltablesdefinition.txt"                                           ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashDump":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArr":185741  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656  ,"ExpectedLines":57733}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tablesdefinition\\fulltablesdefinition.txt"  ,"Process":true ,"Call":7,"Token":" ","DecodeUTF8":true  ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashDump":false,"ExpectedStrHash":4152189391   ,"ExpectedStrTokArr":185741  ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":2735656  ,"ExpectedLines":57733}
+    ,{"File":"\\datasul2protheus\\tables\\sit_afast_func.csv"                                                           ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashDump":false,"ExpectedStrHash":100532967303 ,"ExpectedStrTokArr":3771264 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":17191942 ,"ExpectedLines":81984}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\sit_afast_func.csv"                  ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1818273   ,"HasBreakLine":false ,"StrHashDump":false,"ExpectedStrHash":100532967303 ,"ExpectedStrTokArr":3771264 ,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":17191942 ,"ExpectedLines":81984}
+    ,{"File":"\\datasul2protheus\\tables\\movto_calcul_func.csv"                                                        ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashDump":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArr":31486728,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750 ,"ExpectedLines":93156}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\movto_calcul_func.csv"               ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1821843.5 ,"HasBreakLine":true  ,"StrHashDump":false,"ExpectedStrHash":3040479861552,"ExpectedStrTokArr":31486728,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":98005750 ,"ExpectedLines":93156}
+    ,{"File":"\\datasul2protheus\\tables\\marcac_ptoelet.csv"                                                           ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashDump":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArr":95111600,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
+    ,{"File":"C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\marcac_ptoelet.csv"                  ,"Process":true ,"Call":7,"Token":";","DecodeUTF8":false ,"TimeOutThresHold":1890893   ,"HasBreakLine":false ,"StrHashDump":false,"ExpectedStrHash":2212744737698,"ExpectedStrTokArr":95111600,"ExpectedStrTokArrHash":0,"ExpectedBytesRead":449822905,"ExpectedLines":2539558}
 ]
     endContent
 
@@ -73,6 +75,7 @@ static procedure __fileIOPerform()
 {
      "TFILEREAD"                        :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
     ,"FILENAVIGATOR"                    :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
+    ,"FILENAVIGATOR_2"                  :  {"Owner":"DNATech","Reader":"","RDD":""          ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
     ,"FILEREADER_FILE"                  :  {"Owner":"DNATech","Reader":"","RDD":"FILE"      ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
     ,"FILEREADER_HASHMAP"               :  {"Owner":"DNATech","Reader":"","RDD":"HASHMAP"   ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
     ,"FILEREADER_SQLITE_MEM"            :  {"Owner":"DNATech","Reader":"","RDD":"SQLITE_MEM","Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeStrTokArr":0,"PartialTimeStrTokArr2":0,"PartialTime__StrTokArray":0,"TotalTimeStrTokArr":0,"TotalTimeStrTokArr2":0,"TotalTime__StrTokArray":0,"PartialTimeStrTokArrayInDB":0,"TotalTimeStrTokArrayInDB":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"StrHash":0,"StrTokArrHash":0,"StrTokArr2Hash":0,"__StrTokArrayHash":0,"IsDisqualifiedByTimeOut":false,"ProcStart":0,"ProcEnd":0,"PartialStrTokArr":0,"PartialStrTokArr2":0,"Partial__StrTokArray":0,"TotalStrTokArr":0,"TotalStrTokArr2":0,"Total__StrTokArray":0,"PartialStrTokArrayInDB":0,"TotalStrTokArrayInDB":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0}
@@ -94,7 +97,7 @@ static procedure __fileIOPerform()
         endif
         cLine:=""
         cFile:=jFiles[nFile]["File"]
-        if ((lStrHashLog).and.(jFiles[nFile]["StrHashLog"]))
+        if ((lStrHashDump).and.(jFiles[nFile]["StrHashDump"]))
             jFiles[nFile]["TimeOutThresHold"]*=4
         else
             jFiles[nFile]["TimeOutThresHold"]*=2
@@ -142,9 +145,12 @@ static procedure __fileIOPerform()
                 jPerform[cFileReader]["PartialTimeIsDisqualifiedVerify"]:=0
                 jPerform[cFileReader]["PartialTimeRandom"]:=0
                 jPerform[cFileReader]["PartialTimeLineSize"]:=0
-                if ((lStrHashLog).and.(jFiles[nFile]["StrHashLog"]))
-                    jPerform[cFileReader]["StrHashLoggerFile"]:=__HashLoggerFile(cFile+"."+cFileReader+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log")
-                    jPerform[cFileReader]["StrHashLogger"]:=FileLogger():New(jPerform[cFileReader]["StrHashLoggerFile"])
+                if ((lStrHashDump).and.(jFiles[nFile]["StrHashDump"]))
+                    jPerform[cFileReader]["StrHashDump"]:=.T.
+                    jPerform[cFileReader]["StrHashDumpFile"]:=__HashLoggerFile(cFile+"."+cFileReader+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log")
+                    jPerform[cFileReader]["StrHashDumpLogger"]:=FileLogger():New(jPerform[cFileReader]["StrHashDumpFile"])
+                else
+                    jPerform[cFileReader]["StrHashDump"]:=.F.
                 endif
                 if (cFileReader=="FT")
                     jPerform[cFileReader]["HasBreakLine"]:=jFiles[nFile]["HasBreakLine"]
@@ -155,6 +161,8 @@ static procedure __fileIOPerform()
                     __TST_TFILEREAD(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 elseif (cFileReader=="FILENAVIGATOR")
                     __TST_FILENAVIGATOR(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                elseif (cFileReader=="FILENAVIGATOR_2")
+                    __TST_FILENAVIGATOR_2(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 elseif (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
                     __TST_FILEREADER_StrTokArrayInDB(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 else
@@ -275,13 +283,13 @@ return
 
 static procedure __StrHash(cStr as character,jFile as json,jPerformReader as json)
     local nPartialTimeStrHash:=TimeCounter() as numeric
-    local lStrHashLog:=jFile["StrHashLog"] as logical
+    local lStrHashDump:=jFile["StrHashDump"] as logical
     local lDecodeUTF8:=jFile["DecodeUTF8"] as logical
     local nStrHash as numeric
     nStrHash:=cTools():StrHash(if(lDecodeUTF8,DecodeUTF8(cStr),cStr))
     jPerformReader["StrHash"]+=nStrHash
-    if (lStrHashLog)
-        jPerformReader["StrHashLogger"]:WriteLine(StrZero(nStrHash,16)+" "+cStr)
+    if (lStrHashDump)
+        jPerformReader["StrHashDumpLogger"]:WriteLine(StrZero(nStrHash,16)+" "+cStr)
     endif
     jPerformReader["PartialTimeStrHash"]+=(TimeCounter()-nPartialTimeStrHash)
 return
@@ -304,7 +312,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
 
     local jLoggerOut as json
 
-    local lStrHashLog as logical
+    local lStrHashDump as logical
 
     local i,j as numeric
 
@@ -360,18 +368,18 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
             jLogger["TotalTimeStrTokArrayInDB"]+=jLogger["PartialTimeStrTokArrayInDB"]
         endif
 
-        lStrHashLog:=jLogger["StrHashLog"]
-        if (lStrHashLog)
-            jLogger["StrHashLogger"]:Close()
-            FreeObj(@jLogger["StrHashLogger"])
-            DirTools():MakeFileDir("c:\"+jLogger["StrHashLoggerFile"])
-            if (__CopyFile(jLogger["StrHashLoggerFile"],"c:\"+jLogger["StrHashLoggerFile"]))
-                fErase(jLogger["StrHashLoggerFile"])
+        lStrHashDump:=jLogger["StrHashDump"]
+        if (lStrHashDump)
+            jLogger["StrHashDumpLogger"]:Close()
+            FreeObj(@jLogger["StrHashDumpLogger"])
+            DirTools():MakeFileDir("c:\"+jLogger["StrHashDumpFile"])
+            if (__CopyFile(jLogger["StrHashDumpFile"],"c:\"+jLogger["StrHashDumpFile"]))
+                fErase(jLogger["StrHashDumpFile"])
             endif
-            jLogger:DelName("StrHashLogger")
-            jLogger:DelName("StrHashLoggerFile")
+            jLogger:DelName("StrHashDumpFile")
+            jLogger:DelName("StrHashDumpLogger")
         endif
-        jLogger:DelName("StrHashLog")
+        jLogger:DelName("StrHashDump")
 
         jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
 
@@ -1047,6 +1055,96 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerfor
                 exit
             endif
             cLine:=oFileReadLine:GetLine()
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+            __StrHash(cLine,jFile,jPerformReader)
+            *****************************************************************
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
+            *****************************************************************
+        end while
+    endif
+
+    oFileReadLine:Clean()
+    FreeObj(@oFileReadLine)
+
+    oFileNavigator:Close()
+    FreeObj(@oFileNavigator)
+
+    jPerformReader["TimeProcEnd"]:=Time()
+    jPerformReader["ProcEnd"]:=TimeCounter()
+
+    __SendToLogger(oFileLogger,jPerformReader,2)
+
+return
+
+static procedure __TST_FILENAVIGATOR_2(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
+
+    local cFile:=jFile["File"] as character
+    local cLine as character
+    local cLineSkip as character
+
+    local nHandle:=(-1) as numeric
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    local oFileReadLine as object
+    local oFileNavigator as object
+
+    jPerformReader["ProcStart"]:=TimeCounter()
+    jPerformReader["TimeProcStart"]:=Time()
+
+    oFileNavigator:=FileNavigator():New(;
+         nHandle;
+        ,{|nHandle|fSeek(nHandle,0,FS_SET)};
+        ,{||!oFileReadLine:MoreToRead()};
+        ,{||oFileReadLine:ReadLine()};
+    )
+
+    oFileNavigator:Open(cFile)
+    nHandle:=oFileNavigator:Handle()
+    jPerformReader["FileSize"]:=oFileNavigator:FileSize()
+
+    oFileReadLine:=FileReadLine():New(nHandle,jPerformReader["FileSize"])
+
+    if (!lSequential)
+        nRecNos:=oFileNavigator:BuildIndex()
+        while (oFileNavigator:MoreToRead())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
+                exit
+            endif
+            *****************************************************************
+            //Teste de Navegacao
+            //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+            *****************************************************************
+            nRecNo:=oFileNavigator:RecNo()
+            *****************************************************************
+            oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
+            cLineSkip:=oFileNavigator:ReadLine()
+            *****************************************************************
+            oFileNavigator:GoTo(nRecNo)
+            cLine:=oFileNavigator:ReadLine()
+            *****************************************************************
+            __GetLineSize(cLine,jPerformReader)
+            *****************************************************************
+            __StrHash(cLine,jFile,jPerformReader)
+            *****************************************************************
+            __TSTStrTokArray(cLine,jFile,jPerformReader)
+            *****************************************************************
+        end while
+    else
+        while (oFileReadLine:MoreToRead())
+            *****************************************************************
+            jPerformReader["Lines"]++
+            *****************************************************************
+            if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
+                exit
+            endif
+            cLine:=oFileReadLine:ReadLine()
             *****************************************************************
             __GetLineSize(cLine,jPerformReader)
             *****************************************************************
