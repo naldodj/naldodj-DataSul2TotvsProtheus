@@ -46,7 +46,7 @@ static procedure __fileIOPerform2()
     nFiles:=Len(aFiles)
     for nFile:=1 to nFiles
         //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
-        if (File("\datasul2protheus\tables\"+aFiles[nFile][F_NAME]))
+        if (.F..and.File("\datasul2protheus\tables\"+aFiles[nFile][F_NAME]))
             aAdd(aPerform,{"File":"\datasul2protheus\tables\"+aFiles[nFile][F_NAME],"Process":.T.,"Call":7,"Token":";","TimeOutThresHold":1890893*2})
         endif
         aAdd(aPerform,{"File":"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\"+aFiles[nFile][F_NAME],"Process":.T.,"Call":7,"Token":";","TimeOutThresHold":1890893*2})
@@ -64,6 +64,7 @@ static procedure __fileIOPerform2()
 {
      "TFILEREAD"       :  {"Owner":"DNATech","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0}
     ,"FILENAVIGATOR"   :  {"Owner":"DNATech","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0}
+    ,"FILENAVIGATOR_2" :  {"Owner":"DNATech","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0}
     ,"FILEREADER_FILE" :  {"Owner":"DNATech","Reader":"","RDD":"FILE" ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0}
     ,"FWFILEREADER"    :  {"Owner":"TOTVS  ","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0}
     ,"FT"              :  {"Owner":"TOTVS  ","Reader":"","RDD":""     ,"Call":3,"TimeProcStart":"","TimeProcEnd":"","PartialTimeProc":0,"TotalTimeProc":0,"PartialTimeReader":0,"TotalTimeReader":0,"PartialTimeRandom":0,"TotalTimeRandom":0,"PartialTimeLineSize":0,"TotalTimeLineSize":0,"ProcStart":0,"ProcEnd":0,"Lines":0,"MinLineSize":0,"MaxLineSize":0,"TotalLinesRead":0,"FileSize":0,"PartialBytesRead":0,"TotalBytesRead":0,"StrHash":0,"PartialTimeStrHash":0,"TotalTimeStrHash":0,"TotalStrHash":0,"IsDisqualifiedByTimeOut":false,"PartialTimeIsDisqualifiedVerify":0,"TotalTimeIsDisqualifiedVerify":0}
@@ -113,6 +114,8 @@ static procedure __fileIOPerform2()
                     __TST_TFILEREAD(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 elseif (cFileReader=="FILENAVIGATOR")
                     __TST_FILENAVIGATOR(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                elseif (cFileReader=="FILENAVIGATOR_2")
+                    __TST_FILENAVIGATOR_2(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 else
                     __TST_FILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 endif
@@ -715,10 +718,6 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerfor
 
         oFileReadLine:=FileReadLine():New(nHandle,jPerformReader["FileSize"])
 
-        if ("marcac_ptoelet.csv"$Lower(cFile))
-            oFileReadLine:SetMaxBufferLines(500)
-        endif
-
         if (!lSequential)
             nRecNos:=oFileNavigator:BuildIndex()
             while (oFileNavigator:HasLine())
@@ -755,6 +754,97 @@ static procedure __TST_FILENAVIGATOR(oFileLogger as object,jFile as json,jPerfor
                 endif
                 *****************************************************************
                 cLine:=oFileReadLine:GetLine()
+                *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+            end while
+        endif
+
+        oFileReadLine:Clean()
+        FreeObj(@oFileReadLine)
+
+    endif
+
+    oFileNavigator:Close()
+    FreeObj(@oFileNavigator)
+
+    jPerformReader["TimeProcEnd"]:=Time()
+    jPerformReader["ProcEnd"]:=TimeCounter()
+
+    __SendToLogger(oFileLogger,jPerformReader,2)
+
+return
+
+static procedure __TST_FILENAVIGATOR_2(oFileLogger as object,jFile as json,jPerformReader as json,lSequential as logical)
+
+    local cFile:=jFile["File"] as character
+    local cLine as character
+    local cLineSkip as character
+
+    local nHandle:=(-1) as numeric
+
+    local nRecNo as numeric
+    local nRecNos as numeric
+
+    local oFileReadLine as object
+    local oFileNavigator as object
+
+    jPerformReader["ProcStart"]:=TimeCounter()
+    jPerformReader["TimeProcStart"]:=Time()
+
+    oFileNavigator:=FileNavigator():New(;
+         nHandle;
+        ,{|nHandle|fSeek(nHandle,0,FS_SET)};
+        ,{||!oFileReadLine:MoreToRead()};
+        ,{||oFileReadLine:ReadLine()};
+    )
+
+    oFileNavigator:Open(cFile)
+    nHandle:=oFileNavigator:Handle()
+    jPerformReader["FileSize"]:=oFileNavigator:FileSize()
+
+    if (jPerformReader["FileSize"]>0)
+
+        oFileReadLine:=FileReadLine():New(nHandle,jPerformReader["FileSize"])
+
+        if (!lSequential)
+            nRecNos:=oFileNavigator:BuildIndex()
+            while (oFileNavigator:MoreToRead())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
+                    exit
+                endif
+                *****************************************************************
+                //Teste de Navegacao
+                //Sem suporte a Navegacao no Arquivo. Vamos usar FileNavigator
+                *****************************************************************
+                nRecNo:=oFileNavigator:RecNo()
+                *****************************************************************
+                oFileNavigator:Skip(__Randomize(1,nRecNos,jPerformReader))
+                cLineSkip:=oFileNavigator:GetLine()
+                *****************************************************************
+                oFileNavigator:GoTo(nRecNo)
+                cLine:=oFileNavigator:ReadLine()
+                *****************************************************************
+                __StrHash(cLine,jFile,jPerformReader)
+                *****************************************************************
+                __GetLineSize(cLine,jPerformReader)
+                *****************************************************************
+            end while
+        else
+            while (oFileReadLine:MoreToRead())
+                *****************************************************************
+                jPerformReader["Lines"]++
+                *****************************************************************
+                if (__IsDisqualifiedByTimeOut(jFile,jPerformReader))
+                    exit
+                endif
+                *****************************************************************
+                cLine:=oFileReadLine:ReadLine()
                 *****************************************************************
                 __StrHash(cLine,jFile,jPerformReader)
                 *****************************************************************
