@@ -195,7 +195,7 @@ static function Activate() as logical
             break
         endif
 
-        FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.readIniFile(@cINIFile)},"Wait! Loading Settings","["+cINIFile+"]")
+        FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadIniFile(@cINIFile)},"Wait! Loading Settings","["+cINIFile+"]")
         if (!lActivate)
             break
         endif
@@ -205,7 +205,7 @@ static function Activate() as logical
             break
         endif
 
-        oTFIni:=GetValue("readIniFile")
+        oTFIni:=GetValue("ReadIniFile")
 
         lActivate:=(allTrim(oTFIni:GetPropertyValue("General","CompanyCode","@@"))==&("cEmpAnt"))
         if (!lActivate)
@@ -877,7 +877,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             break
         endif
 
-        oTFIni:=GetValue("readIniFile")
+        oTFIni:=GetValue("ReadIniFile")
 
         cFieldFilial:=PrefixoCpo(cTargetAlias)
         cFieldFilial+="_FILIAL"
@@ -2343,7 +2343,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
 return(lImportData)
 
-static function readIniFile(cINIFile as character) as logical
+static function ReadIniFile(cINIFile as character) as logical
 
     local cRootPath as character
 
@@ -2374,7 +2374,7 @@ static function readIniFile(cINIFile as character) as logical
 
         oTFIni:=TFIni():New(cINIFile,"#")
 
-        SetValue("readIniFile",oTFIni)
+        SetValue("ReadIniFile",oTFIni)
 
     end sequence
 
@@ -2417,7 +2417,7 @@ static function ReadTableDefinition() as logical
 
     begin sequence
 
-        oTFIni:=GetValue("readIniFile")
+        oTFIni:=GetValue("ReadIniFile")
 
         aTablesImport:=aClone(oTFIni:GetAllProperties("TablesImport"))
         lReadTableDefinition:=(!empty(aTablesImport))
@@ -2856,7 +2856,7 @@ static procedure CFGFile(cINIFile as character)
             if (!("datasul2protheus.ini"$lower(cINIFile)))
                 cINIFile:=GetValue("cINIFile")
             endif
-            oTFIni:=GetValue("readIniFile")
+            oTFIni:=GetValue("ReadIniFile")
             if (valType(oTFIni)=="O")
                 FWMsgRun(nil,{||oTFIni:FreeObj()},"Wait...","Releasing temporary files and workspace memory...")
                 if (valType(oTFIni)=="O")
@@ -2867,7 +2867,7 @@ static procedure CFGFile(cINIFile as character)
             if (valType(st_oHMbTransform)=="O")
                 st_oHMbTransform:Clean()
             endif
-            FWMsgRun(nil,{||dna.tech.DataSul2Protheus.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
+            FWMsgRun(nil,{||dna.tech.DataSul2Protheus.ReadIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
             FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Loading structure of tables","Wait...")
         endif
 
@@ -3292,7 +3292,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
                 st_oHMbTransform:Clean()
             endif
             cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
-            FWMsgRun(nil,{||dna.tech.DataSul2Protheus.readIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
+            FWMsgRun(nil,{||dna.tech.DataSul2Protheus.ReadIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
             FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Loading structure of tables","Wait...")
         endif
     endif
@@ -3579,7 +3579,7 @@ static function GetDataPath() as character
     local cRootPath as character
     local cDataPath as character
 
-    local oTFIni:=GetValue("readIniFile") as object
+    local oTFIni:=GetValue("ReadIniFile") as object
 
     cDataPath:=allTrim(oTFIni:GetPropertyValue("Tables","TablesData",""))
 
@@ -3593,7 +3593,7 @@ static function GetDataPathSplit() as character
     local cRootPath as character
     local cDataPath as character
 
-    local oTFIni:=GetValue("readIniFile") as object
+    local oTFIni:=GetValue("ReadIniFile") as object
 
     cDataPath:=allTrim(oTFIni:GetPropertyValue("Tables","TablesDataSplit",""))
     cRootPath:=GetValue("cRootPath")
