@@ -617,8 +617,8 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
             oMSNewProcess,;
             @oTFont,;
             0,;
-            850,;
-            850,;
+            865,;
+            865,;
             .T.,;
             .T.,;
             lPercentage,;
@@ -1248,7 +1248,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     cTimeRemaining+="[+/-]"
                     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                     cIncProc:="["+oProgress:Eval()+"] "
-                    cIncProc+="Processing Record ["
+                    cIncProc+="Record ["
                     cIncProc+=cTools():NToS(nRecProc)
                     cIncProc+="/"
                     cIncProc+=cRecCount
@@ -1796,7 +1796,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 cTimeRemaining+="[+/-]"
                 cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                 cIncProc:="["+oProgress:Eval()+"] "
-                cIncProc+="Processing Record ["
+                cIncProc+="Record ["
                 cIncProc+=cTools():NToS(nRecProc)
                 cIncProc+="/"
                 cIncProc+=cRecCount
