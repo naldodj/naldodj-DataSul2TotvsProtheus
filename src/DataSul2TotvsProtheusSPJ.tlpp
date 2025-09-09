@@ -34,7 +34,7 @@ static function SPJImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local lSPJImport as logical
     local lPreLoadTable as logical
 
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","ReadIniFile") as object
     local oTLogReport:=tLogReport():New() as object
     local oFWTemporaryTable as object
 

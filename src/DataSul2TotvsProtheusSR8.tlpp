@@ -28,7 +28,7 @@ static function SR8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
 
     local lSR8Import as logical
 
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","ReadIniFile") as object
     local oTLogReport:=tLogReport():New() as object
 
     cIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"IndexKey","R8_FILIAL+R8_MAT+DTOS(R8_DATAINI)+R8_TIPO"))

@@ -49,7 +49,7 @@ static function SP8ImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local lSP8Import as logical
     local lEnableFilterBlock as logical
 
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","ReadIniFile") as object
     local oSP8Pergunte:=tHash():New() as object
     local oTLogReport:=tLogReport():New() as object
 

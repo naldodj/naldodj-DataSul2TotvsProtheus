@@ -40,7 +40,7 @@ static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local nItem as numeric
     local nItems as numeric
 
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","ReadIniFile") as object
     local oRHLImport:=Array(#) as object
     local oTLogReport:=tLogReport():New() as object
 

@@ -47,7 +47,7 @@ static function SRDImportData(oMsNewProcess as object,lEnd as logical,lPercentag
     local nEndLine as numeric
     local nStartLine as numeric
 
-    local oTFIni:=cacheData():Get("datasul2totvsprotheus","readIniFile") as object
+    local oTFIni:=cacheData():Get("datasul2totvsprotheus","ReadIniFile") as object
     local oTLogReport:=tLogReport():New() as object
     local oSRDPergunte:=tHash():New() as object
 
