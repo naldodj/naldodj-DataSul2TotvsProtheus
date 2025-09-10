@@ -1,5 +1,3 @@
-Considerando o texto e dados abaixo, elabore uma postagem, utilizando a linguagem de markdown, para postagem em um blog de tecnologia e no LinkedIN. Analise os dados JSON e crie gráficos e tabelas considerando os tempos de leitura no servidor e no cliente. Um comparativo entre DNATech x TOTVS, desvio padrão. Pontuando melhor tempo, perda/integridade de dados, performance etc.
-
 # FWFileReader
 
 ## [FWFileReader](https://tdn.totvs.com.br/display/public/framework/FWFileReader) "Classe de auxílio de leitura de arquivo texto, por linhas. Lê sempre um buffer fixo, permitindo leitura de linha sem honerar o IO."
@@ -285,3 +283,4 @@ FileName[C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\MARCAC_
 Possui processos criticos e que precisam serem otimizados para melhor performance e garantia na integridade dos dados? Entre em contato com a DNATech. Criamos soluções robustas, performáticas, preservando os dados e de acordo com a necessidade do seu negócio.
 
 ---
+
