@@ -23,13 +23,13 @@ Diferente de FWFileReader, FileReadLine utiliza buffer dinâmico de acordo com a
 
 ---
 
-FileNavigator e FileReadLine são classes pertencentes à biblioteca [DNATech](https://github.com/DNATechByNaldoDJ/AdvPL).
+FileNavigator e FileReadLine são classes pertencentes à biblioteca [DNATech](https://github.com/DNATechByNaldoDJ).
 
 ---
 Exemplos:
 
 Os códigos utilizados para os testes podem ser encontrados [aqui](https://github.com/naldodj/naldodj-DataSul2TotvsProtheus/tree/main/fileIO)
-- Obs.: Dependências aqui: [DNATech](https://github.com/DNATechByNaldoDJ/AdvPL)
+- Obs.: Dependências aqui: [DNATech](https://github.com/DNATechByNaldoDJ)
 
 ```json
 
@@ -283,4 +283,5 @@ FileName[C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\MARCAC_
 Possui processos criticos e que precisam serem otimizados para melhor performance e garantia na integridade dos dados? Entre em contato com a DNATech. Criamos soluções robustas, performáticas, preservando os dados e de acordo com a necessidade do seu negócio.
 
 ---
+
 
