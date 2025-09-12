@@ -244,7 +244,6 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
                 jLoggerOut:DelName(cFileReader)
                 loop
             endif
-            jLoggerOut[cFileReader]["TotalElapTimeReader"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeReader"])
             aLoggerItem:=jLoggerOut[cFileReader]:GetNames()
             for j:=1 to Len(aLoggerItem)
                 cName:=aLoggerItem[j]
@@ -253,10 +252,11 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
                 endif
                 if ("TotalTimeRandom"==cName)
                     jLoggerOut[cName]:=if(jLoggerOut[cName]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut[cName]))
-                else
+                elseif ("TotalElapTimeReader"$cName)
                     jLoggerOut[cName]:=__MiliSecondsToTime(jLoggerOut[cName])
                 endif
             next j
+            jLoggerOut[cFileReader]["TotalElapTimeReader"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeReader"])
             FWFreeArray(@aLoggerItem)
         next i
 
