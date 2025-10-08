@@ -69,8 +69,8 @@ static method Activate() class Protheus
 
         lActivate:=((FWIsAdmin(__cUserID)).and.(GetNewPar("TOTVSDS2PT",.T.)))
         if (!lActivate)
-            if (getComputerName()$"|DNA-CSDJ-01|DNA-TECH-01|")
-                lActivate:=DNAMainExec():Execute("dna.tech.MyIsAdmin")
+            if (GetComputerName()$"|DNA-CSDJ-01|DNA-TECH-01|")
+                lActivate:=dna.tech.MainExec():MyIsAdmin()
             endif
             if (!lActivate)
                 ApMsgAlert("User without administrative privileges")
@@ -156,7 +156,7 @@ static function Activate() as logical
         private st_oHMbTransform:=THashMap():New() as object
 
         lSendDataToServer:=(;
-            (getComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","|DNA-CSDJ-01|DNA-TECH-01|"))+"|DNA-CSDJ-01|DNA-TECH-01|"));
+            (GetComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","|DNA-CSDJ-01|DNA-TECH-01|"))+"|DNA-CSDJ-01|DNA-TECH-01|"));
             .and.;
             (ApMsgNoYes("Sending Data To Server?"));
         )
@@ -605,59 +605,65 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     local oParameters:=Array(#) as object
     local oMSNewProcess as object
 
-    cMsgProcImportData:="Importing :: "
-    cMsgProcImportData+=cAlias
-    cMsgProcImportData+=" :: "
-    cMsgProcImportData+=Upper(FWSX2Util():GetX2Name(cAlias,.F.))
-    cMsgProcImportData+=" :: ["+DToC(Date())+"]["+Time()+"]"
+    lImportData:=ChkFile(cAlias)
 
-    oTFont:=TFont():New("Courier New",nil,14,nil,.F.)
-    bProcImportData:={||;
-        dna.tech.DataSul2Protheus.ProcRedefine(;
-            oMSNewProcess,;
-            @oTFont,;
-            0,;
-            865,;
-            865,;
-            .T.,;
-            .T.,;
-            lPercentage,;
-            lFastMode;
-        ),;
-        lImportData:=ExecIn():evalJSONArrayObject(@oParameters,@aByRef,@lEvalOK);
-    }
-    oMSNewProcess:=MsNewProcess():New(bProcImportData,cMsgProcImportData,"Wait!",.T.)
+    if (lImportData)
 
-    oParameters[#"ClassName"]:="dna.tech.DataSul2Protheus."+cAlias+"Import"
-    oParameters[#"FunctionName"]:="dna.tech.DataSul2Protheus."+cAlias+"ImportData"
-    oParameters[#"FunctionParameters"]:=Array(#)
-    oParameters[#"FunctionParameters"][#"oMSNewProcess"]:=oMSNewProcess
-    oParameters[#"FunctionParameters"][#"lEnd"]:=lEnd
-    oParameters[#"FunctionParameters"][#"lPercentage"]:=lPercentage
+        cMsgProcImportData:="Importing :: "
+        cMsgProcImportData+=cAlias
+        cMsgProcImportData+=" :: "
+        cMsgProcImportData+=Upper(FWSX2Util():GetX2Name(cAlias,.F.))
+        cMsgProcImportData+=" :: ["+DToC(Date())+"]["+Time()+"]"
 
-    oMSNewProcess:Activate()
+        oTFont:=TFont():New("Courier New",nil,14,nil,.F.)
+        bProcImportData:={||;
+            dna.tech.DataSul2Protheus.ProcRedefine(;
+                oMSNewProcess,;
+                @oTFont,;
+                0,;
+                865,;
+                865,;
+                .T.,;
+                .T.,;
+                lPercentage,;
+                lFastMode;
+            ),;
+            lImportData:=ExecIn():evalJSONArrayObject(@oParameters,@aByRef,@lEvalOK);
+        }
+        oMSNewProcess:=MsNewProcess():New(bProcImportData,cMsgProcImportData,"Wait!",.T.)
 
-    if (lEvalOK)
-        lEnd:=aByRef[2]
-    else
-        lImportData:=.F.
+        oParameters[#"ClassName"]:="dna.tech.DataSul2Protheus."+cAlias+"Import"
+        oParameters[#"FunctionName"]:="dna.tech.DataSul2Protheus."+cAlias+"ImportData"
+        oParameters[#"FunctionParameters"]:=Array(#)
+        oParameters[#"FunctionParameters"][#"oMSNewProcess"]:=oMSNewProcess
+        oParameters[#"FunctionParameters"][#"lEnd"]:=lEnd
+        oParameters[#"FunctionParameters"][#"lPercentage"]:=lPercentage
+
+        oMSNewProcess:Activate()
+
+        if (lEvalOK)
+            lEnd:=aByRef[2]
+        else
+            lImportData:=.F.
+        endif
+
+        oParameters[#"ClassName"]:=nil
+        oParameters[#"FunctionName"]:=nil
+        oParameters[#"FunctionParameters"][#"oMSNewProcess"]:=nil
+        oParameters[#"FunctionParameters"][#"lEnd"]:=nil
+        oParameters[#"FunctionParameters"]:FreeObj()
+
+        oParameters:FreeObj()
+        if (valType(oParameters)=="O")
+            FreeObj(@oParameters)
+        endif
+
+        FreeObj(@oTFont)
+        FreeObj(@oMSNewProcess)
+
+        FWFreeArray(@aByRef)
+
     endif
-
-    oParameters[#"ClassName"]:=nil
-    oParameters[#"FunctionName"]:=nil
-    oParameters[#"FunctionParameters"][#"oMSNewProcess"]:=nil
-    oParameters[#"FunctionParameters"][#"lEnd"]:=nil
-    oParameters[#"FunctionParameters"]:FreeObj()
-
-    oParameters:FreeObj()
-    if (valType(oParameters)=="O")
-        FreeObj(@oParameters)
-    endif
-
-    FreeObj(@oTFont)
-    FreeObj(@oMSNewProcess)
-
-    FWFreeArray(@aByRef)
 
     DelClassIntF()
 
@@ -679,7 +685,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local aFWBulk as array
     local aFWBulkDefault as array
 
-    local aTargetStruct:=(cAlias)->(dbStruct()) as array
+    local aTargetStruct as array
     local aTargetFieldsDef as array
     local aReplicateValues as array
     local aNoReplicateValues as array
@@ -866,6 +872,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local xDummy as variant
 
     begin sequence
+
+        lImportData:=ChkFile(cAlias)
+        if (!lImportData)
+            break
+        endif
+        aTargetStruct:=(cAlias)->(dbStruct())
 
         dfv():Default(@lPreLoadTable,.F.)
 
@@ -1150,7 +1162,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         lSeekTable:=(!empty(cSeekTable:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekTable",""))))
         if (lSeekTable)
-            lSeekTable:=chkFile(cSeekTable)
+            lSeekTable:=ChkFile(cSeekTable)
             if (lSeekTable)
                 cSeekIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekIndexKey",""))
                 cSeekTableIndex:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekTableIndex",""))
@@ -3222,7 +3234,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
 
     begin sequence
 
-        lSendDataToServer:=(getComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","|DNA-CSDJ-01|DNA-TECH-01|"))+"|DNA-CSDJ-01|DNA-TECH-01|"))
+        lSendDataToServer:=(GetComputerName()$(allTrim(GetNewPar("TOTVSD2PCN","|DNA-CSDJ-01|DNA-TECH-01|"))+"|DNA-CSDJ-01|DNA-TECH-01|"))
         if (!lSendDataToServer)
             break
         endif
