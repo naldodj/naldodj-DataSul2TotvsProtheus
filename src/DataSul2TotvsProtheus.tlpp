@@ -106,9 +106,11 @@ static function Activate() as logical
 
     local aStack:={"DNA.TECH.DATASUL2PROTHEUS.ACTIVATE","ACTIVATE","DNA.TECH.DATASUL2PROTHEUS.U_DATASUL2TOTVSPROTHEUS"} as array
     local aSections as array
+    local aWorkAreas as array
     local aProperties as array
 
     local cINIFile as character
+    local cWorkAreas as character
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
     local cGetFileTitle as character
@@ -212,6 +214,16 @@ static function Activate() as logical
             ApMsgAlert("The import process cannot be performed for the Selected Company ["+&("cEmpAnt")+"]","Attention")
             break
         endif
+
+        cWorkAreas:=allTrim(oTFIni:GetPropertyValue("General","WorkAreas",""))
+        while (" "$cWorkAreas)
+            cWorkAreas:=StrTran(cWorkAreas," ","")
+        end while
+        if (Right(cWorkAreas,1)==",")
+            cWorkAreas:=SubStr(cWorkAreas,1,(Len(cWorkAreas)-1))
+        endif
+        aWorkAreas:=StrTokArr2(cWorkAreas,",",.T.)
+        aEval(aWorkAreas,{|cAlias as character|if(!Empty(AllTrim(FWSX2Util():GetX2Name(cAlias,.F.))),ChkFile(cAlias),nil)})
 
         lFastMode:=(allTrim(oTFIni:GetPropertyValue("General","IncProcFastMode","0"))=="1")
         lPercentage:=(allTrim(oTFIni:GetPropertyValue("General","IncProcPercentage","0"))=="1")
@@ -357,6 +369,9 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                         for nProperty:=1 to nProperties
                             cProperty:=aProperties[nProperty]
                             cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
+                            if (!ChkFile(cAlias))
+                                loop
+                            endif
                             beginContent var cTMenuAction
                                 {||dna.tech.DataSul2Protheus.ProcImportData("cAlias",lPercentage,lFastMode)}
                             endContent
