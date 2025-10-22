@@ -3650,7 +3650,7 @@ static function SplitOptions(nTargetSize as numeric) as logical
         aPBoxPrm[nPBox][4]:="9999.99999999999" //[4]:String contendo a Picture do campo
         aPBoxPrm[nPBox][5]:="NaoVazio()"       //[5]:String contendo a validacao
         aPBoxPrm[nPBox][6]:=""                 //[6]:Consulta F3
-        aPBoxPrm[nPBox][7]:="(MV_PAR01:="+Str(nTargetSize)+",AllWaysTrue())" //[7]:String contendo a validacao When
+        aPBoxPrm[nPBox][7]:="AllWaysTrue()"    //[7]:String contendo a validacao When
         aPBoxPrm[nPBox][8]:=(16+CalcFieldSize("N",Len(aPBoxPrm[nPBox][4]),0,aPBoxPrm[nPBox][4],aPBoxPrm[nPBox][2])) //[8]:Tamanho do MsGet
         aPBoxPrm[nPBox][9]:=.T.                //[9]:Flag .T./.F. Parametro Obrigatorio ?
 
