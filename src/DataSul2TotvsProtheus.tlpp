@@ -65,6 +65,18 @@ static method Activate() class Protheus
 
     private cCadastro:="TOTVS :: DataSul To Protheus" as character
 
+    if (FWIsInCallStack("DNA.TECH.DATASUL2PROTHEUS.u_datasul2totvsProtheusMain"))
+        ErrorSys()
+        HelpInDark(.T.)
+        FWMsgRun(nil,{||aEval(RetSXS(),{|aAlias as array|if((Select(aAlias[1])==0),OpenSXS(nil,nil,nil,nil,nil,nil,aAlias[1]),nil)})},"Wait!","Openning WorkAreas")
+        if (Select("XX4")==0)
+            OpenSXS(nil,nil,nil,nil,nil,nil,"XX4")
+        endif
+    endif
+
+    //Desliga Refresh no Lock do Top
+    TCInternal(5,"*OFF")
+
     begin sequence
 
         lActivate:=((FWIsAdmin(__cUserID)).and.(GetNewPar("TOTVSDS2PT",.T.)))
@@ -87,6 +99,9 @@ static method Activate() class Protheus
 
     end sequence
 
+    //Liga Refresh no Lock do Top
+    TCInternal(5,"*ON")
+
     FWMsgRun(nil,{||cacheData():Clean(),cacheHMData():Clean()},"Wait...","Releasing temporary files and workspace memory...")
 
     try
@@ -106,11 +121,9 @@ static function Activate() as logical
 
     local aStack:={"DNA.TECH.DATASUL2PROTHEUS.ACTIVATE","ACTIVATE","DNA.TECH.DATASUL2PROTHEUS.U_DATASUL2TOTVSPROTHEUS"} as array
     local aSections as array
-    local aWorkAreas as array
     local aProperties as array
 
     local cINIFile as character
-    local cWorkAreas as character
     local cGetFileRoot:="\" as character
     local cGetFileMask as character
     local cGetFileTitle as character
@@ -127,9 +140,6 @@ static function Activate() as logical
     local nBottom as numeric
     local nRight as numeric
     local nGetFileOptions as numeric
-
-    local nWorkArea as numeric
-    local nWorkAreas as numeric
 
     local oTDlg as object
     local oTMenu as object
@@ -205,7 +215,7 @@ static function Activate() as logical
             break
         endif
 
-        FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Loading structure of tables","Wait...")
+        FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Wait...","Loading structure of tables")
         if (!lActivate)
             break
         endif
@@ -220,23 +230,7 @@ static function Activate() as logical
 
         //Na versao totvs-protheus-12-1-2510-onca-preta xChkFile nao esta sendo Executada quando o Alias nao esta aberto
         //Garantimos, aqui, a abertura das tabelas que serao utilizadas no processo.
-        nWorkAreas:=Val(allTrim(oTFIni:GetPropertyValue("WorkAreas","WorkAreas_000","0")))
-        for nWorkArea:=1 to nWorkAreas
-            cWorkAreas:="WorkAreas_"+StrZero(nWorkArea,3)
-            cWorkAreas:=allTrim(oTFIni:GetPropertyValue("WorkAreas",cWorkAreas,""))
-            while (" "$cWorkAreas)
-                cWorkAreas:=StrTran(cWorkAreas," ","")
-            end while
-            while (Left(cWorkAreas,1)==",")
-                cWorkAreas:=SubStr(cWorkAreas,2)
-            end while
-            while (Right(cWorkAreas,1)==",")
-                cWorkAreas:=SubStr(cWorkAreas,1,(Len(cWorkAreas)-1))
-            end while
-            aWorkAreas:=StrTokArr2(cWorkAreas,",",.T.)
-            aEval(aWorkAreas,{|cAlias as character|if(!Empty(AllTrim(FWSX2Util():GetX2Name(cAlias,.F.))),ChkFile(cAlias),nil)})
-            FWFreeArray(@aWorkAreas)
-        next nWorkArea
+        FWMsgRun(nil,{||OpenWorkAreas(oTFIni)},"Wait!","Openning WorkAreas")
 
         lFastMode:=(allTrim(oTFIni:GetPropertyValue("General","IncProcFastMode","0"))=="1")
         lPercentage:=(allTrim(oTFIni:GetPropertyValue("General","IncProcPercentage","0"))=="1")
@@ -278,7 +272,7 @@ static function Activate() as logical
             oTBitMap:Align:=CONTROL_ALIGN_ALLCLIENT
             oTBitMap:SetCSS("{background-size: 100% 100%;}")
 
-            FWMsgRun(nil,{||oTMenu:=LoadMenu(@oTDlg,oTFIni,@lSendDataToServer,@cGetFileRoot,@lFastMode,@lPercentage)},"Wait! Loading Menu",ProcName())
+            FWMsgRun(nil,{||oTMenu:=LoadMenu(@oTDlg,oTFIni,@lSendDataToServer,@cGetFileRoot,@lFastMode,@lPercentage)},"Wait! ","Loading Menu")
 
             oTDlg:SetMenu(oTMenu)
             oTDlg:lCentered:=(!lRedefineBottom)
@@ -382,7 +376,7 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                         for nProperty:=1 to nProperties
                             cProperty:=aProperties[nProperty]
                             cAlias:=oTMenuOptions[#cSection][#"Alias"][#cProperty]
-                            if (!ChkFile(cAlias))
+                            if (!__ChkFile(cAlias))
                                 loop
                             endif
                             beginContent var cTMenuAction
@@ -633,7 +627,7 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     local oParameters:=Array(#) as object
     local oMSNewProcess as object
 
-    lImportData:=ChkFile(cAlias)
+    lImportData:=__ChkFile(cAlias)
 
     if (lImportData)
 
@@ -901,7 +895,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     begin sequence
 
-        lImportData:=ChkFile(cAlias)
+        lImportData:=__ChkFile(cAlias)
         if (!lImportData)
             break
         endif
@@ -1190,7 +1184,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         lSeekTable:=(!empty(cSeekTable:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekTable",""))))
         if (lSeekTable)
-            lSeekTable:=ChkFile(cSeekTable)
+            lSeekTable:=__ChkFile(cSeekTable)
             if (lSeekTable)
                 cSeekIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekIndexKey",""))
                 cSeekTableIndex:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekTableIndex",""))
@@ -2412,8 +2406,8 @@ static function ReadIniFile(cINIFile as character) as logical
         SetValue("cINIFile",cINIFile)
         SetValue("cRootPath",cRootPath)
 
-        //Aqui uso TFINI para garantir e manter a Ordem definida no arquivo .INI que eh importante para o Processo.
-        oTFIni:=TFINI():New(cINIFile,"#")
+        //Aqui uso TFINIJSONObject para garantir e manter a Ordem definida no arquivo .INI que eh importante para o Processo.
+        oTFIni:=TFINIJSONObject():New(cINIFile,"#")
 
         SetValue("ReadIniFile",oTFIni)
 
@@ -2911,7 +2905,7 @@ static procedure CFGFile(cINIFile as character)
                 st_oHMbTransform:Clean()
             endif
             FWMsgRun(nil,{||dna.tech.DataSul2Protheus.ReadIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
-            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Loading structure of tables","Wait...")
+            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Wait...","Loading structure of tables")
         endif
 
     end sequence
@@ -3336,7 +3330,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
             endif
             cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
             FWMsgRun(nil,{||dna.tech.DataSul2Protheus.ReadIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
-            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Loading structure of tables","Wait...")
+            FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Wait...","Loading structure of tables")
         endif
     endif
 
@@ -3913,3 +3907,45 @@ static function __GetValType(xType as variant,nSize as numeric) as variant
     end case
 
 return(xRet)
+
+static function OpenWorkAreas(oTFIni as object) as variant
+
+    local aWorkAreas as array
+
+    local cWorkAreas as character
+
+    local nWorkArea as numeric
+    local nWorkAreas as numeric
+
+    nWorkAreas:=Val(allTrim(oTFIni:GetPropertyValue("WorkAreas","WorkAreas_000","0")))
+    for nWorkArea:=1 to nWorkAreas
+        cWorkAreas:="WorkAreas_"+StrZero(nWorkArea,3)
+        cWorkAreas:=allTrim(oTFIni:GetPropertyValue("WorkAreas",cWorkAreas,""))
+        while (" "$cWorkAreas)
+            cWorkAreas:=StrTran(cWorkAreas," ","")
+        end while
+        while (Left(cWorkAreas,1)==",")
+            cWorkAreas:=SubStr(cWorkAreas,2)
+        end while
+        while (Right(cWorkAreas,1)==",")
+            cWorkAreas:=SubStr(cWorkAreas,1,(Len(cWorkAreas)-1))
+        end while
+        aWorkAreas:=StrTokArr2(cWorkAreas,",",.T.)
+        aEval(aWorkAreas,{|cAlias as character|__ChkFile(cAlias)})
+        FWFreeArray(@aWorkAreas)
+    next nWorkArea
+
+return(nil)
+
+static function __ChkFile(cAlias)
+
+    local lChkFile:=.F. as logical
+
+    if (!Empty(cAlias))
+        lChkFile:=(Select(cAlias)>0)
+        if (!lChkFile)
+            lChkFile:=(!Empty(AllTrim(FWSX2Util():GetX2Name(cAlias,.F.))).and.(ChkFile(cAlias)))
+        endif
+    endif
+
+return(lChkFile)
