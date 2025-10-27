@@ -128,6 +128,9 @@ static function Activate() as logical
     local nRight as numeric
     local nGetFileOptions as numeric
 
+    local nWorkArea as numeric
+    local nWorkAreas as numeric
+
     local oTDlg as object
     local oTMenu as object
     local oTPanel as object
@@ -215,15 +218,25 @@ static function Activate() as logical
             break
         endif
 
-        cWorkAreas:=allTrim(oTFIni:GetPropertyValue("General","WorkAreas",""))
-        while (" "$cWorkAreas)
-            cWorkAreas:=StrTran(cWorkAreas," ","")
-        end while
-        if (Right(cWorkAreas,1)==",")
-            cWorkAreas:=SubStr(cWorkAreas,1,(Len(cWorkAreas)-1))
-        endif
-        aWorkAreas:=StrTokArr2(cWorkAreas,",",.T.)
-        aEval(aWorkAreas,{|cAlias as character|if(!Empty(AllTrim(FWSX2Util():GetX2Name(cAlias,.F.))),ChkFile(cAlias),nil)})
+        //Na versao totvs-protheus-12-1-2510-onca-preta xChkFile nao esta sendo Executada quando o Alias nao esta aberto
+        //Garantimos, aqui, a abertura das tabelas que serao utilizadas no processo.
+        nWorkAreas:=Val(allTrim(oTFIni:GetPropertyValue("WorkAreas","WorkAreas_000","0")))
+        for nWorkArea:=1 to nWorkAreas
+            cWorkAreas:="WorkAreas_"+StrZero(nWorkArea,3)
+            cWorkAreas:=allTrim(oTFIni:GetPropertyValue("WorkAreas",cWorkAreas,""))
+            while (" "$cWorkAreas)
+                cWorkAreas:=StrTran(cWorkAreas," ","")
+            end while
+            while (Left(cWorkAreas,1)==",")
+                cWorkAreas:=SubStr(cWorkAreas,2)
+            end while
+            while (Right(cWorkAreas,1)==",")
+                cWorkAreas:=SubStr(cWorkAreas,1,(Len(cWorkAreas)-1))
+            end while
+            aWorkAreas:=StrTokArr2(cWorkAreas,",",.T.)
+            aEval(aWorkAreas,{|cAlias as character|if(!Empty(AllTrim(FWSX2Util():GetX2Name(cAlias,.F.))),ChkFile(cAlias),nil)})
+            FWFreeArray(@aWorkAreas)
+        next nWorkArea
 
         lFastMode:=(allTrim(oTFIni:GetPropertyValue("General","IncProcFastMode","0"))=="1")
         lPercentage:=(allTrim(oTFIni:GetPropertyValue("General","IncProcPercentage","0"))=="1")
@@ -260,7 +273,7 @@ static function Activate() as logical
             @ 000,000 MSPANEL oTPanel OF oTDlg
             oTPanel:Align:=CONTROL_ALIGN_ALLCLIENT
 
-            @ nTop,nLeft BITMAP oTBitMap RESNAME "DNA_TECH_LOGO_MENU_BACKGROUND_BLACK_PANTER" SIZE nBottom,nRight BORDER OF oTPanel PIXEL
+            @ nTop,nLeft BITMAP oTBitMap RESNAME "DNA_TECH_LOGO_MENU_BACKGROUND_BLACK_PANTER" SIZE nBottom,nRight OF oTPanel PIXEL
             oTBitMap:lTransparent:=.F.
             oTBitMap:Align:=CONTROL_ALIGN_ALLCLIENT
             oTBitMap:SetCSS("{background-size: 100% 100%;}")
@@ -2399,7 +2412,8 @@ static function ReadIniFile(cINIFile as character) as logical
         SetValue("cINIFile",cINIFile)
         SetValue("cRootPath",cRootPath)
 
-        oTFIni:=TFIni():New(cINIFile,"#")
+        //Aqui uso TFINI para garantir e manter a Ordem definida no arquivo .INI que eh importante para o Processo.
+        oTFIni:=TFINI():New(cINIFile,"#")
 
         SetValue("ReadIniFile",oTFIni)
 
@@ -2797,7 +2811,8 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
                 cRootPath:=GetValue("cRootPath")
                 cINIFile:=cRootPath
                 cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
-                oTFIniTable:=TFIni():New(cINIFile,"#")
+                //Aqui uso TFINIHashMap pois a ordem dos dados nao interferem no processo
+                oTFIniTable:=TFINIHashMap():New(cINIFile,"#")
                 SetHMValue(cTable,oTFIniTable)
                 xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
                 if ((lUseDFV).and.(empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
@@ -2808,7 +2823,8 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
                 cRootPath:=GetValue("cRootPath")
                 cINIFile:=cRootPath
                 cINIFile+=oTFIni:GetPropertyValue(cTable,"FindInTableFile","")
-                oTFIniTable:=TFIni():New(cINIFile,"#")
+                //Aqui uso TFINIHashMap pois a ordem dos dados nao interferem no processo
+                oTFIniTable:=TFINIHashMap():New(cINIFile,"#")
                 SetValue(cTable,oTFIniTable)
                 xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
                 if ((lUseDFV).and.(empty(xTmp)).and.((oTFIniTable:GetATProperty(cTable,"__DFV__")>0)))
