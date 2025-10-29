@@ -1,0 +1,17 @@
+#include "totvs.ch"
+
+#include "tlpp-core.th"
+
+namespace dna.tech.DataSul2Protheus
+
+using namespace dna.tech
+using namespace dna.tech.DataSul2Protheus
+
+#include "execin.th"
+EXECIN CLASS RD0Import
+
+static function RD0ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
+    private aRotina:=ExecIn():CallProc("STATICCALL","APDA020","MENUDEF") as array
+    ExecIn():CallProcIN("APDA020","APDA020RD0UPD","SRA",0,4)
+    FWFreeArray(@aRotina)
+return(.T.)
