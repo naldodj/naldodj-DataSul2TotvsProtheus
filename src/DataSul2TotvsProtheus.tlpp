@@ -1157,7 +1157,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             lCanBulk:=FWBulk():CanBulk()
             if (lCanBulk)
                 cFWBulkTable:=StrTran(cFWTemporaryTableRealName,"dbo.","")
+                //https://tdn.totvs.com/display/public/framework/FWBulk
                 oFWBulk:=FWBulk():New(cFWBulkTable,1024)
+                oFWBulk:SetOption(1)
                 oFWBulk:SetFields(aTargetStruct)
                 aFWBulk:=Array(Len(aTargetStruct))
                 aEval(aTargetStruct,{|x,y|aFWBulk[y]:=__GetValType(aTargetStruct[y][DBS_TYPE],aTargetStruct[y][DBS_LEN])})
