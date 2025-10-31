@@ -664,7 +664,7 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
         oMSNewProcess:Activate()
 
         if (lEvalOK)
-            lEnd:=aByRef[2]
+            lEnd:=if((ValType(aByRef)=="A").and.(Len(aByRef)>=2).and.(ValType(aByRef[2])=="L"),aByRef[2],.T.)
         else
             lImportData:=.F.
         endif
@@ -1154,6 +1154,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             oFWTemporaryTable:Create()
             cFWTemporaryTableRealName:=oFWTemporaryTable:getRealName()
             SetValue("import"+cTableImport+"FWTemporaryTable",oFWTemporaryTable)
+            oFWBulk:=FWBulk():New(cFWBulkTable,1024)
             lCanBulk:=FWBulk():CanBulk()
             if (lCanBulk)
                 cFWBulkTable:=StrTran(cFWTemporaryTableRealName,"dbo.","")
@@ -1164,6 +1165,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 aFWBulk:=Array(Len(aTargetStruct))
                 aEval(aTargetStruct,{|x,y|aFWBulk[y]:=__GetValType(aTargetStruct[y][DBS_TYPE],aTargetStruct[y][DBS_LEN])})
                 aFWBulkDefault:=aClone(aFWBulk)
+            else
+                FreeObj(@oFWBulk)
             endif
         else
             cFWTemporaryTableRealName:=criaTrab(nil,.F.)
@@ -1552,7 +1555,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 aEval(aLine,{|e|cLine+=e+";"})
                                 oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
                                 cLine:=""
-                                lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
+                                lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias,xValue)))},nil,.F.,nil,nil))
                                 if ((lDeleteIfEmpty).and.(!lHasDeleted))
                                     lHasDeleted:=.T.
                                     (cSourceAlias)->(dbDelete())
@@ -1590,30 +1593,31 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     next nField
 
-                    if (lCanBulk)
-                        lAppend:=oFWBulk:AddData(aFWBulk)
-                        aFWBulk:=aClone(aFWBulkDefault)
-                    endif
-
                     lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
 
-                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
+                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias,xValue)))},nil,.F.,nil,nil))
                     if ((lDeleteIfEmpty).and.(!lHasDeleted))
                         lHasDeleted:=.T.
                         (cSourceAlias)->(dbDelete())
                         nDeleteIfEmpty++
                     endif
 
+                    if ((lEnableFilterBlock).and.(!lDeleteIfEmpty))
+                        lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cSourceAlias)->(!Eval(bEnableFilterBlock,cSourceAlias))},nil,.F.,nil,nil))
+                        if ((!lHasError).and.(lFilterBlock))
+                            lDeleteIfEmpty:=.T.
+                            if (!lHasDeleted)
+                                (cSourceAlias)->(dbDelete())
+                                nDeleteIfEmpty++
+                            endif
+                        endif
+                    endif
+
                     if (!lDeleteIfEmpty)
 
-                        if (lEnableFilterBlock)
-                            lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cSourceAlias)->(!Eval(bEnableFilterBlock,cSourceAlias))},nil,.F.,nil,nil))
-                            if ((!lHasError).and.(lFilterBlock))
-                                if (!lHasDeleted)
-                                    (cSourceAlias)->(dbDelete())
-                                    nDeleteIfEmpty++
-                                endif
-                            endif
+                        if (lCanBulk)
+                            lAppend:=oFWBulk:AddData(aFWBulk)
+                            aFWBulk:=aClone(aFWBulkDefault)
                         endif
 
                         if (lSeekTable)
@@ -1653,6 +1657,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                                         oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
                                                         cTLogDetail:=""
                                                         lEnd:=oMsNewProcess:lEnd:=.T.
+                                                        (cSeekTable)->(MsUnLock())
                                                         break
                                                     endif
 
@@ -1744,6 +1749,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 if ((lEnableFilterBlock).and.(cField$cFieldsFilterBlock))
                                     lHasError:=(!EvalBlock():EvalBlock({||lAppend:=(Eval(bEnableFilterBlockMem,xValue,cField))},nil,.F.,nil,nil))
                                     if ((!lHasError).and.(!lAppend))
+                                        lDeleteIfEmpty:=.T.
                                         if (!lHasDeleted)
                                             lHasDeleted:=.T.
                                             (cSourceAlias)->(dbDelete())
@@ -1765,19 +1771,21 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             next nField
 
-                            if (lCanBulk)
-                                lAppend:=oFWBulk:AddData(aFWBulk)
-                                aFWBulk:=aClone(aFWBulkDefault)
-                            endif
-
                             lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
 
-                            if (lAppend)
+                            if (lAppend).and.(!lCanBulk)
                                 lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
                                 if ((lDeleteIfEmpty).and.(!lHasDeleted))
                                     (cSourceAlias)->(dbDelete())
                                     nDeleteIfEmpty++
                                 endif
+                            endif
+
+                            if (lCanBulk)
+                                if (!lDeleteIfEmpty)
+                                    lAppend:=oFWBulk:AddData(aFWBulk)
+                                endif
+                                aFWBulk:=aClone(aFWBulkDefault)
                             endif
 
                         end while
@@ -3438,6 +3446,33 @@ static function TCSQLUpdateTable(;
         @bIncRegua,;
         @bOnError;
     )
+
+    //TODO
+    if (.F.)
+
+        bSetRegua:={|nRecCount|;
+            cTLogDetail:="Data: ["+DToC(Date())+"]",;
+            cTLogDetail+=" ",;
+            cTLogDetail+="Hora: ["+cTime+"]",;
+            cTLogDetail+=" : ",;
+            cTLogDetail+="Inicio do Insert de Dados.",;
+            oTLogReport:AddDetail(cTLogGroup,cTLogDetail),;
+            oMsNewProcess:SetRegua2(nRecCount);
+        }
+
+        bIncRegua:={|nAT,nRecCount|;
+                cMsProcTXT:="["+oProgress:Eval()+"] ",;
+                cMsProcTXT+="Insert records from ",;
+                cMsProcTXT+="["+cTools():NToS(nAT)+"] ",;
+                cMsProcTXT+="to ",;
+                cMsProcTXT+="["+cTools():NToS(nRecCount)+"] ",;
+                MsProcess():MsProcTxt(cMsProcTXT,.T.,(Mod(nAT,Min(nAT,10))==0)),;
+                oMsNewProcess:IncRegua2(cMsProcTXT);
+        }
+
+        dbEval():BulkFromAlias(cTargetAlias,cSourceAlias,.F./*lSourceKeepRegs*/,bSetRegua,bIncRegua)
+
+    endif
 
     cTLogDetail:="Data: ["+DToC(Date())+"]"
     cTLogDetail+=" "
