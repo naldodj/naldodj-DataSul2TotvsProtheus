@@ -620,6 +620,7 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
     local cMsgProcImportData as character
 
     local lEnd as logical
+    local lByRef:=.T. as logical
     local lEvalOK as logical
     local lImportData as logical
 
@@ -650,7 +651,7 @@ static function ProcImportData(cAlias as character,lPercentage as logical,lFastM
                 lPercentage,;
                 lFastMode;
             ),;
-            lImportData:=ExecIn():evalJSONArrayObject(@oParameters,@aByRef,@lEvalOK);
+            lImportData:=ExecIn():EvalJSONArrayObject(@oParameters,@aByRef,@lByRef,@lEvalOK);
         }
         oMSNewProcess:=MsNewProcess():New(bProcImportData,cMsgProcImportData,"Wait!",.T.)
 
