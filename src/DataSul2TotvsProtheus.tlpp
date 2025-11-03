@@ -740,6 +740,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local cTargetAlias:=cAlias as character
     local cTargetIgnoreFields as character
     local cTargetAliasRealName as character
+    local cTargetFieldsDefReplicate as character
 
     local cType as character
 
@@ -887,6 +888,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local oHMTargetFieldsPos as object
     local oHMTargetFieldsDef as object
     local oHMTargetReplicateFields as object
+    local oHMTargetFieldsDefReplicate as object
 
     local oHMSourceFieldsDef as object
 
@@ -1079,6 +1081,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             aNoReplicateValues:=StrTokArr2(cNoReplicateValues,",",.T.)
             aTargetReplicateFields:=array(0)
             oHMTargetReplicateFields:=THashMap():New()
+            oHMTargetFieldsDefReplicate:=THashMap():New()
         endif
 
         oHMTargetFieldsPos:=THashMap():New()
@@ -1470,12 +1473,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                     else
 
-                                        aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
-                                        aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
+
+                                        cTargetFieldsDefReplicate:=(aTargetFieldsDef[nField][2]+cTools():NToS(nReplicate))
+                                        if (!oHMTargetFieldsDefReplicate:Get(cTargetFieldsDefReplicate,@aTargetFieldsDefReplicate))
+                                            aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
+                                            aTargetFieldsDefReplicate[2]:=cTargetFieldsDefReplicate
+                                            oHMTargetFieldsDefReplicate:Set(cTargetFieldsDefReplicate,aTargetFieldsDefReplicate)
+                                        endif
 
                                         xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
-
-                                        FWFreeArray(@aTargetFieldsDefReplicate)
 
                                     endif
 
@@ -1745,11 +1751,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                 if (GetValue(cSourceTable+"_"+aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0)
 
-                                    aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
-                                    aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
+                                    cTargetFieldsDefReplicate:=(aTargetFieldsDef[nField][2]+cTools():NToS(nReplicate))
+                                    if (!oHMTargetFieldsDefReplicate:Get(cTargetFieldsDefReplicate,@aTargetFieldsDefReplicate))
+                                        aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
+                                        aTargetFieldsDefReplicate[2]:=cTargetFieldsDefReplicate
+                                        oHMTargetFieldsDefReplicate:Set(cTargetFieldsDefReplicate,aTargetFieldsDefReplicate)
+                                    endif
                                     xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,@aTargetFieldsDefReplicate,@aFieldsDef,@oHMSourceFieldsDef))
-
-                                    FWFreeArray(@aTargetFieldsDefReplicate)
 
                                 else
 
@@ -1819,16 +1827,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 FWFreeArray(@aLine)
 
                 if (lDbCommit)
+                    lDbCommit:=.F.
                     nCommitBuffer:=0
                     if (lCanBulk)
                         oFWBulk:Flush()
                     else
                         (cSourceAlias)->(dbCommitAll())
                     endif
-                endif
-
-                if (lDbCommit)
-                    lDbCommit:=.F.
                 endif
 
                 if (nRecProcPerc>=nRecCount)
@@ -1839,6 +1844,11 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 oFileReader:ft_fSkip()
 
             end while
+
+            if (lTypeReplicate)
+                FreeObj(@oHMTargetFieldsDefReplicate)
+                FWFreeArray(@aTargetFieldsDefReplicate)
+            endif
 
             if (lCanBulk)
                 oFWBulk:Close()
