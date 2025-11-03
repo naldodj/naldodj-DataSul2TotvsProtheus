@@ -1,7 +1,5 @@
 #include "totvs.ch"
 
-#include "tlpp-core.th"
-
 namespace dna.tech.DataSul2Protheus
 
 using namespace dna.tech
@@ -15,6 +13,57 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
 static function RHKSetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function RHKDeleteIfEmpty(cAlias,lMemory) as logical
+    local lRHKDeleteIfEmpty:=.F. as logical
+    begin sequence
+        if (lMemory)
+            lRHKDeleteIfEmpty:=Empty(RHKGetValue("RHK_TPPLAN"))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=Empty(RHKGetValue("RHK_TPFORN"))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=Empty(RHKGetValue("RHK_CODFOR"))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=Empty(RHKGetValue("RHK_PLANO"))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=Empty(RHKGetValue("RHK_PDDAGR"))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=(dna.tech.DataSul2Protheus.RHKImport():Execute("dna.tech.DataSul2Protheus.RHKGetValue","RHK_cdn_depend_func",1)<>0)
+        else
+            lRHKDeleteIfEmpty:=(cAlias)->(Empty(RHK_TPPLAN))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=(cAlias)->(Empty(RHK_TPFORN))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=(cAlias)->(Empty(RHK_CODFOR))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=(cAlias)->(Empty(RHK_PLANO))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=(cAlias)->(Empty(RHK_PDDAGR))
+            if (lRHKDeleteIfEmpty)
+                break
+            endif
+            lRHKDeleteIfEmpty:=(dna.tech.DataSul2Protheus.RHKImport():Execute("dna.tech.DataSul2Protheus.RHKGetValue","RHK_cdn_depend_func",1)<>0)
+        endif
+    end sequence
+return(lRHKDeleteIfEmpty)
 
 static function RHKImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 

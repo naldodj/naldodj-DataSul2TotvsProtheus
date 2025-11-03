@@ -1,7 +1,5 @@
 #include "totvs.ch"
 
-#include "tlpp-core.th"
-
 namespace dna.tech.DataSul2Protheus
 
 using namespace dna.tech

@@ -14,8 +14,6 @@
 #include "jsonhash.ch"
 #include "jsonarray.ch"
 
-#include "tlpp-core.th"
-
 namespace dna.tech.DataSul2Protheus
 
 using namespace dna.tech
@@ -1186,7 +1184,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         FWFreeArray(@aTargetStruct)
 
         bAddTLogReport:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAddTLogReport","{|cAlias,cTableImport,oTLogReport|.F.}")))
-        bDeleteIfEmpty:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bDeleteIfEmpty","{|cAlias|.F.}")))
+        bDeleteIfEmpty:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bDeleteIfEmpty","{|cAlias,lMemory|.F.}")))
 
         lSeekTable:=(!empty(cSeekTable:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekTable",""))))
         if (lSeekTable)
@@ -1327,6 +1325,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                         for nField:=1 to nFields
                             cField:=aTargetFieldsDef[nField][DBS_NAME]
+                            SetValue(cField,__GetValType(aTargetFieldsDef[nField][DBS_TYPE],aTargetFieldsDef[nField][DBS_LEN]))
                             if (;
                                     (;
                                         (lChkFilial).and.(cField==cFieldFilial);
@@ -1434,6 +1433,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     if (!lCanBulk)
                         (cSourceAlias)->(dbAppend(.F.))
+                    else
+                        aFWBulk:=aClone(aFWBulkDefault)
                     endif
 
                     lDbCommit:=(++nCommitBuffer>=1024)
@@ -1445,14 +1446,16 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     for nField:=1 to nFields
 
                         cField:=aTargetFieldsDef[nField][DBS_NAME]
+                        SetValue(cField,__GetValType(aTargetFieldsDef[nField][DBS_TYPE],aTargetFieldsDef[nField][DBS_LEN]))
 
                         if ((!lChkFilial).and.(cField==cFieldFilial))
 
                             xValue:=cAliasxFilial
+                            SetValue(cField,xValue)
 
                         else
 
-                            if ((nReplicates>0).and.(!lTypeReplicateRow).and.(GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0))
+                            if ((nReplicates>0).and.(!lTypeReplicateRow).and.(GetValue(cSourceTable+"_"+aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0))
 
                                 nReplicate:=0
 
@@ -1462,6 +1465,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                     if (nReplicate==1)
 
+                                        xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
                                         xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef))
 
                                     else
@@ -1556,7 +1560,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 aEval(aLine,{|e|cLine+=e+";"})
                                 oTLogReport:AddDetail(cTLogGroup,cLine,nMLCountSize)
                                 cLine:=""
-                                lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias,xValue)))},nil,.F.,nil,nil))
+                                lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias,lCanBulk)))},nil,.F.,nil,nil))
                                 if ((lDeleteIfEmpty).and.(!lHasDeleted))
                                     lHasDeleted:=.T.
                                     (cSourceAlias)->(dbDelete())
@@ -1596,7 +1600,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
 
-                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias,xValue)))},nil,.F.,nil,nil))
+                    lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias,lCanBulk)))},nil,.F.,nil,nil))
                     if ((lDeleteIfEmpty).and.(!lHasDeleted))
                         lHasDeleted:=.T.
                         (cSourceAlias)->(dbDelete())
@@ -1604,7 +1608,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     endif
 
                     if ((lEnableFilterBlock).and.(!lDeleteIfEmpty))
-                        lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cSourceAlias)->(!Eval(bEnableFilterBlock,cSourceAlias))},nil,.F.,nil,nil))
+                        if (lCanBulk)
+                            lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias,lCanBulk)))},nil,.F.,nil,nil))
+                            lFilterBlock:=lDeleteIfEmpty
+                        else
+                            lHasError:=(!EvalBlock():EvalBlock({||lFilterBlock:=(cSourceAlias)->(!Eval(bEnableFilterBlock,cSourceAlias))},nil,.F.,nil,nil))
+                        endif
                         if ((!lHasError).and.(lFilterBlock))
                             lDeleteIfEmpty:=.T.
                             if (!lHasDeleted)
@@ -1615,11 +1624,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     endif
 
                     if (!lDeleteIfEmpty)
-
-                        if (lCanBulk)
-                            lAppend:=oFWBulk:AddData(aFWBulk)
-                            aFWBulk:=aClone(aFWBulkDefault)
-                        endif
 
                         if (lSeekTable)
 
@@ -1705,9 +1709,20 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     endif
 
+                    if (lCanBulk)
+                        if (!lDeleteIfEmpty)
+                            lAppend:=oFWBulk:AddData(aFWBulk)
+                        endif
+                    endif
+
                     if ((nReplicates>0).and.(lTypeReplicateRow))
 
-                        aReplicateValues:=(cSourceAlias)->(aUtils():RegToArray(cSourceAlias,recNo(),aTargetReplicateFields,.F.,.F.,@aTargetReplicateFieldsPos))
+                        if (lCanBulk)
+                            aReplicateValues:=Array(0)
+                            aEval(aTargetReplicateFields,{|cField as character|if((oHMTargetReplicateFields:Get(cField,@nReplicateValuesAT).and.nReplicateValuesAT>0).and.(oHMTargetFieldsPos:Get(cField,@nTargetFieldPos).and.(nTargetFieldPos>0)),aAdd(aReplicateValues,aFWBulk[nTargetFieldPos]),(nReplicateValuesAT:=0,nTargetFieldPos:=0))})
+                        else
+                            aReplicateValues:=(cSourceAlias)->(aUtils():RegToArray(cSourceAlias,recNo(),aTargetReplicateFields,.F.,.F.,@aTargetReplicateFieldsPos))
+                        endif
                         nReplicate:=1
 
                         while (((++nReplicate)<=nReplicates))
@@ -1717,6 +1732,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             if (!lCanBulk)
                                 (cSourceAlias)->(dbAppend(.F.))
+                            else
+                                aFWBulk:=aClone(aFWBulkDefault)
                             endif
 
                             lDbCommit:=(++nCommitBuffer>=1024)
@@ -1724,8 +1741,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             for nField:=1 to nFields
 
                                 cField:=aTargetFieldsDef[nField][DBS_NAME]
+                                SetValue(cField,__GetValType(aTargetFieldsDef[nField][DBS_TYPE],aTargetFieldsDef[nField][DBS_LEN]))
 
-                                if (GetValue(aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0)
+                                if (GetValue(cSourceTable+"_"+aTargetFieldsDef[nField][2]+"_TypeReplicate",0)>0)
 
                                     aTargetFieldsDefReplicate:=aClone(aTargetFieldsDef[nField])
                                     aTargetFieldsDefReplicate[2]+=cTools():NToS(nReplicate)
@@ -1741,6 +1759,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                     if (aScan(aNoReplicateValues,{|x|(x==cField)})==0)
                                         xValue:=aReplicateValues[nReplicateValuesAT]
+                                        SetValue(cField,xValue)
                                     else
                                         xValue:=(cSourceAlias)->(getTargetFieldValue(@lHasError,@oTFIni,@aLine,@cField,aTargetFieldsDef[nField],@aFieldsDef,@oHMSourceFieldsDef,@cType))
                                     endif
@@ -1774,8 +1793,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             lHasError:=(!EvalBlock():EvalBlock({||(cSourceAlias)->(Eval(bAddTLogReport,cSourceAlias,cTableImport,oTLogReport))},nil,.F.,nil,nil))
 
-                            if (lAppend).and.(!lCanBulk)
-                                lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias)))},nil,.F.,nil,nil))
+                            if (lAppend).or.(lCanBulk)
+                                lHasError:=(!EvalBlock():EvalBlock({||lDeleteIfEmpty:=((cSourceAlias)->(Eval(bDeleteIfEmpty,cSourceAlias,lCanBulk)))},nil,.F.,nil,nil))
                                 if ((lDeleteIfEmpty).and.(!lHasDeleted))
                                     (cSourceAlias)->(dbDelete())
                                     nDeleteIfEmpty++
@@ -1786,7 +1805,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 if (!lDeleteIfEmpty)
                                     lAppend:=oFWBulk:AddData(aFWBulk)
                                 endif
-                                aFWBulk:=aClone(aFWBulkDefault)
                             endif
 
                         end while

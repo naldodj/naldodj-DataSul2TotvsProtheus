@@ -16,6 +16,30 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 static function SRDSetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
+static function SRDDeleteIfEmpty(cAlias,lMemory) as logical
+    local lSRDDeleteIfEmpty:=.F. as logical
+    begin sequence
+        if (lMemory)
+            lSRDDeleteIfEmpty:=Empty(SRDGetValue("RD_MAT"))
+            if (lSRDDeleteIfEmpty)
+                break
+            endif
+            lSRDDeleteIfEmpty:=Empty(SRDGetValue("RD_PD"))
+            if (lSRDDeleteIfEmpty)
+                break
+            endif
+            lSRDDeleteIfEmpty:=Empty(SRDGetValue("RD_HORAS"))
+            lSRDDeleteIfEmpty:=lSRDDeleteIfEmpty.and.Empty(SRDGetValue("RD_HORINFO"))
+            lSRDDeleteIfEmpty:=lSRDDeleteIfEmpty.and.Empty(SRDGetValue("RD_VALOR"))
+            if (lSRDDeleteIfEmpty)
+                break
+            endif
+        else
+            lSRDDeleteIfEmpty:=(cAlias)->(Empty(RD_MAT).OR.Empty(RD_PD).OR.(empty(RD_HORAS).AND.empty(RD_HORINFO).AND.empty(RD_VALOR)))
+        endif
+    end sequence
+return(lSRDDeleteIfEmpty)
+
 static function SRDImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array

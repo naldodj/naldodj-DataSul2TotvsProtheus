@@ -16,6 +16,20 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 static function SRVSetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
+static function SRVDeleteIfEmpty(cAlias,lMemory) as logical
+    local lSRVDeleteIfEmpty:=.F. as logical
+    begin sequence
+        if (lMemory)
+            lSRVDeleteIfEmpty:=Empty(SRVGetValue("RV_COD"))
+            if (lSRVDeleteIfEmpty)
+                break
+            endif
+        else
+            lSRVDeleteIfEmpty:=(cAlias)->(Empty(RV_COD))
+        endif
+    end sequence
+return(lSRVDeleteIfEmpty)
+
 static function SRVImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
     local aAddIndex as array

@@ -1,7 +1,5 @@
 #include "totvs.ch"
 
-#include "tlpp-core.th"
-
 namespace dna.tech.DataSul2Protheus
 
 using namespace dna.tech
@@ -15,6 +13,20 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
 static function RI1SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function RI1DeleteIfEmpty(cAlias,lMemory) as logical
+    local lRI1DeleteIfEmpty:=.F. as logical
+    begin sequence
+        if (lMemory)
+            lRI1DeleteIfEmpty:=Empty(RI1GetValue("RI1_DINIPG"))
+            if (lRI1DeleteIfEmpty)
+                break
+            endif
+        else
+            lRI1DeleteIfEmpty:=(cAlias)->(Empty(RI1_DINIPG))
+        endif
+    end sequence
+return(lRI1DeleteIfEmpty)
 
 static function SetFilAnt(cFil as character)
 return(dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.SetFilAnt",@cFil))

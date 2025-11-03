@@ -6,8 +6,6 @@
 #include "jsonhash.ch"
 #include "jsonarray.ch"
 
-#include "tlpp-core.th"
-
 namespace dna.tech.DataSul2Protheus
 
 using namespace dna.tech

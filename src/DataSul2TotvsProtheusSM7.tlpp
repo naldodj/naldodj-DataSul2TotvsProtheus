@@ -1,7 +1,5 @@
 #include "totvs.ch"
 
-#include "tlpp-core.th"
-
 namespace dna.tech.DataSul2Protheus
 
 using namespace dna.tech
@@ -15,6 +13,24 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
 static function SM7SetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function SM7DeleteIfEmpty(cAlias,lMemory) as logical
+    local lSM7DeleteIfEmpty:=.F. as logical
+    begin sequence
+        if (lMemory)
+            lSM7DeleteIfEmpty:=Empty(SM7GetValue("M7_TPVALE"))
+            if (lSM7DeleteIfEmpty)
+                break
+            endif
+        else
+            lSM7DeleteIfEmpty:=(cAlias)->(Empty(M7_TPVALE))
+            if (lSM7DeleteIfEmpty)
+                break
+            endif
+            lSM7DeleteIfEmpty:=(SM7GetValue("M7_cdn_depend_func",1)<>0)
+        endif
+    end sequence
+return(lSM7DeleteIfEmpty)
 
 static function SM7ImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 

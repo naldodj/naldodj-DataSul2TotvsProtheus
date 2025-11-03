@@ -1,5 +1,4 @@
 #include "totvs.ch"
-#include "tlpp-core.th"
 
 namespace dna.tech.DataSul2Protheus
 
@@ -14,6 +13,63 @@ return(cacheData():Get("datasul2totvsprotheus",xGet,xDefault))
 
 static function RHLSetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
+
+static function RHLDeleteIfEmpty(cAlias,lMemory) as logical
+    local lRHLDeleteIfEmpty:=.F. as logical
+    begin sequence
+        if (lMemory)
+            lRHLDeleteIfEmpty:=Empty(RHLGetValue("RHL_TPFORN"))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=Empty(RHLGetValue("RHL_CODFOR"))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=Empty(RHLGetValue("RHL_TPPLAN"))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=Empty(RHLGetValue("RHL_PLANO"))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=(dna.tech.DataSul2Protheus.RHLImport():Execute("dna.tech.DataSul2Protheus.RHLGetValue","RHL_cdn_depend_func",0)==0)
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=(empty(Posicione("RHL",1,RHLGetValue("RHL_FILIAL")+RHLGetValue("RHL_MAT"),"RHL_MAT")))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+        else
+            lRHLDeleteIfEmpty:=(cAlias)->(Empty(RHL_TPFORN))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=(cAlias)->(Empty(RHL_CODFOR))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=(cAlias)->(Empty(RHL_TPPLAN))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=(cAlias)->(Empty(RHL_PLANO))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=(dna.tech.DataSul2Protheus.RHLImport():Execute("dna.tech.DataSul2Protheus.RHLGetValue","RHL_cdn_depend_func",0)==0)
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+            lRHLDeleteIfEmpty:=(empty(Posicione("RHL",1,RHLGetValue("RHL_FILIAL")+RHLGetValue("RHL_MAT"),"RHL_MAT")))
+            if (lRHLDeleteIfEmpty)
+                break
+            endif
+        endif
+    end sequence
+return(lRHLDeleteIfEmpty)
 
 static function RHLImportData(oMsNewProcess as object,lEnd as logical,lPercentage as logical) as logical
 
