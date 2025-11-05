@@ -90,10 +90,13 @@ return(lSRVImport)
 static function RCNImportData(cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oProgress)
 
     local aLine as array
+    local aTPPD as array
 
-    local cRVDesc as character
+    local cPD as character
+    local cLine as character
     local cIncProc as character
     local cIndexID as character
+    local cLineRead as character
     local cRecCount as character
     local cDataPath:=dna.tech.DataSul2Protheus.datasul2totvs():Execute("dna.tech.DataSul2Protheus.GetDataPath") as character
     local cDataFile:="totvs_rcn_2_srv.csv" as character
@@ -103,6 +106,8 @@ static function RCNImportData(cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oP
     local lFound as logical
     local lAddNew as logical
 
+    local nLine as numeric
+    local nTPPD as numeric
     local nRecProc as numeric
     local nRecCount as numeric
 
@@ -132,34 +137,29 @@ static function RCNImportData(cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oP
             cRecCount:=cTools():NToS(nRecCount)
             oMsNewProcess:SetRegua1(nRecCount)
             oTimeRemaining:SetRemaining(nRecCount)
-            nSRVDesc:=getSX3Cache("RV_DESC","X3_TAMANHO")
-            nSRVDescDec:=getSX3Cache("RV_DESCDET","X3_TAMANHO")
+            nSRVDesc:=GetSX3Cache("RV_DESC","X3_TAMANHO")
+            nSRVDescDec:=GetSX3Cache("RV_DESCDET","X3_TAMANHO")
+            aTPPD:=Array(3)
             while (!oFileReader:ft_fEof())
                 oFileReader:ft_fSkip()
                 while (!oFileReader:ft_fEof())
                     nRecProc:=oFileReader:ft_fRecNo()
-                    cLine:=oFileReader:ft_fReadLN()
+                    cLineRead:=oFileReader:ft_fReadLN()
+                    cLine:=DecodeUTF8(cLineRead)
+                    if (Empty(cLine))
+                        cLine:=cLineRead
+                    endif
                     aLine:=StrTokArr2(cLine,";",.T.)
                     if (Len(aLine)<4)
                         FWFreeArray(@aLine)
                         oFileReader:ft_fSkip()
+                        loop
                     endif
-                    cIndexID:=cSRVFilial
-                    cIndexID+=aLine[4]
-                    if (SRVCODFOL->(!dbSeek(cSRVFilial+aLine[1])))
-                        lFound:=SRV->(dbSeek(cIndexID,.F.))
-                        lAddNew:=(!lFound)
-                        if (SRV->(RecLock("SRV",lAddNew)))
-                            SRV->RV_FILIAL:=cSRVFilial
-                            SRV->RV_COD:=aLine[4]
-                            SRV->RV_TIPO:=aLine[3]
-                            SRV->RV_CODFOL:=aLine[1]
-                            cRVDesc:=DecodeUTF8(aLine[2])
-                            SRV->RV_DESC:=dna.tech.cTools():TruncateName(cRVDesc,nSRVDesc,.T.,.T.)
-                            SRV->RV_DESCDET:=dna.tech.cTools():TruncateName(cRVDesc,nSRVDescDec,.T.,.T.)
-                            SRV->(MsUnLock())
-                        endif
+                    nTPPD:=Val(Left(aLine[4],1))
+                    if (aTPPD[nTPPD]==nil)
+                        aTPPD[nTPPD]:=Array(0)
                     endif
+                    aAdd(aTPPD[nTPPD],aClone(aLine))
                     *********************************************************************************************
                     oTimeRemaining:Calcule(.F.)
                     cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
@@ -181,10 +181,57 @@ static function RCNImportData(cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oP
                     oFileReader:ft_fSkip()
                 end while
             end while
+            oFileReader:ft_fUse()
+            oFileReader:FreeObj()
+            FreeObj(@oFileReader)
+            *********************************************************************************************
+            nRecProc:=0
+            oMsNewProcess:SetRegua1(nRecCount)
+            oTimeRemaining:SetRemaining(nRecCount)
+            for nTPPD:=1 to Len(aTPPD)
+                cPD:=(tlpp.ToStr(nTPPD)+"A0")
+                for nLine:=1 to Len(aTPPD[nTPPD])
+                    aLine:=aTPPD[nTPPD][nLine]
+                    aLine[4]:=cPD
+                    cIndexID:=cSRVFilial
+                    cIndexID+=aLine[4]
+                    if (SRVCODFOL->(!dbSeek(cSRVFilial+aLine[1])))
+                        lFound:=SRV->(dbSeek(cIndexID,.F.))
+                        lAddNew:=(!lFound)
+                        if (SRV->(RecLock("SRV",lAddNew)))
+                            SRV->RV_FILIAL:=cSRVFilial
+                            SRV->RV_COD:=aLine[4]
+                            SRV->RV_TIPO:=aLine[3]
+                            SRV->RV_CODFOL:=aLine[1]
+                            SRV->RV_DESC:=dna.tech.cTools():TruncateName(aLine[2],nSRVDesc,.T.,.T.)
+                            SRV->RV_DESCDET:=dna.tech.cTools():TruncateName(aLine[2],nSRVDescDec,.T.,.T.)
+                            SRV->(MsUnLock())
+                        endif
+                    endif
+                    *********************************************************************************************
+                    oTimeRemaining:Calcule(.F.)
+                    cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                    cTimeRemaining+="[+/-]"
+                    cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+                    cIncProc:="["+oProgress:Eval()+"] "
+                    cIncProc+="Record ["
+                    cIncProc+=cTools():NToS(++nRecProc)
+                    cIncProc+="/"
+                    cIncProc+=cRecCount
+                    cIncProc+="] :: "
+                    cIncProc+="ID ["+aLine[1]+"]"
+                    cIncProc+=cTimeRemaining
+                    cIncProc+=" :: ["+cTools():NToS(Round(((nRecProc/nRecCount)*100),2))+"%]"
+                    oMsNewProcess:IncRegua2(cIncProc)
+                    *********************************************************************************************
+                    FWFreeArray(@aLine)
+                    *********************************************************************************************
+                    cPD:=__Soma1(cPD)
+                next nLine
+            next nTPPD
+            FWFreeArray(@aTPPD)
         endif
-        oFileReader:ft_fUse()
-        oFileReader:FreeObj()
-        FreeObj(@oFileReader)
     endif
 
 return(.T.)

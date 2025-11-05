@@ -3476,32 +3476,27 @@ static function TCSQLUpdateTable(;
         @bOnError;
     )
 
-    //TODO
-    if (.F.)
+    bSetRegua:={|nRecCount|;
+        cTLogDetail:="Data: ["+DToC(Date())+"]",;
+        cTLogDetail+=" ",;
+        cTLogDetail+="Hora: ["+cTime+"]",;
+        cTLogDetail+=" : ",;
+        cTLogDetail+="Inicio do Insert de Dados.",;
+        oTLogReport:AddDetail(cTLogGroup,cTLogDetail),;
+        oMsNewProcess:SetRegua2(nRecCount);
+    }
 
-        bSetRegua:={|nRecCount|;
-            cTLogDetail:="Data: ["+DToC(Date())+"]",;
-            cTLogDetail+=" ",;
-            cTLogDetail+="Hora: ["+cTime+"]",;
-            cTLogDetail+=" : ",;
-            cTLogDetail+="Inicio do Insert de Dados.",;
-            oTLogReport:AddDetail(cTLogGroup,cTLogDetail),;
-            oMsNewProcess:SetRegua2(nRecCount);
-        }
+    bIncRegua:={|nAT,nRecCount|;
+            cMsProcTXT:="["+oProgress:Eval()+"] ",;
+            cMsProcTXT+="Insert records from ",;
+            cMsProcTXT+="["+cTools():NToS(nAT)+"] ",;
+            cMsProcTXT+="to ",;
+            cMsProcTXT+="["+cTools():NToS(nRecCount)+"] ",;
+            MsProcess():MsProcTxt(cMsProcTXT,.T.,(Mod(nAT,Min(nAT,10))==0)),;
+            oMsNewProcess:IncRegua2(cMsProcTXT);
+    }
 
-        bIncRegua:={|nAT,nRecCount|;
-                cMsProcTXT:="["+oProgress:Eval()+"] ",;
-                cMsProcTXT+="Insert records from ",;
-                cMsProcTXT+="["+cTools():NToS(nAT)+"] ",;
-                cMsProcTXT+="to ",;
-                cMsProcTXT+="["+cTools():NToS(nRecCount)+"] ",;
-                MsProcess():MsProcTxt(cMsProcTXT,.T.,(Mod(nAT,Min(nAT,10))==0)),;
-                oMsNewProcess:IncRegua2(cMsProcTXT);
-        }
-
-        dbEval():BulkFromAlias(cTargetAlias,cSourceAlias,.F./*lSourceKeepRegs*/,bSetRegua,bIncRegua)
-
-    endif
+    dbEval():BulkFromAlias(cTargetAlias,cSourceAlias,.F./*lSourceKeepRegs*/,bSetRegua,bIncRegua)
 
     cTLogDetail:="Data: ["+DToC(Date())+"]"
     cTLogDetail+=" "
