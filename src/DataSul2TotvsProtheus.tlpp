@@ -5,6 +5,8 @@
 
 #define DTS_DBS_ALEN   4
 
+#define __BULKFROMALIAS__ .F.
+
 #include "totvs.ch"
 #include "shell.ch"
 
@@ -63,13 +65,8 @@ static method Activate() class Protheus
 
     private cCadastro:="TOTVS :: DataSul To Protheus" as character
 
-    if (FWIsInCallStack("DNA.TECH.DATASUL2PROTHEUS.u_datasul2totvsProtheusMain"))
-        ErrorSys()
+    if (FWIsInCallStack("DNA.TECH.DATASUL2PROTHEUS.U_DATASUL2TOTVSPROTHEUSMAIN"))
         HelpInDark(.T.)
-        FWMsgRun(nil,{||aEval(RetSXS(),{|aAlias as array|if((Select(aAlias[1])==0),OpenSXS(nil,nil,nil,nil,nil,nil,aAlias[1]),nil)})},"Wait!","Openning WorkAreas")
-        if (Select("XX4")==0)
-            OpenSXS(nil,nil,nil,nil,nil,nil,"XX4")
-        endif
     endif
 
     //Desliga Refresh no Lock do Top
@@ -3476,28 +3473,6 @@ static function TCSQLUpdateTable(;
         @bOnError;
     )
 
-    bSetRegua:={|nRecCount|;
-        cTLogDetail:="Data: ["+DToC(Date())+"]",;
-        cTLogDetail+=" ",;
-        cTLogDetail+="Hora: ["+cTime+"]",;
-        cTLogDetail+=" : ",;
-        cTLogDetail+="Inicio do Insert de Dados.",;
-        oTLogReport:AddDetail(cTLogGroup,cTLogDetail),;
-        oMsNewProcess:SetRegua2(nRecCount);
-    }
-
-    bIncRegua:={|nAT,nRecCount|;
-            cMsProcTXT:="["+oProgress:Eval()+"] ",;
-            cMsProcTXT+="Insert records from ",;
-            cMsProcTXT+="["+cTools():NToS(nAT)+"] ",;
-            cMsProcTXT+="to ",;
-            cMsProcTXT+="["+cTools():NToS(nRecCount)+"] ",;
-            MsProcess():MsProcTxt(cMsProcTXT,.T.,(Mod(nAT,Min(nAT,10))==0)),;
-            oMsNewProcess:IncRegua2(cMsProcTXT);
-    }
-
-    dbEval():BulkFromAlias(cTargetAlias,cSourceAlias,.F./*lSourceKeepRegs*/,bSetRegua,bIncRegua)
-
     cTLogDetail:="Data: ["+DToC(Date())+"]"
     cTLogDetail+=" "
     cTLogDetail+="Hora: ["+Time()+"]"
@@ -3506,6 +3481,43 @@ static function TCSQLUpdateTable(;
     cTLogDetail+=" : "
     cTLogDetail+="Decorridos: ["+ElapTime(cTime,Time())+"]"
     oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+
+    if (__BULKFROMALIAS__)
+
+        cTime:=Time()
+
+        bSetRegua:={|nRecCount|;
+            cTLogDetail:="Data: ["+DToC(Date())+"]",;
+            cTLogDetail+=" ",;
+            cTLogDetail+="Hora: ["+cTime+"]",;
+            cTLogDetail+=" : ",;
+            cTLogDetail+="Inicio do Insert de Dados.",;
+            oTLogReport:AddDetail(cTLogGroup,cTLogDetail),;
+            oMsNewProcess:SetRegua2(nRecCount);
+        }
+
+        bIncRegua:={|nAT,nRecCount|;
+                cMsProcTXT:="["+oProgress:Eval()+"] ",;
+                cMsProcTXT+="Insert records from ",;
+                cMsProcTXT+="["+cTools():NToS(nAT)+"] ",;
+                cMsProcTXT+="to ",;
+                cMsProcTXT+="["+cTools():NToS(nRecCount)+"] ",;
+                MsProcess():MsProcTxt(cMsProcTXT,.T.,(Mod(nAT,Min(nAT,10))==0)),;
+                oMsNewProcess:IncRegua2(cMsProcTXT);
+        }
+
+        dbEval():BulkFromAlias(cTargetAlias,cSourceAlias,.F./*lSourceKeepRegs*/,bSetRegua,bIncRegua)
+
+        cTLogDetail:="Data: ["+DToC(Date())+"]"
+        cTLogDetail+=" "
+        cTLogDetail+="Hora: ["+Time()+"]"
+        cTLogDetail+=" : "
+        cTLogDetail+="Termino do Insert de Dados."
+        cTLogDetail+=" : "
+        cTLogDetail+="Decorridos: ["+ElapTime(cTime,Time())+"]"
+        oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+
+    endif
 
 return(nTCSQLExec)
 
