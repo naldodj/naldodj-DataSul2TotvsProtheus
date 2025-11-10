@@ -3489,8 +3489,8 @@ static function TCSQLUpdateTable(;
             cMsProcTXT+="["+cTools():NToS(Min(nMaxRecNo,nMinRecNoPlus))+"] ",;
             cMsProcTXT+="out of ",;
             cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]",;
-            cMsProcTXT+=" :: ["+cTools():NToS(if((Min(nMaxRecNo,nMinRecNoPlus)>=nMaxRecNo),100,((Min(nMaxRecNo,nMinRecNoPlus)/nMaxRecNo)*100)))+"%]",;
-            cMsProcTXT+="["+cProgress+"]",;
+            cMsProcTXT+="["+cTools():NToS(if((Min(nMaxRecNo,nMinRecNoPlus)>=nMaxRecNo),100,((Min(nMaxRecNo,nMinRecNoPlus)/nMaxRecNo)*100)))+"%]",;
+            cMsProcTXT+=" ["+cProgress+"]",;
             MsProcess():MsProcTxt(cMsProcTXT,.T.,.T.),;
             oMsNewProcess:IncRegua2(cMsProcTXT);
     } as codeblock
@@ -3550,8 +3550,8 @@ static function TCSQLUpdateTable(;
                 cMsProcTXT+="["+cTools():NToS(nAT)+"] ",;
                 cMsProcTXT+="to ",;
                 cMsProcTXT+="["+cTools():NToS(nRecCount)+"]",;
-                cMsProcTXT+=" :: ["+cTools():NToS(if((nAT>=nRecCount),100,((nAT/nRecCount)*100)))+"%]",;
-                cMsProcTXT+="["+cProgress+"] ",;
+                cMsProcTXT+="["+cTools():NToS(if((nAT>=nRecCount),100,((nAT/nRecCount)*100)))+"%]",;
+                cMsProcTXT+=" ["+cProgress+"] ",;
                 MsProcess():MsProcTxt(cMsProcTXT,.T.,.T.),;
                 oMsNewProcess:IncRegua2(cMsProcTXT);
         }
