@@ -792,7 +792,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local lAddNew as logical
     local lAppend as logical
     local lDbCommit as logical
-    local lSetRegua:=.T. as logical
     local lHasError:=.F. as logical
     local lChkFilial as logical
     local lChkEncode as logical
@@ -820,6 +819,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local lDeleted:=Set(_SET_DELETED,"ON") as logical
     local lHasDeleted:=.F. as logical
 
+    local lSetReguaGetLineFromSource:=.T. as logical
+
     local nField as numeric
     local nFields as numeric
 
@@ -832,7 +833,6 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local nRecProc:=0 as numeric
     local nIncProc as numeric
-    local nSetRegua:=0 as numeric
     local nRecCount as numeric
     local nRecProcPerc as numeric
     local nRecCountProc as numeric
@@ -840,6 +840,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local nRecProcCustom as numeric
     local nTargetFieldAT as numeric
     local nTargetFieldPos as numeric
+
+    local nSetReguaGetLineFromSource:=0 as numeric
 
     local nGetFileOptions as numeric
 
@@ -1152,7 +1154,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cSourceFileName+=cSPPExt
 
             oFileReader:=fileTools():FileReader("FILE")
-            bSourceGetLine:={|jLine|GetLineFromSource(jLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetRegua,@nSetRegua,cCRLF,@oTimeRemainingGetLineFromSource)}
+            bSourceGetLine:={|jLine|GetLineFromSource(jLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetReguaGetLineFromSource,@nSetReguaGetLineFromSource,cCRLF,@oTimeRemainingGetLineFromSource)}
             oFileReader:ft_fSetGetLine(bSourceGetLine)
             bSourceAppendLine:={|nRecNoAT,uLine|jSourceJSONLine["Line"]:=uLine,jSourceJSONLine:ToJSON()}
             oFileReader:ft_fSetAppend(bSourceAppendLine)
@@ -1169,6 +1171,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 ,.T.;
             )
 
+            lSetReguaGetLineFromSource:=.T.
+            nSetReguaGetLineFromSource:=0
             FreeObj(@oTimeRemainingGetLineFromSource)
 
             lImportData:=(nFTfHandle>=0)
