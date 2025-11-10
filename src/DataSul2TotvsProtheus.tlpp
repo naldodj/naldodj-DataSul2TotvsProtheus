@@ -1141,6 +1141,21 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             nStartLine:=val(allTrim(oTFIni:GetPropertyValue(cTableImport,"StartLine","1")))
         endif
 
+        lCustomUpdate:=((valType(bCustomUpdate)=="B").or.(allTrim(oTFIni:GetPropertyValue(cTableImport,"CustomUpdate","0"))=="1"))
+        if (lCustomUpdate)
+            if (valType(bCustomUpdate)!="B")
+                bCustomUpdate:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bCustomUpdate","{|cSourceAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef,oTLogReport|.F.}")))
+            endif
+        endif
+
+        lAppendIfNotExist:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"AppendIfNotExist","1"))=="1")
+        lUpdateEmptyValue:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"UpdateEmptyValue","0"))=="1")
+
+        bAfterUpdateRecNo:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateRecNo","{|cAlias,nRecNo|.F.}")))
+        lAfterUpdateRecNo:=(valType(bAfterUpdateRecNo)=="B")
+
+        bAfterUpdateTable:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateTable","{|cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oProgress|.F.}")))
+
         nFiles:=Len(aSourceFile)
         for nFile:=1 to nFiles
 
@@ -1978,195 +1993,193 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     )
                 endif
 
-                if (lTCSQLUpdateTable)
-                    FWMsgRun(nil,{||nAliasdbCount:=dna.tech.DataSul2Protheus.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
-                    nRecCount:=Min(nAliasdbCount,(cSourceAlias)->(recCount()))
-                else
-                    nRecCount:=(cSourceAlias)->(recCount())
-                endif
-
-                nRecCountProc:=nRecCount
-
-                if ((lPercentage).and.(nRecCount>=1000))
-                    nIncProcStep=(1/nRecCount*100)
-                    nRecCount:=200
-                    aIncProcStep:=array(nRecCount,2)
-                    aEval(aIncProcStep,{|x,y|aIncProcStep[y][2]:=((y*5)/100),aIncProcStep[y][1]:=Round((nRecCountProc*aIncProcStep[y][2]),0)})
-                    oHMIncProcStep:=aToHM(aIncProcStep)
-                    FWFreeArray(@aIncProcStep)
-                else
-                    lPercentage:=.F.
-                    if (nRecCount<=nIncProcStep)
-                        nIncProcStep:=1
-                    endif
-                endif
-
-                cRecCount:=cTools():NToS(nRecCountProc)
-
-                oMsNewProcess:SetRegua2(if(lPercentage,nRecCount,Round(nRecCount/nIncProcStep,0)))
-
-                oTimeRemaining:SetRemaining(nRecCountProc)
-                if (nRecCountProc==0)
-                    oTimeRemaining:Calcule(.F.)
-                endif
-
                 (cTargetAlias)->(dbSetOrder(nIndexKey))
-
-                nRecProc:=0
-
-                lCustomUpdate:=((valType(bCustomUpdate)=="B").or.(allTrim(oTFIni:GetPropertyValue(cTableImport,"CustomUpdate","0"))=="1"))
-                if (lCustomUpdate)
-                    if (valType(bCustomUpdate)!="B")
-                        bCustomUpdate:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bCustomUpdate","{|cSourceAlias,cAlias,lFound,lAddNew,cIndexKey,cIndexID,nFields,aTargetFieldsDef,oTLogReport|.F.}")))
-                    endif
-                endif
-
-                lAppendIfNotExist:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"AppendIfNotExist","1"))=="1")
-                lUpdateEmptyValue:=(allTrim(oTFIni:GetPropertyValue(cTableImport,"UpdateEmptyValue","0"))=="1")
-
-                bAfterUpdateRecNo:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateRecNo","{|cAlias,nRecNo|.F.}")))
-                lAfterUpdateRecNo:=(valType(bAfterUpdateRecNo)=="B")
-
-                bAfterUpdateTable:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateTable","{|cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oProgress|.F.}")))
-
                 (cSourceAlias)->(dbGoTop())
 
-                nTmpAliasOrder:=(cSourceAlias)->(IndexOrd())
+                if ((cSourceAlias)->(!eof()))
 
-                while (cSourceAlias)->(!eof())
-                    if ((cSourceAlias)->(!dbEval():GetNextRecNo(@cSourceAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
-                        exit
+                    if (lTCSQLUpdateTable)
+                        FWMsgRun(nil,{||nAliasdbCount:=dna.tech.DataSul2Protheus.GetRecCount(cFWTemporaryTableRealName)},"Wait...","Verifying record data for import")
+                        nRecCount:=Min(nAliasdbCount,(cSourceAlias)->(RecCount()))
+                    else
+                        nRecCount:=(cSourceAlias)->(RecCount())
                     endif
-                    cIndexID:=(cSourceAlias)->(&(cIndexKey))
-                    lFound:=(cTargetAlias)->(dbSeek(cIndexID,.F.))
-                    begin sequence
-                        if ((!lFound).and.(!lAppendIfNotExist))
-                            break
+
+                    nRecCountProc:=nRecCount
+
+                    if ((lPercentage).and.(nRecCount>=1000))
+                        nIncProcStep=(1/nRecCount*100)
+                        nRecCount:=200
+                        aIncProcStep:=array(nRecCount,2)
+                        aEval(aIncProcStep,{|x,y|aIncProcStep[y][2]:=((y*5)/100),aIncProcStep[y][1]:=Round((nRecCountProc*aIncProcStep[y][2]),0)})
+                        oHMIncProcStep:=aToHM(aIncProcStep)
+                        FWFreeArray(@aIncProcStep)
+                    else
+                        lPercentage:=.F.
+                        if (nRecCount<=nIncProcStep)
+                            nIncProcStep:=1
                         endif
-                        lAddNew:=(!lFound)
-                        nRecProcCustom:=1
-                        if (lCustomUpdate)
-                            lHasError:=(!EvalBlock():EvalBlock(;
-                                {||(cTargetAlias)->(;
-                                    Eval(;
-                                        @bCustomUpdate,;
-                                        @cSourceAlias,;
-                                        @cTargetAlias,;
-                                        @lFound,;
-                                        @lAddNew,;
-                                        @cIndexKey,;
-                                        @cIndexID,;
-                                        @nFields,;
-                                        @aTargetFieldsDef,;
-                                        @oTLogReport,;
-                                        @nTmpAliasNextRecNo,;
-                                        @nTmpAliasOrder,;
-                                        @nRecProcCustom;
+                    endif
+
+                    cRecCount:=cTools():NToS(nRecCountProc)
+
+                    oMsNewProcess:SetRegua2(if(lPercentage,nRecCount,Round(nRecCount/nIncProcStep,0)))
+
+                    oTimeRemaining:SetRemaining(nRecCountProc)
+                    if (nRecCountProc==0)
+                        oTimeRemaining:Calcule(.F.)
+                    endif
+
+
+                    nRecProc:=0
+                    nTmpAliasOrder:=(cSourceAlias)->(IndexOrd())
+
+                    while (cSourceAlias)->(!eof())
+                        if ((cSourceAlias)->(!dbEval():GetNextRecNo(@cSourceAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
+                            exit
+                        endif
+                        cIndexID:=(cSourceAlias)->(&(cIndexKey))
+                        lFound:=(cTargetAlias)->(dbSeek(cIndexID,.F.))
+                        begin sequence
+                            if ((!lFound).and.(!lAppendIfNotExist))
+                                break
+                            endif
+                            lAddNew:=(!lFound)
+                            nRecProcCustom:=1
+                            if (lCustomUpdate)
+                                lHasError:=(!EvalBlock():EvalBlock(;
+                                    {||(cTargetAlias)->(;
+                                        Eval(;
+                                            @bCustomUpdate,;
+                                            @cSourceAlias,;
+                                            @cTargetAlias,;
+                                            @lFound,;
+                                            @lAddNew,;
+                                            @cIndexKey,;
+                                            @cIndexID,;
+                                            @nFields,;
+                                            @aTargetFieldsDef,;
+                                            @oTLogReport,;
+                                            @nTmpAliasNextRecNo,;
+                                            @nTmpAliasOrder,;
+                                            @nRecProcCustom;
+                                        );
+                                    )},;
+                                    nil,;
+                                    .F.,;
+                                    nil,;
+                                    nil;
                                     );
-                                )},;
-                                nil,;
-                                .F.,;
-                                nil,;
-                                nil;
-                                );
-                            )
-                            if (lHasError)
-                                cError:=EvalBlockGetValue("ErrorDescription","")
-                                cError+=EvalBlockGetValue("ErrorStack","")
-                                DelSection("EvalBlock")
-                                if (!empty(cError))
-                                    cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
-                                    cError:=""
-                                    cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
-                                    oTLogReport:AddGroup(cTLogGroup)
-                                    oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
-                                    cTLogDetail:=""
+                                )
+                                if (lHasError)
+                                    cError:=EvalBlockGetValue("ErrorDescription","")
+                                    cError+=EvalBlockGetValue("ErrorStack","")
+                                    DelSection("EvalBlock")
+                                    if (!empty(cError))
+                                        cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
+                                        cError:=""
+                                        cTLogGroup:="table : ["+cSourceFile+"] foram Encontradas inconsistencias na linha ["+cTools():NToS(nFTfRecNo)+"]:"
+                                        oTLogReport:AddGroup(cTLogGroup)
+                                        oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
+                                        cTLogDetail:=""
+                                    endif
+                                else
+                                    nRecProcCustom--
                                 endif
                             else
-                                nRecProcCustom--
-                            endif
-                        else
-                            if (!lAddNew)
-                                lLock:=MySoftLock(cTargetAlias)
+                                if (!lAddNew)
+                                    lLock:=MySoftLock(cTargetAlias)
+                                    if (lLock)
+                                        lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew)))
+                                    endif
+                                else
+                                lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew)))
+                                endif
                                 if (lLock)
-                                    lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew)))
-                                endif
-                            else
-                            lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew)))
-                            endif
-                            if (lLock)
-                                for nField:=1 to nFields
-                                    cField:=aTargetFieldsDef[nField][DBS_NAME]
-                                    if ((lFound).and.(cField$cIndexKey))
-                                        loop
-                                    endif
-                                    if ((lAddFieldTmp).and.(aScan(aSourceTmpFldStruct,{|e|(e[DBS_NAME]==cField)})>0))
-                                        loop
-                                    endif
-                                    if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
-                                        loop
-                                    endif
-                                    xValue:=(cSourceAlias)->(FieldGet(nTargetFieldPos))
-                                    if (empty(xValue).and.(!lUpdateEmptyValue))
-                                        loop
-                                    endif
-                                    if ((lMemoVirutal).and.(oHMMemoVirutal:Get(cField,@bUpdateMemoVirtual)))
-                                        (cTargetAlias)->(EvalBlock():EvalBlock(bUpdateMemoVirtual))
-                                    else
-                                        (cTargetAlias)->(FieldPut(nTargetFieldPos,xValue))
-                                    endif
-                                next nField
-                                if (lAfterUpdateRecNo)
-                                    lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bAfterUpdateRecNo,cTargetAlias,RecNo()))},nil,.F.,nil,nil))
-                                    if (lHasError)
-                                        cError:=EvalBlockGetValue("ErrorDescription","")
-                                        cError+=EvalBlockGetValue("ErrorStack","")
-                                        DelSection("EvalBlock")
-                                        if (!empty(cError))
-                                            cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
-                                            cError:=""
-                                            cTLogGroup:="table : ["+cTargetAlias+"] foram Encontradas inconsistencias na linha ["+cTools():NToS((cTargetAlias)->(recNo()))+"] Processo:["+GetCBSource(bAfterUpdateRecNo)+"]:"
-                                            oTLogReport:AddGroup(cTLogGroup)
-                                            oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
-                                            cTLogDetail:=""
+                                    for nField:=1 to nFields
+                                        cField:=aTargetFieldsDef[nField][DBS_NAME]
+                                        if ((lFound).and.(cField$cIndexKey))
+                                            loop
+                                        endif
+                                        if ((lAddFieldTmp).and.(aScan(aSourceTmpFldStruct,{|e|(e[DBS_NAME]==cField)})>0))
+                                            loop
+                                        endif
+                                        if ((!oHMTargetFieldsPos:Get(cField,@nTargetFieldPos)).or.(nTargetFieldPos==0))
+                                            loop
+                                        endif
+                                        xValue:=(cSourceAlias)->(FieldGet(nTargetFieldPos))
+                                        if (empty(xValue).and.(!lUpdateEmptyValue))
+                                            loop
+                                        endif
+                                        if ((lMemoVirutal).and.(oHMMemoVirutal:Get(cField,@bUpdateMemoVirtual)))
+                                            (cTargetAlias)->(EvalBlock():EvalBlock(bUpdateMemoVirtual))
+                                        else
+                                            (cTargetAlias)->(FieldPut(nTargetFieldPos,xValue))
+                                        endif
+                                    next nField
+                                    if (lAfterUpdateRecNo)
+                                        lHasError:=(!EvalBlock():EvalBlock({||(cTargetAlias)->(Eval(bAfterUpdateRecNo,cTargetAlias,RecNo()))},nil,.F.,nil,nil))
+                                        if (lHasError)
+                                            cError:=EvalBlockGetValue("ErrorDescription","")
+                                            cError+=EvalBlockGetValue("ErrorStack","")
+                                            DelSection("EvalBlock")
+                                            if (!empty(cError))
+                                                cTLogDetail:=cTools():StrReplace(cError,{cCRLF," "})
+                                                cError:=""
+                                                cTLogGroup:="table : ["+cTargetAlias+"] foram Encontradas inconsistencias na linha ["+cTools():NToS((cTargetAlias)->(recNo()))+"] Processo:["+GetCBSource(bAfterUpdateRecNo)+"]:"
+                                                oTLogReport:AddGroup(cTLogGroup)
+                                                oTLogReport:AddDetail(cTLogGroup,cTLogDetail,nMLCountSize)
+                                                cTLogDetail:=""
+                                            endif
                                         endif
                                     endif
+                                    (cTargetAlias)->(msUnLock())
                                 endif
-                                (cTargetAlias)->(msUnLock())
                             endif
-                        endif
-                    end sequence
+                        end sequence
 
-                    while (nRecProcCustom>=1)
+                        while (nRecProcCustom>=1)
 
-                        nRecProcCustom--
+                            nRecProcCustom--
 
-                        nRecProc++
-                        if (lPercentage)
-                            nRecProcPerc:=(nRecProc*nIncProcStep)
-                        else
-                            nRecProcPerc:=nRecProc
-                        endif
+                            nRecProc++
+                            if (lPercentage)
+                                nRecProcPerc:=(nRecProc*nIncProcStep)
+                            else
+                                nRecProcPerc:=nRecProc
+                            endif
 
-                        oTimeRemaining:nProgress:=nRecProc
+                            oTimeRemaining:nProgress:=nRecProc
 
-                        if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc,@xDummy)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
-                            oTimeRemaining:Calcule(.F.)
-                            cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
-                            cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
-                            cTimeRemaining+="[+/-]"
-                            cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
-                            cIncProc:="["+oProgress:Eval()+"] "
-                            cIncProc+="Updating Record ["
-                            cIncProc+=cTools():NToS(nRecProc)
-                            cIncProc+="/"
-                            cIncProc+=cRecCount
-                            cIncProc+="] :: "
-                            cIncProc+="Table ["+cTargetAliasRealName+"]"
-                            cIncProc+=cTimeRemaining
-                            cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
-                            oMsNewProcess:IncRegua2(cIncProc)
-                        endif
+                            if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc,@xDummy)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
+                                oTimeRemaining:Calcule(.F.)
+                                cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                                cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                                cTimeRemaining+="[+/-]"
+                                cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+                                cIncProc:="["+oProgress:Eval()+"] "
+                                cIncProc+="Updating Record ["
+                                cIncProc+=cTools():NToS(nRecProc)
+                                cIncProc+="/"
+                                cIncProc+=cRecCount
+                                cIncProc+="] :: "
+                                cIncProc+="Table ["+cTargetAliasRealName+"]"
+                                cIncProc+=cTimeRemaining
+                                cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
+                                oMsNewProcess:IncRegua2(cIncProc)
+                            endif
+
+                            lEnd:=oMsNewProcess:lEnd
+
+                            if (lEnd)
+                                cTLogGroup:="Process canceled by user:"
+                                oTLogReport:AddGroup(cTLogGroup)
+                                cTLogDetail:="Process canceled by user ["+DtoC(Date())+"]["+Time()+"]"
+                                oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
+                                exit
+                            endif
+
+                        end while
 
                         lEnd:=oMsNewProcess:lEnd
 
@@ -2178,45 +2191,35 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                             exit
                         endif
 
+                        if ((cSourceAlias)->(!dbEval():GoToNextRecNo(@cSourceAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
+                            exit
+                        endif
+
                     end while
 
-                    lEnd:=oMsNewProcess:lEnd
+                    nRecProcPerc-=1
+                    while (nRecProcPerc<=nRecCount)
+                        nRecProcPerc++
+                        oTimeRemaining:Calcule(.F.)
+                        cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                        cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
+                        cTimeRemaining+="[+/-]"
+                        cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
+                        cIncProc:="["+oProgress:Eval()+"] "
+                        cIncProc+="Updating Record ["
+                        cIncProc+=cTools():NToS(nRecProc)
+                        cIncProc+="/"
+                        cIncProc+=cRecCount
+                        cIncProc+="] :: "
+                        cIncProc+="Table ["+cTargetAliasRealName+"]"
+                        cIncProc+=cTimeRemaining
+                        cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
+                        for nIncProc:=1 to Max(nIncProcStep,10)
+                            oMsNewProcess:IncRegua2(cIncProc)
+                        next nRecProcPerc
+                    end while
 
-                    if (lEnd)
-                        cTLogGroup:="Process canceled by user:"
-                        oTLogReport:AddGroup(cTLogGroup)
-                        cTLogDetail:="Process canceled by user ["+DtoC(Date())+"]["+Time()+"]"
-                        oTLogReport:AddDetail(cTLogGroup,cTLogDetail)
-                        exit
-                    endif
-
-                    if ((cSourceAlias)->(!dbEval():GoToNextRecNo(@cSourceAlias,@nTmpAliasNextRecNo,@nTmpAliasOrder)))
-                        exit
-                    endif
-
-                end while
-
-                nRecProcPerc-=1
-                while (nRecProcPerc<=nRecCount)
-                    nRecProcPerc++
-                    oTimeRemaining:Calcule(.F.)
-                    cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
-                    cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
-                    cTimeRemaining+="[+/-]"
-                    cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
-                    cIncProc:="["+oProgress:Eval()+"] "
-                    cIncProc+="Updating Record ["
-                    cIncProc+=cTools():NToS(nRecProc)
-                    cIncProc+="/"
-                    cIncProc+=cRecCount
-                    cIncProc+="] :: "
-                    cIncProc+="Table ["+cTargetAliasRealName+"]"
-                    cIncProc+=cTimeRemaining
-                    cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
-                    for nIncProc:=1 to Max(nIncProcStep,10)
-                        oMsNewProcess:IncRegua2(cIncProc)
-                    next nRecProcPerc
-                end while
+                endif
 
                 for nField:=1 to nFields
                     cField:=aTargetFieldsDef[nField][DBS_NAME]
