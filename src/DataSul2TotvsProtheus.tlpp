@@ -3504,7 +3504,8 @@ static function TCSQLUpdateTable(;
     } as codeblock
     local bIncRegua:={|nMinRecNo,nMaxRecNo,nMinRecNoPlus|;
             cProgress:=oProgress:Eval(),;
-            cMsProcTXT:="["+cProgress+"] ",;
+            cMsProcTXT:=__cCRLF,;
+            cMsProcTXT+="["+cProgress+"] ",;
             cMsProcTXT+="Updating records from ",;
             cMsProcTXT+="["+cTools():NToS(nMinRecNo)+"] ",;
             cMsProcTXT+="to ",;
@@ -3567,7 +3568,8 @@ static function TCSQLUpdateTable(;
 
         bIncRegua:={|nAT,nRecCount|;
                 cProgress:=oProgress:Eval(),;
-                cMsProcTXT:="["+cProgress+"] ",;
+                cMsProcTXT:=__cCRLF,;
+                cMsProcTXT+="["+cProgress+"] ",;
                 cMsProcTXT+="Insert records from ",;
                 cMsProcTXT+="["+cTools():NToS(nAT)+"] ",;
                 cMsProcTXT+="to ",;
