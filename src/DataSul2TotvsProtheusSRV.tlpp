@@ -162,19 +162,19 @@ static function RCNImportData(cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oP
                     aAdd(aTPPD[nTPPD],aClone(aLine))
                     *********************************************************************************************
                     oTimeRemaining:Calcule(.F.)
-                    cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                    cTimeRemaining:=" | End of process at["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+="[+/-]"
                     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                     cIncProc:="["+oProgress:Eval()+"] "
-                    cIncProc+="Record ["
+                    cIncProc+="Record["
                     cIncProc+=cTools():NToS(nRecProc)
                     cIncProc+="/"
                     cIncProc+=cRecCount
-                    cIncProc+="] :: "
+                    cIncProc+="] | "
                     cIncProc+="ID ["+aLine[1]+"]"
                     cIncProc+=cTimeRemaining
-                    cIncProc+=" :: ["+cTools():NToS(Round(((nRecProc/nRecCount)*100),2))+"%]"
+                    cIncProc+=" | ["+cTools():NToS(Round(((nRecProc/nRecCount)*100),2))+"%]"
                     oMsNewProcess:IncRegua2(cIncProc)
                     *********************************************************************************************
                     FWFreeArray(@aLine)
@@ -210,7 +210,7 @@ static function RCNImportData(cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oP
                     endif
                     *********************************************************************************************
                     oTimeRemaining:Calcule(.F.)
-                    cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                    cTimeRemaining:=" | End of process at["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+="[+/-]"
                     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
@@ -219,10 +219,10 @@ static function RCNImportData(cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oP
                     cIncProc+=cTools():NToS(++nRecProc)
                     cIncProc+="/"
                     cIncProc+=cRecCount
-                    cIncProc+="] :: "
+                    cIncProc+="] | "
                     cIncProc+="ID ["+aLine[1]+"]"
                     cIncProc+=cTimeRemaining
-                    cIncProc+=" :: ["+cTools():NToS(Round(((nRecProc/nRecCount)*100),2))+"%]"
+                    cIncProc+=" | ["+cTools():NToS(Round(((nRecProc/nRecCount)*100),2))+"%]"
                     oMsNewProcess:IncRegua2(cIncProc)
                     *********************************************************************************************
                     FWFreeArray(@aLine)

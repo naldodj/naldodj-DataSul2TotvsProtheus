@@ -822,6 +822,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local cFieldsFilterBlock as character
 
+    local cFiles as character
     local cGetFileMask as character
     local cGetFileTitle as character
 
@@ -1206,6 +1207,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         endif
 
         nFiles:=Len(aSourceFile)
+        cFiles:=cTools():NToS(nFiles)
         for nFile:=1 to nFiles
 
             cSourceFile:=AllTrim(aSourceFile[nFile])
@@ -1357,7 +1359,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc,@xDummy)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
                         oTimeRemaining:Calcule(.F.)
-                        cTimeRemaining:=" | End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                        cTimeRemaining:=" | End of process at["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                         cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                         cTimeRemaining+="[+/-]"
                         cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
@@ -1370,7 +1372,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         cIncProc+="Table["+cFWTemporaryTableRealName+"]"
                         cIncProc+=cTimeRemaining
                         cIncProc+=" | ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
-                        cIncProc+=" | File(s)["+cTools():NToS(nFile)+"/"+cTools():NToS(nFiles)+"]"
+                        cIncProc+=" | File(s)["+cTools():NToS(nFile)+"/"+cFiles+"]"
                         oMsNewProcess:IncRegua1(cIncProc)
                     endif
 
@@ -1933,19 +1935,19 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 while (nRecProcPerc<=nRecCount)
                     nRecProcPerc++
                     oTimeRemaining:Calcule(.F.)
-                    cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                    cTimeRemaining:=" | End of process at["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                     cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                     cTimeRemaining+="[+/-]"
                     cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                     cIncProc:="["+oProgress:Eval()+"] "
-                    cIncProc+="Record ["
+                    cIncProc+="Record["
                     cIncProc+=cTools():NToS(nRecProc)
                     cIncProc+=FORWARD_SLASH
                     cIncProc+=cRecCount
-                    cIncProc+="] :: "
-                    cIncProc+="Table ["+cFWTemporaryTableRealName+"]"
+                    cIncProc+="] | "
+                    cIncProc+="Table["+cFWTemporaryTableRealName+"]"
                     cIncProc+=cTimeRemaining
-                    cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
+                    cIncProc+=" | ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
                     for nIncProc:=1 to Max(nIncProcStep,10)
                         oMsNewProcess:IncRegua1(cIncProc)
                     next nRecProcPerc
@@ -2199,19 +2201,19 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                             if ((if(lPercentage,(oHMIncProcStep:Get(nRecProc,@xDummy)),(Mod(nRecProcPerc,nIncProcStep)==0))).or.(nRecProcPerc>=nRecCount))
                                 oTimeRemaining:Calcule(.F.)
-                                cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                                cTimeRemaining:=" | End of process at["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                                 cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                                 cTimeRemaining+="[+/-]"
                                 cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                                 cIncProc:="["+oProgress:Eval()+"] "
-                                cIncProc+="Updating Record ["
+                                cIncProc+="Updating Record["
                                 cIncProc+=cTools():NToS(nRecProc)
                                 cIncProc+=FORWARD_SLASH
                                 cIncProc+=cRecCount
-                                cIncProc+="] :: "
-                                cIncProc+="Table ["+cTargetAliasRealName+"]"
+                                cIncProc+="] | "
+                                cIncProc+="Table["+cTargetAliasRealName+"]"
                                 cIncProc+=cTimeRemaining
-                                cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
+                                cIncProc+=" | ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
                                 oMsNewProcess:IncRegua2(cIncProc)
                             endif
 
@@ -2247,19 +2249,19 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     while (nRecProcPerc<=nRecCount)
                         nRecProcPerc++
                         oTimeRemaining:Calcule(.F.)
-                        cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+                        cTimeRemaining:=" | End of process at["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
                         cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
                         cTimeRemaining+="[+/-]"
                         cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
                         cIncProc:="["+oProgress:Eval()+"] "
-                        cIncProc+="Updating Record ["
+                        cIncProc+="Updating Record["
                         cIncProc+=cTools():NToS(nRecProc)
                         cIncProc+=FORWARD_SLASH
                         cIncProc+=cRecCount
-                        cIncProc+="] :: "
+                        cIncProc+="] | "
                         cIncProc+="Table ["+cTargetAliasRealName+"]"
                         cIncProc+=cTimeRemaining
-                        cIncProc+=" :: ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
+                        cIncProc+=" | ["+cTools():NToS(Round(if((nRecProcPerc>=nRecCount),100,((nRecProc/nRecCountProc)*100)),2))+"%]"
                         for nIncProc:=1 to Max(nIncProcStep,10)
                             oMsNewProcess:IncRegua2(cIncProc)
                         next nRecProcPerc

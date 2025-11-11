@@ -262,7 +262,7 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
             endif
         endif
         oTimeRemaining:Calcule(.T.)
-        cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+        cTimeRemaining:=" | End of process at["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
         cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
         cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
         cIncProc:="["+oProgress:Eval()+"] "
@@ -271,7 +271,7 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
         cIncProc+="/"
         cIncProc+=cRecCount
         cIncProc+=cTimeRemaining
-        cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
+        cIncProc+=" | ["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
         oMsNewProcess:IncRegua1(cIncProc)
         lEnd:=oMsNewProcess:lEnd
         if (lEnd)
@@ -396,7 +396,7 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
             endif
         endif
         oTimeRemaining:Calcule(.T.)
-        cTimeRemaining:=" :: End of processing in ["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
+        cTimeRemaining:=" | End of process at["+oTimeRemaining:GetcTRemaining()+"]["+DtoC(oTimeRemaining:GetdEndTime())+"]"
         cTimeRemaining+="["+oTimeRemaining:GetcEndTime()+"]"
         cTimeRemaining+="["+oTimeRemaining:GetcAverageTime()+"]"
         cIncProc:="["+oProgress:Eval()+"] "
@@ -405,7 +405,7 @@ static function RI1VTMobilidade(oMsNewProcess as object,lEnd as logical,oTLogRep
         cIncProc+="/"
         cIncProc+=cRecCount
         cIncProc+=cTimeRemaining
-        cIncProc+="::["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
+        cIncProc+=" | ["+cTools():NToS(if((nRecProc>=nRecCount),100,((nRecProc/nRecCount)*100)))+"%]"
         oMsNewProcess:IncRegua1(cIncProc)
         lEnd:=oMsNewProcess:lEnd
         if (lEnd)
