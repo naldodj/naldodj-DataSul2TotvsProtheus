@@ -831,7 +831,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local nEndLine as numeric
     local nStartLine as numeric
 
-    local nRecProc:=0 as numeric
+    local nRecProc as numeric
     local nIncProc as numeric
     local nRecCount as numeric
     local nRecProcPerc as numeric
@@ -1156,6 +1156,15 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         bAfterUpdateTable:=&(allTrim(oTFIni:GetPropertyValue(cTableImport,"bAfterUpdateTable","{|cAlias,oTLogReport,oMsNewProcess,oTimeRemaining,oProgress|.F.}")))
 
+        if (lTypeReplicate)
+            for nField:=1 to nFields
+                nReplicates:=GetValue(cSourceTable+"_"+aTargetFieldsDef[nField][2]+"_TypeReplicate",0)
+                if (nReplicates>0)
+                    exit
+                endif
+            next nField
+        endif
+
         nFiles:=Len(aSourceFile)
         for nFile:=1 to nFiles
 
@@ -1281,20 +1290,12 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     endif
                 endif
 
+                nRecProc:=0
                 cRecCount:=cTools():NToS(nRecCountProc)
 
                 oMsNewProcess:SetRegua1(if(lPercentage,nRecCount,Round(nRecCount/nIncProcStep,0)))
 
                 oTimeRemaining:=TimeRemaining():New(nRecCountProc)
-
-                if (lTypeReplicate)
-                    for nField:=1 to nFields
-                        nReplicates:=GetValue(cSourceTable+"_"+aTargetFieldsDef[nField][2]+"_TypeReplicate",0)
-                        if (nReplicates>0)
-                            exit
-                        endif
-                    next nField
-                endif
 
                 bSourceReadLine:={|nRecNoAT,uLine|jSourceJSONLine:FromJSON(uLine),jSourceJSONLine["Line"]}
                 oFileReader:ft_fSetReadLine(bSourceReadLine)
