@@ -1188,6 +1188,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
             cSourceFileName:=cSPPFile
             cSourceFileName+=cSPPExt
 
+            if ((lChkEncode).and.(!lTablesEncodeUTF8))
+                FWMsgRun(nil,{||lTablesEncodeUTF8:=("UTF8"$fileTools():DetectEncoding(cSourceFile))},"Wait...","Detect Encoding ["+cSourceFile+"]")
+            endif
+
             oFileReader:=fileTools():FileReader("FILE")
             bSourceGetLine:={|jLine|GetLineFromSource(jLine,cSourceFileName,lChkEncode,lTablesEncodeUTF8,oProgress,@lSetReguaGetLineFromSource,@nSetReguaGetLineFromSource,cCRLF,@oTimeRemainingGetLineFromSource)}
             oFileReader:ft_fSetGetLine(bSourceGetLine)
