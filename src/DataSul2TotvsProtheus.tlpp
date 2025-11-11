@@ -14,6 +14,17 @@
 #include "jsonhash.ch"
 #include "jsonarray.ch"
 
+#IFNDEF BACK_SLASH
+    #define BACK_SLASH chr(92)
+#ENDIF
+
+#IFNDEF FORWARD_SLASH
+    #define FORWARD_SLASH chr(47)
+    #IFNDEF SLASH
+        #define SLASH FORWARD_SLASH
+    #ENDIF
+#ENDIF
+
 namespace dna.tech.DataSul2Protheus
 
 using namespace dna.tech
@@ -117,7 +128,7 @@ static function Activate() as logical
     local aProperties as array
 
     local cINIFile as character
-    local cGetFileRoot:="\" as character
+    local cGetFileRoot:=BACK_SLASH as character
     local cGetFileMask as character
     local cGetFileTitle as character
 
@@ -171,8 +182,8 @@ static function Activate() as logical
 
         if (lSendDataToServer)
             FWMsgRun(nil,{||lSendDataToServer:=dna.tech.DataSul2Protheus.sendDataToServer(@cGetFileRoot,.F.)},"Wait!","Sending Data To Server")
-        elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
-            cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
+        elseif (file(BACK_SLASH+"datasul2Protheus"+BACK_SLASH+"ini"+BACK_SLASH+"DataSul2Protheus.ini"))
+            cGetFileRoot:="SERVIDOR"+BACK_SLASH+"datasul2protheus"+BACK_SLASH+"ini"+BACK_SLASH
         endif
 
         cGetFileMask:=cTools():Accentuation("Arquivo de Configura#1#2o | DataSul2Protheus.ini","ccedil","atilde")
@@ -221,7 +232,7 @@ static function Activate() as logical
             break
         endif
 
-        //Na versao totvs-protheus-12-1-2510-onca-preta xChkFile nao esta sendo Executada quando o Alias nao esta aberto
+        //Na versao totvs-protheus-12-1-2510-onca-preta xChkFile nao esta sendo Executada quando o Alias nao esta aberto??
         //Garantimos, aqui, a abertura das tabelas que serao utilizadas no processo.
         FWMsgRun(nil,{||OpenWorkAreas(oTFIni)},"Wait!","Openning WorkAreas")
 
@@ -958,13 +969,13 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
         cDataPathSplit:=GetDataPathSplit()
         if (!empty(cDataPathSplit))
-            cDataPathSplit+=(cSourceTable+"\")
+            cDataPathSplit+=(cSourceTable+BACK_SLASH)
             aDataPathSplit:=Directory(cDataPathSplit+cSourceTable+"*.csv")
             if (!Empty(aDataPathSplit)).and.ApMsgYesNo(cTools():Accentuation("Deseja Selecionar o Arquivo para importa#1#2o?","ccedil","atilde"),cTools():Accentuation("Aten#1#2o!","ccedil","atilde"))
                 cGetFileMask:=(cSourceTable+" | "+cSourceTable+"*.csv")
                 cGetFileTitle:=cSourceTable
                 nGetFileOptions:=nOR(GETF_LOCALHARD,GETF_NETWORKDRIVE,GETF_MULTISELECT)
-                cDataPathSplit:=StrTran("SERVIDOR"+cDataPathSplit,"\ini\..","")
+                cDataPathSplit:=StrTran("SERVIDOR"+cDataPathSplit,BACK_SLASH+"ini"+BACK_SLASH+"..","")
                 cSourceFile:=cGetFile(cGetFileMask,cGetFileTitle,1,cDataPathSplit,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
                 aSourceFile:=StrTokArr2(cSourceFile,"|",.T.)
                 lDeleteAfterImport:=.T.
@@ -1320,7 +1331,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         cIncProc:="["+oProgress:Eval()+"] "
                         cIncProc+="Record ["
                         cIncProc+=cTools():NToS(nRecProc)
-                        cIncProc+="/"
+                        cIncProc+=FORWARD_SLASH
                         cIncProc+=cRecCount
                         cIncProc+="] :: "
                         cIncProc+="Table ["+cFWTemporaryTableRealName+"]"
@@ -1895,7 +1906,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     cIncProc:="["+oProgress:Eval()+"] "
                     cIncProc+="Record ["
                     cIncProc+=cTools():NToS(nRecProc)
-                    cIncProc+="/"
+                    cIncProc+=FORWARD_SLASH
                     cIncProc+=cRecCount
                     cIncProc+="] :: "
                     cIncProc+="Table ["+cFWTemporaryTableRealName+"]"
@@ -1922,7 +1933,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 oFileReader:FreeObj()
                 FreeObj(@oFileReader)
 
-                cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
+                cTLogGroup:="["+cAlias+FORWARD_SLASH+cTableImport+"]"
 
                 cTLogDetail:="Data: ["+DToC(oTimeRemaining:GetdStartTime())+"]"
                 cTLogDetail+=" "
@@ -2161,7 +2172,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 cIncProc:="["+oProgress:Eval()+"] "
                                 cIncProc+="Updating Record ["
                                 cIncProc+=cTools():NToS(nRecProc)
-                                cIncProc+="/"
+                                cIncProc+=FORWARD_SLASH
                                 cIncProc+=cRecCount
                                 cIncProc+="] :: "
                                 cIncProc+="Table ["+cTargetAliasRealName+"]"
@@ -2209,7 +2220,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         cIncProc:="["+oProgress:Eval()+"] "
                         cIncProc+="Updating Record ["
                         cIncProc+=cTools():NToS(nRecProc)
-                        cIncProc+="/"
+                        cIncProc+=FORWARD_SLASH
                         cIncProc+=cRecCount
                         cIncProc+="] :: "
                         cIncProc+="Table ["+cTargetAliasRealName+"]"
@@ -2226,7 +2237,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                     break
                 endif
 
-                cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
+                cTLogGroup:="["+cAlias+FORWARD_SLASH+cTableImport+"]"
 
                 cTLogDetail:="Data: ["+DToC(oTimeRemaining:GetdStartTime())+"]"
                 cTLogDetail+=" "
@@ -2264,7 +2275,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                     cTime:=Time()
 
-                    cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
+                    cTLogGroup:="["+cAlias+FORWARD_SLASH+cTableImport+"]"
 
                     cTLogDetail:="Data: ["+DToC(Date())+"]"
                     cTLogDetail+=" "
@@ -2307,7 +2318,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                         endif
                     endif
 
-                    cTLogGroup:="["+cAlias+"/"+cTableImport+"]"
+                    cTLogGroup:="["+cAlias+FORWARD_SLASH+cTableImport+"]"
 
                     cTLogDetail:="Data: ["+DToC(Date())+"]"
                     cTLogDetail+=" "
@@ -3232,8 +3243,8 @@ static procedure NotepadCFGFile(cINIFile as character)
     SplitPath(cINIFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
 
     cTempPath:=getTempPath()
-    if (!(right(cTempPath,1)=="\"))
-        cTempPath+="\"
+    if (!(right(cTempPath,1)==BACK_SLASH))
+        cTempPath+=BACK_SLASH
     endif
 
     cTempFile:=cTempPath
@@ -3279,7 +3290,7 @@ static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oTMe
         cTitle:="Restaurar arquivo de Configuracao"
         cDirectory:=cSPPDrive
         cDirectory+=cSPPPath
-        cDirectory:=StrTran(cSPPPath,"/","\")
+        cDirectory:=StrTran(cSPPPath,FORWARD_SLASH,BACK_SLASH)
         nOptions:=GETF_NOCHANGEDIR
 
         cFileRead:=cGetFile(cMask,cTitle,1,cDirectory,.F.,nOptions,/*[lArvore]*/,/*[lKeepCase]*/)
@@ -3289,7 +3300,7 @@ static function RestoreCFGFile(cINIFile as character,cMemoEdit as character,oTMe
         endif
 
         cFileRead:=(cDirectory+cFileRead)
-        cFileRead:=StrTran(cFileRead,"\\","\")
+        cFileRead:=StrTran(cFileRead,BACK_SLASH+BACK_SLASH,BACK_SLASH)
 
         if (!file(cFileRead))
             break
@@ -3348,21 +3359,21 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
 
         cGetFileTitle:=cTools():Accentuation("Diret#1rio de Configura#2#3o DataSul2Protheus.ini","oacute","ccedil","atilde")
         nGetFileOptions:=nOR(GETF_LOCALHARD,GETF_NETWORKDRIVE,GETF_RETDIRECTORY)
-        cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,".\",.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
+        cDirectoryClient:=cGetFile(cGetFileMask,cGetFileTitle,1,"."+BACK_SLASH,.F.,nGetFileOptions,/*[lArvore]*/,/*[lKeepCase]*/)
 
         lSendDataToServer:=((lIsDir(cDirectoryClient)).and.("datasul2protheus"$StrTran(lower(cDirectoryClient),"totvs","")))
         if (!lSendDataToServer)
             if (ApMsgYesNo("Invalid directory ["+cDirectoryClient+"]. Want to try again?"))
                 lSendDataToServer:=sendDataToServer(@cGetFileRoot)
-            elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
-                cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
+            elseif (file(BACK_SLASH+"datasul2Protheus"+BACK_SLASH+"ini"+BACK_SLASH+"DataSul2Protheus.ini"))
+                cGetFileRoot:="SERVIDOR"+BACK_SLASH+"datasul2protheus"+BACK_SLASH+"ini"+BACK_SLASH
             endif
             break
-        elseif (file("\datasul2Protheus\ini\DataSul2Protheus.ini"))
-            cGetFileRoot:="SERVIDOR\datasul2protheus\ini\"
+        elseif (file(+BACK_SLASH+"datasul2Protheus"+BACK_SLASH+"ini"+BACK_SLASH+"DataSul2Protheus.ini"))
+            cGetFileRoot:="SERVIDOR"+BACK_SLASH+"datasul2protheus"+BACK_SLASH+"ini"+BACK_SLASH
         endif
 
-        cDirectoryServer:="\datasul2Protheus\"
+        cDirectoryServer:=BACK_SLASH+"datasul2Protheus"+BACK_SLASH
         DirTools():MakeFileDir(cDirectoryServer)
         lSendDataToServer:=lIsDir(cDirectoryServer)
         if (!lSendDataToServer)
@@ -3395,7 +3406,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
 
         ApMsgInfo("Files uploaded to the server successfully. Directory ["+cGetFileRoot+"]")
 
-        cGetFileRoot+="ini\"
+        cGetFileRoot+="ini"+BACK_SLASH
 
     end sequence
 
@@ -3411,7 +3422,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
             if (valType(st_oHMbTransform)=="O")
                 st_oHMbTransform:Clean()
             endif
-            cINIFile:="\datasul2Protheus\ini\DataSul2Protheus.ini"
+            cINIFile:=BACK_SLASH+"datasul2Protheus"+BACK_SLASH+"ini"+BACK_SLASH+"DataSul2Protheus.ini"
             FWMsgRun(nil,{||dna.tech.DataSul2Protheus.ReadIniFile(@cINIFile)},"Wait...","Wait! Loading Settings","["+cINIFile+"]")
             FWMsgRun(nil,{||lActivate:=dna.tech.DataSul2Protheus.ReadTableDefinition()},"Wait...","Loading structure of tables")
         endif
@@ -3693,14 +3704,14 @@ static function GetLineFromSource(jLine as json,cSourceFile as character,lChkEnc
         cLineMsg+=cCRLF
 
         cLineMsg+=cCRLF
-        cLineMsg+="Bytes  Processados ["+StrZero(Min(nFileSize,nBytesRead),16)+"/"+StrZero(nFileSize,16)+"]"
+        cLineMsg+="Bytes  Processados ["+StrZero(Min(nFileSize,nBytesRead),16)+FORWARD_SLASH+StrZero(nFileSize,16)+"]"
 
         nIncProc:=if((nBytesRead>=nFileSize),100,((nBytesRead/nFileSize)*100))
         cIncProc:=cTools():NToS(nIncProc)
         cLineMsg+="["+cIncProc+"%]"
         cLineMsg+=cCRLF
 
-        cLineMsg+="Linhas Processadas ["+StrZero(Min(nSetRegua,nLine),16)+"/"+StrZero(nSetRegua,16)+"]"
+        cLineMsg+="Linhas Processadas ["+StrZero(Min(nSetRegua,nLine),16)+FORWARD_SLASH+StrZero(nSetRegua,16)+"]"
         nIncProc:=if((nLine>=nSetRegua),100,((nLine/nSetRegua)*100))
         cIncProc:=cTools():NToS(nIncProc)
 
@@ -3859,7 +3870,7 @@ static function SplitFileAdd(cSourceTable as character) as logical
         endif
 
         cTargetPath:=GetDataPathSplit()
-        cTargetPath+=(cSourceTable+"\")
+        cTargetPath+=(cSourceTable+BACK_SLASH)
 
         SplitFileDel(cSourceTable)
 
@@ -3895,7 +3906,7 @@ static function SplitFileAdd(cSourceTable as character) as logical
                 FreeObj(@jTableDetail)
             next nFile
 
-            cLogFile:=oDNATechLog:FormatLogFile("\log\html\",cSourceTable)
+            cLogFile:=oDNATechLog:FormatLogFile(BACK_SLASH+"log"+BACK_SLASH+"html"+BACK_SLASH,cSourceTable)
             cLogFile:=StrTran(cLogFile,".log",".html")
 
             oDNATechLog:LogAsHtmlFile(cLogFile,cSourceTable)
@@ -3937,7 +3948,7 @@ static function SplitFileDel(cSourceTable as character) as logical
     local nFiles as numeric
 
     cTargetPath:=GetDataPathSplit()
-    cTargetPath+=(cSourceTable+"\")
+    cTargetPath+=(cSourceTable+BACK_SLASH)
 
     cMsgYesNo:="Deseja, realmente, excluir os arquivos:"
     cMsgYesNo+=CRLF
@@ -3974,7 +3985,7 @@ static function SplitFileView(cSourceTable as character) as variant
     local aFWBrwData as array
     local cTargetPath:=GetDataPathSplit() as character
     local oFWBrowseFile as object
-    cTargetPath+=(cSourceTable+"\")
+    cTargetPath+=(cSourceTable+BACK_SLASH)
     fileTools():BrowseFiles(@oFWBrowseFile,@aFWBrwData,cSourceTable,cTargetPath,cSourceTable+"*.csv",1)
     FWFreeArray(@aFWBrwData)
     FreeObj(@oFWBrowseFile)
