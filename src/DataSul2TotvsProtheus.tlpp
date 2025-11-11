@@ -3534,8 +3534,7 @@ static function TCSQLUpdateTable(;
     } as codeblock
     local bIncRegua:={|nMinRecNo,nMaxRecNo,nMinRecNoPlus|;
             cProgress:=oProgress:Eval(),;
-            cMsProcTXT:=cCRLF,;
-            cMsProcTXT+="["+cProgress+"] ",;
+            cMsProcTXT:="["+cProgress+"] ",;
             cMsProcTXT+="Updating records from ",;
             cMsProcTXT+="["+cTools():NToS(nMinRecNo)+"] ",;
             cMsProcTXT+="to ",;
@@ -3544,7 +3543,7 @@ static function TCSQLUpdateTable(;
             cMsProcTXT+="["+cTools():NToS(nMaxRecNo)+"]",;
             cMsProcTXT+="["+cTools():NToS(if((Min(nMaxRecNo,nMinRecNoPlus)>=nMaxRecNo),100,((Min(nMaxRecNo,nMinRecNoPlus)/nMaxRecNo)*100)))+"%]",;
             cMsProcTXT+=" ["+cProgress+"]",;
-            MsProcess():MsProcTxt(cMsProcTXT,.T.,.T.),;
+            MsProcess():MsProcTxt(cCRLF+cMsProcTXT,.T.,.T.),;
             oMsNewProcess:IncRegua2(cMsProcTXT);
     } as codeblock
     local bOnError:={|cQueryFull,cSourceTable,cTargetTable,nTCSQLExec,cTCSQLError|;
@@ -3598,15 +3597,14 @@ static function TCSQLUpdateTable(;
 
         bIncRegua:={|nAT,nRecCount|;
                 cProgress:=oProgress:Eval(),;
-                cMsProcTXT:=cCRLF,;
-                cMsProcTXT+="["+cProgress+"] ",;
+                cMsProcTXT:="["+cProgress+"] ",;
                 cMsProcTXT+="Insert records from ",;
                 cMsProcTXT+="["+cTools():NToS(nAT)+"] ",;
                 cMsProcTXT+="to ",;
                 cMsProcTXT+="["+cTools():NToS(nRecCount)+"]",;
                 cMsProcTXT+="["+cTools():NToS(if((nAT>=nRecCount),100,((nAT/nRecCount)*100)))+"%]",;
                 cMsProcTXT+=" ["+cProgress+"] ",;
-                MsProcess():MsProcTxt(cMsProcTXT,.T.,.T.),;
+                MsProcess():MsProcTxt(cCRLF+cMsProcTXT,.T.,.T.),;
                 oMsNewProcess:IncRegua2(cMsProcTXT);
         }
 
