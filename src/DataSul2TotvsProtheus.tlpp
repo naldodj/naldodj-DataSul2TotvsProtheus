@@ -324,6 +324,10 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
 
     local bTMenuAction as codeblock
 
+    local cCRLF:=CRLF as character
+    local cCHR10:=CHR(10) as character
+    local cCHR13:=CHR(13) as character
+
     local cAlias as character
     local cSection as character
     local cFunction as character
@@ -388,10 +392,15 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                             endContent
                             cTMenuAction:=cTools():StrReplace(;
                                 cTMenuAction,;
-                                {CRLF,""},;
-                                {CHR(10),""},;
-                                {CHR(13),""},;
-                                {" ",""},;
+                                {;
+                                    {;
+                                        cCRLF,;
+                                        cCHR10,;
+                                        cCHR13,;
+                                        " ";
+                                    },;
+                                    "";
+                                },;
                                 {"cAlias",cAlias},;
                                 {"lPercentage",IF(lPercentage,".T.",".F.")},;
                                 {"lFastMode",IF(lFastMode,".T.",".F.")};
@@ -424,10 +433,15 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                             cDescription:=(cAlias+" ("+cFunction+") :: "+Upper(AllTrim(FWSX2Util():GetX2Name(cAlias,.F.))))
                             cTMenuAction:=cTools():StrReplace(;
                                 cTMenuAction,;
-                                {CRLF,""},;
-                                {CHR(10),""},;
-                                {CHR(13),""},;
-                                {" ",""},;
+                                {;
+                                    {;
+                                        cCRLF,;
+                                        cCHR10,;
+                                        cCHR13,;
+                                        " ";
+                                    },;
+                                    "";
+                                },;
                                 {"cFunction",cFunction},;
                                 {"cDescription",cDescription};
                             )
@@ -506,10 +520,15 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                                     endContent
                                     cTMenuAction:=cTools():StrReplace(;
                                         cTMenuAction,;
-                                        {CRLF,""},;
-                                        {CHR(10),""},;
-                                        {CHR(13),""},;
-                                        {" ",""},;
+                                        {;
+                                            {;
+                                                cCRLF,;
+                                                cCHR10,;
+                                                cCHR13,;
+                                                " ";
+                                            },;
+                                            "";
+                                        },;
                                         {"cSourceFile",cAlias},;
                                         {"cMsgTitle","Wait, splitting files"},;
                                         {"cMsgDetail","["+cAlias+"]"};
@@ -542,10 +561,15 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                                     endContent
                                     cTMenuAction:=cTools():StrReplace(;
                                         cTMenuAction,;
-                                        {CRLF,""},;
-                                        {CHR(10),""},;
-                                        {CHR(13),""},;
-                                        {" ",""},;
+                                        {;
+                                            {;
+                                                cCRLF,;
+                                                cCHR10,;
+                                                cCHR13,;
+                                                " ";
+                                            },;
+                                            "";
+                                        },;
                                         {"cSourceFile",cAlias},;
                                         {"cMsgTitle","Wait, removing files"},;
                                         {"cMsgDetail","["+cAlias+"]"};
@@ -578,10 +602,15 @@ static function LoadMenu(oTDlg as object,oTFIni as object,lSendDataToServer as l
                                     endContent
                                     cTMenuAction:=cTools():StrReplace(;
                                         cTMenuAction,;
-                                        {CRLF,""},;
-                                        {CHR(10),""},;
-                                        {CHR(13),""},;
-                                        {" ",""},;
+                                        {;
+                                            {;
+                                                cCRLF,;
+                                                cCHR10,;
+                                                cCHR13,;
+                                                " ";
+                                            },;
+                                            "";
+                                        },;
                                         {"cSourceFile",cAlias},;
                                         {"cMsgTitle","Wait, showing files"},;
                                         {"cMsgDetail","["+cAlias+"]"};
@@ -3481,6 +3510,7 @@ static function TCSQLUpdateTable(;
         lBulkFromAlias as logical;
     ) as numeric
 
+    local cCRLF:=CRLF as character
     local cTime:=Time()
     local cProgress as character
     local cMsProcTXT as character
@@ -3504,7 +3534,7 @@ static function TCSQLUpdateTable(;
     } as codeblock
     local bIncRegua:={|nMinRecNo,nMaxRecNo,nMinRecNoPlus|;
             cProgress:=oProgress:Eval(),;
-            cMsProcTXT:=__cCRLF,;
+            cMsProcTXT:=cCRLF,;
             cMsProcTXT+="["+cProgress+"] ",;
             cMsProcTXT+="Updating records from ",;
             cMsProcTXT+="["+cTools():NToS(nMinRecNo)+"] ",;
@@ -3568,7 +3598,7 @@ static function TCSQLUpdateTable(;
 
         bIncRegua:={|nAT,nRecCount|;
                 cProgress:=oProgress:Eval(),;
-                cMsProcTXT:=__cCRLF,;
+                cMsProcTXT:=cCRLF,;
                 cMsProcTXT+="["+cProgress+"] ",;
                 cMsProcTXT+="Insert records from ",;
                 cMsProcTXT+="["+cTools():NToS(nAT)+"] ",;
