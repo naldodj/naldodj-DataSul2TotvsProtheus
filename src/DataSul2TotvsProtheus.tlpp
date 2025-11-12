@@ -43,7 +43,7 @@ static function DelProperty(xProperty as variant) as variant
 return(cacheData():delProperty("datasul2totvsprotheus",xProperty))
 
 static function DelSection(xSection as variant) as variant
-    dfv():Default(@xSection,"datasul2totvsprotheus")
+    DEFAULT xSection:="datasul2totvsprotheus"
 return(cacheData():delSection(xSection))
 
 static function EvalBlockGetValue(xVar as variant,xDefault as variant) as variant
@@ -839,6 +839,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
     local lAskUpdate as logical
     local lSeekTable as logical
     local lImportData as logical
+    local lHelpInDark as logical
     local lMemoVirutal as logical
     local lAddFieldTmp as logical
     local lFilterBlock as logical
@@ -937,6 +938,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     local xDummy as variant
 
+    lHelpInDark:=HelpInDark()
+    HelpInDark(lHelpInDark)
+
     begin sequence
 
         lImportData:=__ChkFile(cAlias)
@@ -945,9 +949,9 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
         endif
         aTargetStruct:=(cAlias)->(dbStruct())
 
-        dfv():Default(@lPreLoadTable,.F.)
+        DEFAULT lPreLoadTable:=.F.
 
-        nIndexKey:=retOrder(cTargetAlias,cIndexKey,(!lPreLoadTable))
+        nIndexKey:=RetOrder(cTargetAlias,cIndexKey,(!lPreLoadTable))
 
         lImportData:=((lPreLoadTable).or.(nIndexKey!=0))
         if (!lImportData)
@@ -1289,7 +1293,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                 if (lSeekTable)
                     cSeekIndexKey:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekIndexKey",""))
                     cSeekTableIndex:=allTrim(oTFIni:GetPropertyValue(cTableImport,"seekTableIndex",""))
-                    nSeekTableIndex:=retOrder(cSeekTable,cSeekTableIndex,.T.)
+                    nSeekTableIndex:=RetOrder(cSeekTable,cSeekTableIndex,.T.)
                     lSeekTable:=(nSeekTableIndex>0)
                     if (lSeekTable)
                         (cSeekTable)->(dbSetOrder(nSeekTableIndex))
@@ -1717,7 +1721,7 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
                                     if ((lUpdateTableFields).and.(lLock:=MySoftLock(cSeekTable)))
 
-                                        lLock:=(cSeekTable)->(MyRecLock(cSeekTable,.F.))
+                                        lLock:=(cSeekTable)->(MyRecLock(cSeekTable,.F.,.F.,.F.,.T.))
 
                                         if (lLock)
 
@@ -2138,10 +2142,10 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
                                 if (!lAddNew)
                                     lLock:=MySoftLock(cTargetAlias)
                                     if (lLock)
-                                        lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew)))
+                                        lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew,.F.,.F.,.T.)))
                                     endif
                                 else
-                                lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew)))
+                                lLock:=((cTargetAlias)->(MyRecLock(cTargetAlias,lAddNew,.F.,.F.,.T.)))
                                 endif
                                 if (lLock)
                                     for nField:=1 to nFields
@@ -2503,6 +2507,8 @@ static function ImportData(oMsNewProcess as object,lEnd as logical,lPercentage a
 
     Set(_SET_DELETED,if(lDeleted,"ON","OFF"))
 
+    HelpInDark(lHelpInDark)
+
 return(lImportData)
 
 static function ReadIniFile(cINIFile as character) as logical
@@ -2834,16 +2840,20 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
             cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,"Transform",""))
             if (cTransform=="FindInTable")
                 cTransform:=allTrim(oTFIni:GetPropertyValue(cTargetField,cTransform,""))
+            endif
+            if (!empty(cTransform))
                 lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
-            elseif (!empty(cTransform))
-                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
+                if (lHasError)
+                    Final("Error em Field Definition: ["+cTargetField+"]",CacheData():Get("EvalBlock","ErrorDescription","Error em Field Definition: ["+cTargetField+"]"))
+                endif
+            else
+                lHasError:=.T.
+                Final("Error em Field Definition: ["+cTargetField+"]","Field ["+cTargetField+"] Has No Transform Key")
             endif
             st_oHMbTransform:Set(cTargetField,bTransform)
         endif
 
-        if (valtype(bTransform)=="B")
-            lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,@oTFIni,@cType)},nil,.F.,nil,nil))
-        endif
+        lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,@oTFIni,@cType)},nil,.F.,nil,nil))
 
     end sequence
 
@@ -2865,19 +2875,21 @@ static function NormalizeData(lHasError as logical,xValue as variant,cType as ch
             cTransform:=allTrim(oTFIni:GetPropertyValue(cSourceField,"Transform",""))
             if (cTransform=="FindInTable")
                 cTransform:=allTrim(oTFIni:GetPropertyValue(cSourceField,cTransform,""))
-                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
-            elseif (!empty(cTransform))
-                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
             endif
-            if (!lHasError)
+            if (!empty(cTransform))
+                lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
+                if (lHasError)
+                    Final("Error em Field Definition: ["+cSourceField+"]",CacheData():Get("EvalBlock","ErrorDescription","Error em Field Definition: ["+cSourceField+"]"))
+                endif
                 st_oHMbTransform:Set(cSourceField,bTransform)
+            else
+                lHasError:=.T.
+                Final("Error em Field Definition: ["+cSourceField+"]","Field ["+cSourceField+"] Has No Transform Key")
             endif
         endif
-        if (valtype(bTransform)=="B")
-            lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,oTFIni,@cType)},nil,.F.,nil,nil))
-            if (!lHasError)
-                xValue:=NormalizeData(@lHasError,xValue,@cType,nil,.F.,nil,nil)
-            endif
+        lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,oTFIni,@cType)},nil,.F.,nil,nil))
+        if (!lHasError)
+            xValue:=NormalizeData(@lHasError,xValue,@cType,nil,.F.,nil,nil)
         endif
     else
         if (valType(xValue)=="C")
@@ -2918,7 +2930,7 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
         xValue:=cValToChar(xValue)
     endif
 
-    dfv():Default(@lUseDFV,.T.)
+    DEFAULT lUseDFV:=.T.
 
     if ((oTFIniTable:=GetHMValue(cTable,nil))!=nil)
         xTmp:=oTFIniTable:GetPropertyValue(cTable,xValue,"")
@@ -2928,7 +2940,7 @@ static function FindInTable(oTFIni as object,cTable as character,xValue as varia
         xValue:=xTmp
     elseif (oTFIni:ExistSection(cTable))
         if (oTFIni:GetATProperty(cTable,"FindInTableFile")>0)
-            dfv():Default(@lTableInFile,.F.)
+            DEFAULT lTableInFile:=.F.
             if (lTableInFile)
                 cRootPath:=GetValue("cRootPath")
                 cINIFile:=cRootPath
@@ -3067,7 +3079,7 @@ static function EdtCFGFile(cINIFile as character,cMemoEdit as character) as logi
     local oTPanel as object
     local oTMemoEdit as object
 
-    dfv():Default(@cMemoEdit,"")
+    DEFAULT cMemoEdit:=""
 
     cSVMemoEdit:=cMemoEdit
 
@@ -3451,7 +3463,7 @@ static function sendDataToServer(cGetFileRoot as character,lReloadConfig as logi
     FWFreeArray(@aDirectories)
 
     if (lSendDataToServer)
-        dfv():Default(@lReloadConfig,.F.)
+        DEFAULT lReloadConfig:=.F.
         if (lReloadConfig)
             CleanHMData()
             DelSection("datasul2totvsprotheus")
@@ -3474,25 +3486,17 @@ static function MySoftLock(cAlias as character) as logical
 static function MyRecLock(cAlias,lAdd,lDelete,lSoFileReader,lInJob)
     local lLock as logical
     ForceAsBlind(.T.)
-        dfv():DefaultEmpty(@lDelete,.F.)
-        dfv():DefaultEmpty(@lSoFileReader,.F.)
-        dfv():DefaultEmpty(@lInJob:=.T.)
         lLock:=(cAlias)->(RecLock(cAlias,lAdd,lDelete,lSoFileReader,lInJob))
     ForceAsBlind(.F.)
 return(lLock)
 
 static function ForceAsBlind(lIsBlind as logical) as logical
-    if (valtype(lIsBlind)=="L")
-        if (!lIsBlind)
-            __cInternet:=nil
-            HelpInDark(.F.)
-        endif
+    if (!lIsBlind)
+        __cInternet:=nil
+        HelpInDark(.F.)
     else
-        lIsBlind:=IsBlind()
-        if (!lIsBlind)
-            __cInternet:="AUTOMATICO"
-            HelpInDark(.T.)
-        endif
+        __cInternet:="AUTOMATICO"
+        HelpInDark(.T.)
     endif
 return(lIsBlind)
 
