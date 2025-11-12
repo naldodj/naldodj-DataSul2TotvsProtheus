@@ -1,6 +1,14 @@
 # naldodj-DataSul2TotvsProtheus
 Importação de Dados, no formato CSV, do DataSul para o TOTVS Microsiga Protheus
 
+<p align="center">
+  <a href="https://youtu.be/fCpeh8G_EVI">
+    <img src="https://i9.ytimg.com/vi_webp/fCpeh8G_EVI/mq1.webp?sqp=CIzd0cgG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgZShlMA8=&rs=AOn4CLA4-fquOd_EbCed4mXHcqEFXdJw8g" alt="Assista ao vídeo no YouTube">
+  </a>
+</p>
+
+---
+
 ![image](https://github.com/naldodj/naldodj-DataSul2TotvsProtheus/assets/102384575/ef42a30f-21cf-468c-bd3f-af38f21d64c8)
 
 ![image](https://github.com/naldodj/naldodj-DataSul2TotvsProtheus/assets/102384575/7de6afaa-1843-4ee4-a131-4cce6ad11acd)
@@ -12,11 +20,3 @@ Importação de Dados, no formato CSV, do DataSul para o TOTVS Microsiga Protheu
 ![image](https://github.com/naldodj/naldodj-DataSul2TotvsProtheus/assets/102384575/b0119000-6d34-4a7b-abfd-807df0d12d82)
 
 ![image](https://github.com/naldodj/naldodj-DataSul2TotvsProtheus/assets/102384575/c817d44a-02e4-4ab5-a42e-dd5589482d9c)
-
---- 
-
-<p align="center">
-  <a href="https://youtu.be/fCpeh8G_EVI">
-    <img src="https://i9.ytimg.com/vi_webp/fCpeh8G_EVI/mq1.webp?sqp=CIzd0cgG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgZShlMA8=&rs=AOn4CLA4-fquOd_EbCed4mXHcqEFXdJw8g" alt="Assista ao vídeo no YouTube">
-  </a>
-</p>
