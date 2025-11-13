@@ -2844,11 +2844,11 @@ static function getTargetFieldValue(lHasError as logical,oTFIni as object,aLine 
             if (!empty(cTransform))
                 lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
                 if (lHasError)
-                    Final("Error em Field Definition: ["+cTargetField+"]",CacheData():Get("EvalBlock","ErrorDescription","Error em Field Definition: ["+cTargetField+"]"))
+                    Final("<strong style='color: red;'>"+"Error em Field Definition: ["+cTargetField+"]"+"</strong>",CacheData():Get("EvalBlock","ErrorDescription","Error em Field Definition: ["+cTargetField+"]"))
                 endif
             else
                 lHasError:=.T.
-                Final("Error em Field Definition: ["+cTargetField+"]","Field ["+cTargetField+"] Has No Transform Key")
+                Final("<strong style='color: red;'>"+"Error em Field Definition: ["+cTargetField+"]"+"</strong>","Field ["+cTargetField+"] Has No Transform Key")
             endif
             st_oHMbTransform:Set(cTargetField,bTransform)
         endif
@@ -2879,12 +2879,12 @@ static function NormalizeData(lHasError as logical,xValue as variant,cType as ch
             if (!empty(cTransform))
                 lHasError:=(!EvalBlock():EvalBlock({||bTransform:=&(cTransform)},nil,.F.,nil,nil))
                 if (lHasError)
-                    Final("Error em Field Definition: ["+cSourceField+"]",CacheData():Get("EvalBlock","ErrorDescription","Error em Field Definition: ["+cSourceField+"]"))
+                    Final("<strong style='color: red;'>"+"Error em Field Definition: ["+cSourceField+"]"+"</strong>",CacheData():Get("EvalBlock","ErrorDescription","Error em Field Definition: ["+cSourceField+"]"))
                 endif
                 st_oHMbTransform:Set(cSourceField,bTransform)
             else
                 lHasError:=.T.
-                Final("Error em Field Definition: ["+cSourceField+"]","Field ["+cSourceField+"] Has No Transform Key")
+                Final("<strong style='color: red;'>"+"Error em Field Definition: ["+cSourceField+"]"+"</strong>","Field ["+cSourceField+"] Has No Transform Key")
             endif
         endif
         lHasError:=(!EvalBlock():EvalBlock({||xValue:=Eval(bTransform,xValue,oTFIni,@cType)},nil,.F.,nil,nil))

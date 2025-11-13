@@ -192,12 +192,9 @@ static function RI1CestaBasica(oMsNewProcess as object,lEnd as logical,oTLogRepo
     local oRI1TABELA:=Array(#) as object
     local oTimeRemaining as object
 
-    oRI1TABELA:Set("0203","05")
-    oRI1TABELA:Set("0205","01")
-    oRI1TABELA:Set("0210","02")
-    oRI1TABELA:Set("0207","03")
-    oRI1TABELA:Set("0211","04")
-    oRI1TABELA:Set("0212","05")
+    oRI1TABELA:Set("01","01")
+    oRI1TABELA:Set("02","02")
+    oRI1TABELA:Set("03","03")
 
     cRecCount:=cTools():NToS(nRecCount)
     oMsNewProcess:SetRegua1(nRecCount)

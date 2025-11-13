@@ -15,6 +15,8 @@ static function RHLSetValue(xVar as variant,xValue as variant) as variant
 return(cacheData():Set("datasul2totvsprotheus",xVar,xValue))
 
 static function RHLDeleteIfEmpty(cAlias,lMemory) as logical
+    local cRHLFilial as character
+    local cRHLMat as character
     local lRHLDeleteIfEmpty:=.F. as logical
     begin sequence
         if (lMemory)
@@ -38,7 +40,9 @@ static function RHLDeleteIfEmpty(cAlias,lMemory) as logical
             if (lRHLDeleteIfEmpty)
                 break
             endif
-            lRHLDeleteIfEmpty:=(empty(Posicione("RHL",1,RHLGetValue("RHL_FILIAL")+RHLGetValue("RHL_MAT"),"RHL_MAT")))
+            cRHLFilial:=dna.tech.DataSul2Protheus.RHLGetValue("RHL_FILIAL")
+            cRHLMat:=dna.tech.DataSul2Protheus.RHLGetValue("RHL_MAT")
+            lRHLDeleteIfEmpty:=(empty(Posicione("RHK",1,cRHLFilial+cRHLMat,"RHK_MAT")))
             if (lRHLDeleteIfEmpty)
                 break
             endif
@@ -63,7 +67,9 @@ static function RHLDeleteIfEmpty(cAlias,lMemory) as logical
             if (lRHLDeleteIfEmpty)
                 break
             endif
-            lRHLDeleteIfEmpty:=(empty(Posicione("RHL",1,RHLGetValue("RHL_FILIAL")+RHLGetValue("RHL_MAT"),"RHL_MAT")))
+            cRHLFilial:=dna.tech.DataSul2Protheus.RHLGetValue("RHL_FILIAL")
+            cRHLMat:=dna.tech.DataSul2Protheus.RHLGetValue("RHL_MAT")
+            lRHLDeleteIfEmpty:=(empty(Posicione("RHK",1,cRHLFilial+cRHLMat,"RHK_MAT")))
             if (lRHLDeleteIfEmpty)
                 break
             endif
