@@ -8,7 +8,7 @@ using namespace dna.tech
 
 procedure u_fileIOP2()
     __cInternet:=nil
-    u_fileIOPerform2()
+    MainExec():MainExecute({||SetModulo("SIGAESP","ESP"),u_fileIOPerform2()},ProcName())
 return
 
 procedure u_fileIOPerform2()

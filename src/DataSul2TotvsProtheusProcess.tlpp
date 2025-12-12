@@ -32,7 +32,7 @@ procedure u_datasul2totvsProtheusMain()
     local cTitle:="DNA Tech :: DataSul2TotvsProtheus" as character
     //Limpa os Erros antigos gerados pela EvalBlock
     evalBlock():CleanError()
-    MainExec():Execute({||SetModulo("SIGAGPE","GPE"),dna.tech.DataSul2Protheus.u_datasul2totvsProtheus()},cTitle)
+    MainExec():MainExecute({||SetModulo("SIGAGPcE","GPE"),dna.tech.DataSul2Protheus.u_datasul2totvsProtheus()},cTitle)
 return
 
 static function DNAChkAuth() as logical

@@ -7,7 +7,7 @@ using namespace dna.tech
 
 procedure u_fileIOPF()
     __cInternet:=nil
-    u_fileIOPerform()
+    MainExec():MainExecute({||SetModulo("SIGAESP","ESP"),u_fileIOPerform()},ProcName())
 return
 
 procedure u_fileIOPerform()
@@ -37,6 +37,7 @@ static procedure __fileIOPerform()
     local nFile as numeric
     local nStrHashDump as numeric
 
+    local oStopWatch:=StopWatch():New("__fileIOPerform") as object
     local oFileLogger as object
 
     local i,j as numeric
@@ -44,6 +45,7 @@ static procedure __fileIOPerform()
     nStrHashDump:=Aviso("StrHash","Selecione a opção",{"Sim","Não"},2,"Gerar Hash das Linhas para comparação?",2)
     lStrHashDump:=(nStrHashDump==1)
 
+    oStopWatch:Start()
     oFileLogger:=FileLogger():New(cFileLogger)
 
     //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
@@ -145,6 +147,7 @@ static procedure __fileIOPerform()
                 jPerform[cFileReader]["PartialTimeIsDisqualifiedVerify"]:=0
                 jPerform[cFileReader]["PartialTimeRandom"]:=0
                 jPerform[cFileReader]["PartialTimeLineSize"]:=0
+                jPerform[cFileReader]["StopWatch"]:=oStopWatch
                 if ((lStrHashDump).and.(jFiles[nFile]["StrHashDump"]))
                     jPerform[cFileReader]["StrHashDump"]:=.T.
                     jPerform[cFileReader]["StrHashDumpFile"]:=__HashLoggerFile(cFile+"."+cFileReader+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log")
@@ -154,26 +157,46 @@ static procedure __fileIOPerform()
                 endif
                 if (cFileReader=="FT")
                     jPerform[cFileReader]["HasBreakLine"]:=jFiles[nFile]["HasBreakLine"]
+                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FT_"+jFiles[nFile]["File"])
                     __TST_FT(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FT_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="FWFILEREADER")
+                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FWFILEREADER_"+jFiles[nFile]["File"])
                     __TST_FWFILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FWFILEREADER_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="TFILEREAD")
+                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_TFILEREAD_"+jFiles[nFile]["File"])
                     __TST_TFILEREAD(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_TFILEREAD_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="FILENAVIGATOR")
+                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FILENAVIGATOR_"+jFiles[nFile]["File"])
                     __TST_FILENAVIGATOR(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FILENAVIGATOR_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="FILENAVIGATOR_2")
+                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FILENAVIGATOR_2_"+jFiles[nFile]["File"])
                     __TST_FILENAVIGATOR_2(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FILENAVIGATOR_2_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
+                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FILEREADER_StrTokArrayInDB_"+jFiles[nFile]["File"])
                     __TST_FILEREADER_StrTokArrayInDB(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FILEREADER_StrTokArrayInDB_"+jFiles[nFile]["File"])
                 else
-                    __TST_FILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FILEREADER_"+jFiles[nFile]["File"])
+                        __TST_FILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
+                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FILEREADER_"+jFiles[nFile]["File"])
                 endif
             next j
         next i
         oFileLogger:WriteLine("")
     next nFile
 
+    oStopWatch:Stop()
     __SendToLogger(oFileLogger,jPerform,3)
+    oFileLogger:WriteLine("")
+    oFileLogger:WriteLine(oStopWatch:PrintReport())
+
+    oStopWatch:Reset()
+    FreeObj(@oStopWatch)
 
     oFileLogger:Close()
     FreeObj(@oFileLogger)
@@ -319,6 +342,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
     if (nOption==1)
 
         jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
+        jLoggerOut:DelName("StopWatch")
 
         for i:=1 to Len(jLoggerOut)
             jLoggerOut[i]["TimeOutThresHold"]:=__MiliSecondsToTime(jLoggerOut[i]["TimeOutThresHold"])
@@ -382,6 +406,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
         jLogger:DelName("StrHashDump")
 
         jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
+        jLoggerOut:DelName("StopWatch")
 
         jLoggerOut["Reader"]:=PadR(jLoggerOut["Reader"],29)
         jLoggerOut["Owner"]:=PadR(jLoggerOut["Owner"],7)
@@ -421,6 +446,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
 
     elseif (nOption==3)
 
+
         jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
 
         aLoggerPerform:=jLoggerOut:GetNames()
@@ -435,6 +461,9 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
             for j:=1 to Len(aLoggerItem)
                 cName:=aLoggerItem[j]
                 if (!"Total"$cName)
+                    if (cName=="StopWatch")
+                        jLoggerOut[cFileReader]:Stop()
+                    endif
                     jLoggerOut[cFileReader]:DelName(cName)
                 endif
             next j
