@@ -25,7 +25,7 @@ static procedure __fileIOPerform()
     local cTCGetDB:=Upper(AllTrim(TCGetDB())) as character
     local cPerform as character
     local cFileReader as character
-    local cFileLogger:="\tmp\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log" as character
+    local cFileLogger as character
 
     local cStopWathIntervalI as character
     local cStopWathIntervalJ as character
@@ -51,6 +51,9 @@ static procedure __fileIOPerform()
     lStrHashDump:=(nStrHashDump==1)
 
     oStopWatch:Start()
+
+    cFileLogger:="\\tmp\\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log"
+    cFileLogger:={"FileLogger":StrTran(cFileLogger,"\\",BACK_SLASH)}["FileLogger"]
     oFileLogger:=FileLogger():New(cFileLogger)
 
     //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
@@ -230,7 +233,7 @@ static function __HashLoggerFile(cFile as character)
     local cSPPFile as character
     local cSPPExt as character
     SplitPath(cFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
-    cFile:="\tmp\"
+    cFile:={"Path":StrTran("\\tmp\\","\\",BACK_SLASH)}["Path"]
     cFile+=cSPPFile
     cFile+=cSPPExt
     DirTools():MakeFileDir(cFile)

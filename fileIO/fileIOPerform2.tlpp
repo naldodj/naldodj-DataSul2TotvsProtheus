@@ -4,6 +4,17 @@
 #include "parmtype.ch"
 #include "jsonarray.ch"
 
+#IFNDEF BACK_SLASH
+    #define BACK_SLASH chr(92)
+#ENDIF
+
+#IFNDEF FORWARD_SLASH
+    #define FORWARD_SLASH chr(47)
+    #IFNDEF SLASH
+        #define SLASH FORWARD_SLASH
+    #ENDIF
+#ENDIF
+
 using namespace dna.tech
 
 procedure u_fileIOP2()
@@ -25,7 +36,7 @@ static procedure __fileIOPerform2()
     local cFile as character
     local cPerform as character
     local cFileReader as character
-    local cFileLogger:="\tmp\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log" as character
+    local cFileLogger as character
 
     local cStopWathIntervalI as character
     local cStopWathIntervalJ as character
@@ -48,20 +59,24 @@ static procedure __fileIOPerform2()
     oStopWatch:Start()
 
     aPerform:=Array(0)
-    aFiles:=Directory("C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\*.csv")
+    aFiles:=Directory({"FileMask":StrTran("C:\\GitHub\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\*.csv","\\",BACK_SLASH)}["FileMask"])
     aSort(@aFiles,nil,nil,{|x,y|x[F_SIZE]<y[F_SIZE]})
 
     nFiles:=Len(aFiles)
     for nFile:=1 to nFiles
         //Call: 0-Not Call;1=Processo 1;2=Processo 2;3=Processo 1,2;7=Processo 1,2,3
-        if (File("\datasul2protheus\tables\"+aFiles[nFile][F_NAME]))
-            aAdd(aPerform,{"File":"\datasul2protheus\tables\"+aFiles[nFile][F_NAME],"Process":.T.,"Call":7,"Token":";","TimeOutThresHold":1890893*2})
+        cFile:={"File":StrTran("\\datasul2protheus\\tables\\"+aFiles[nFile][F_NAME],"\\",BACK_SLASH)}["File"]
+        if (File(cFile))
+            aAdd(aPerform,{"File":cFile,"Process":.T.,"Call":7,"Token":";","TimeOutThresHold":1890893*2})
         endif
-        aAdd(aPerform,{"File":"C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\"+aFiles[nFile][F_NAME],"Process":.T.,"Call":7,"Token":";","TimeOutThresHold":1890893*2})
+        cFile:={"File":StrTran("C:\\GitHub\\naldodj-DataSul2TotvsProtheus\\datasul2Protheus\\tables\\"+aFiles[nFile][F_NAME],"\\",BACK_SLASH)}["File"]
+        aAdd(aPerform,{"File":cFile,"Process":.T.,"Call":7,"Token":";","TimeOutThresHold":1890893*2})
     next nFile
     jFiles:=JSONObject():New()
     jFiles:Set(aPerform)
 
+    cFileLogger:="\\tmp\\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log"
+    cFileLogger:={"FileLogger":StrTran(cFileLogger,"\\",BACK_SLASH)}["FileLogger"]
     oFileLogger:=FileLogger():New(cFileLogger)
 
     __SendToLogger(oFileLogger,jFiles,1)
@@ -191,7 +206,7 @@ static function __HashLoggerFile(cFile as character)
     local cSPPFile as character
     local cSPPExt as character
     SplitPath(cFile,@cSPPDrive,@cSPPPath,@cSPPFile,@cSPPExt)
-    cFile:="\tmp\"
+    cFile:={"Path":StrTran("\\tmp\\","\\",BACK_SLASH)}["Path"]
     cFile+=cSPPFile
     cFile+=cSPPExt
     DirTools():MakeFileDir(cFile)
