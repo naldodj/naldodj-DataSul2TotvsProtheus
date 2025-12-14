@@ -3,6 +3,17 @@
 #include "parmtype.ch"
 #include "jsonarray.ch"
 
+#IFNDEF BACK_SLASH
+    #define BACK_SLASH chr(92)
+#ENDIF
+
+#IFNDEF FORWARD_SLASH
+    #define FORWARD_SLASH chr(47)
+    #IFNDEF SLASH
+        #define SLASH FORWARD_SLASH
+    #ENDIF
+#ENDIF
+
 using namespace dna.tech
 
 procedure u_fileIOPF()
