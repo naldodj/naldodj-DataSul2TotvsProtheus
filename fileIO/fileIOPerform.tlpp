@@ -27,6 +27,11 @@ static procedure __fileIOPerform()
     local cFileReader as character
     local cFileLogger:="\tmp\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log" as character
 
+    local cStopWathIntervalI as character
+    local cStopWathIntervalJ as character
+    local cStopWathIntervalFile as character
+    local cStopWathIntervalFileFunction as character
+
     local jFiles as json
     local jPerform as json
 
@@ -104,6 +109,8 @@ static procedure __fileIOPerform()
         else
             jFiles[nFile]["TimeOutThresHold"]*=2
         endif
+        cStopWathIntervalFile:=cFile
+        oStopWatch:StartInterval(@cStopWathIntervalFile)
         for i:=1 to 2
             lExecuteProc:=NTools():ContainN(jFiles[nFile]["Call"],i)
             if (!lExecuteProc)
@@ -111,6 +118,8 @@ static procedure __fileIOPerform()
             endif
             lSequential:=(i==1)
             oFileLogger:WriteLine("FileName["+cFile+"] "+if(!lSequential,"Not ","")+"Sequential reading")
+            cStopWathIntervalI:=cStopWathIntervalFile+"_"+tlpp.ToStr(i)
+            oStopWatch:GetInterval(@cStopWathIntervalFile):StartInterval(@cStopWathIntervalI)
             for j:=1 to Len(aPerform)
                 cFileReader:=aPerform[j]
                 //Call: 0-Not Call;1=Sequential;2=Not Sequential;3=Both
@@ -147,7 +156,6 @@ static procedure __fileIOPerform()
                 jPerform[cFileReader]["PartialTimeIsDisqualifiedVerify"]:=0
                 jPerform[cFileReader]["PartialTimeRandom"]:=0
                 jPerform[cFileReader]["PartialTimeLineSize"]:=0
-                jPerform[cFileReader]["StopWatch"]:=oStopWatch
                 if ((lStrHashDump).and.(jFiles[nFile]["StrHashDump"]))
                     jPerform[cFileReader]["StrHashDump"]:=.T.
                     jPerform[cFileReader]["StrHashDumpFile"]:=__HashLoggerFile(cFile+"."+cFileReader+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log")
@@ -155,43 +163,45 @@ static procedure __fileIOPerform()
                 else
                     jPerform[cFileReader]["StrHashDump"]:=.F.
                 endif
+                *****************************************************************
+                cStopWathIntervalJ:=cStopWathIntervalI+"_"+tlpp.ToStr(j)
+                cStopWathIntervalFileFunction:=cStopWathIntervalJ
+                cStopWathIntervalFileFunction+="_"
+                cStopWathIntervalFileFunction+="__TST"
+                cStopWathIntervalFileFunction+="_"
+                cStopWathIntervalFileFunction+=cFileReader
+                *****************************************************************
+                oStopWatch:GetInterval(@cStopWathIntervalFile):GetInterval(cStopWathIntervalI):StartInterval(@cStopWathIntervalFileFunction)
+                jPerform[cFileReader]["StopWatch"]:=oStopWatch
                 if (cFileReader=="FT")
-                    jPerform[cFileReader]["HasBreakLine"]:=jFiles[nFile]["HasBreakLine"]
-                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FT_"+jFiles[nFile]["File"])
                     __TST_FT(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
-                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FT_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="FWFILEREADER")
-                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FWFILEREADER_"+jFiles[nFile]["File"])
                     __TST_FWFILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
-                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FWFILEREADER_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="TFILEREAD")
-                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_TFILEREAD_"+jFiles[nFile]["File"])
                     __TST_TFILEREAD(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
-                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_TFILEREAD_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="FILENAVIGATOR")
-                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FILENAVIGATOR_"+jFiles[nFile]["File"])
                     __TST_FILENAVIGATOR(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
-                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FILENAVIGATOR_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="FILENAVIGATOR_2")
-                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FILENAVIGATOR_2_"+jFiles[nFile]["File"])
                     __TST_FILENAVIGATOR_2(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
-                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FILENAVIGATOR_2_"+jFiles[nFile]["File"])
                 elseif (cFileReader=="FILEREADER_TOPCONN_TOKARRAYDB")
-                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FILEREADER_StrTokArrayInDB_"+jFiles[nFile]["File"])
                     __TST_FILEREADER_StrTokArrayInDB(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
-                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FILEREADER_StrTokArrayInDB_"+jFiles[nFile]["File"])
                 else
-                    jPerform[cFileReader]["StopWatch"]:StartInterval("__TST_FILEREADER_"+jFiles[nFile]["File"])
-                        __TST_FILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
-                    jPerform[cFileReader]["StopWatch"]:StopInterval("__TST_FILEREADER_"+jFiles[nFile]["File"])
+                    __TST_FILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 endif
+                oStopWatch:GetInterval(@cStopWathIntervalFile):GetInterval(@cStopWathIntervalI):StopInterval(@cStopWathIntervalFileFunction)
             next j
+            oStopWatch:GetInterval(cStopWathIntervalFile):StopInterval(cStopWathIntervalI)
         next i
+        oStopWatch:StopInterval(@cStopWathIntervalFile)
         oFileLogger:WriteLine("")
     next nFile
 
     oStopWatch:Stop()
+
     __SendToLogger(oFileLogger,jPerform,3)
+
+    oFileLogger:WriteLine("")
+    oFileLogger:WriteLine("************************************************************************************")
     oFileLogger:WriteLine("")
     oFileLogger:WriteLine(oStopWatch:PrintReport())
 
@@ -452,6 +462,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
         aLoggerPerform:=jLoggerOut:GetNames()
         for i:=1 to Len(aLoggerPerform)
             cFileReader:=aLoggerPerform[i]
+            jLoggerOut[cFileReader]:DelName("StopWatch")
             if (jLoggerOut[cFileReader]["TotalTimeReader"]==0)
                 jLoggerOut:DelName(cFileReader)
                 loop
@@ -461,9 +472,6 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
             for j:=1 to Len(aLoggerItem)
                 cName:=aLoggerItem[j]
                 if (!"Total"$cName)
-                    if (cName=="StopWatch")
-                        jLoggerOut[cFileReader]:Stop()
-                    endif
                     jLoggerOut[cFileReader]:DelName(cName)
                 endif
             next j

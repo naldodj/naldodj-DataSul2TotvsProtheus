@@ -27,6 +27,11 @@ static procedure __fileIOPerform2()
     local cFileReader as character
     local cFileLogger:="\tmp\fileioperform."+DToS(Date())+"."+StrTran(Time(),":","")+"."+UUIDRandomSeq()+".log" as character
 
+    local cStopWathIntervalI as character
+    local cStopWathIntervalJ as character
+    local cStopWathIntervalFile as character
+    local cStopWathIntervalFileFunction as character
+
     local jFiles as json
     local jPerform as json
 
@@ -35,9 +40,12 @@ static procedure __fileIOPerform2()
 
     local nFile as numeric
 
+    local oStopWatch:=StopWatch():New("__fileIOPerform") as object
     local oFileLogger as object
 
     local i,j as numeric
+
+    oStopWatch:Start()
 
     aPerform:=Array(0)
     aFiles:=Directory("C:\GitHub\naldodj-DataSul2TotvsProtheus\datasul2Protheus\tables\*.csv")
@@ -81,6 +89,8 @@ static procedure __fileIOPerform2()
         endif
         cLine:=""
         cFile:=jFiles[nFile]["File"]
+        cStopWathIntervalFile:=cFile
+        oStopWatch:StartInterval(@cStopWathIntervalFile)
         for i:=1 to 2
             lExecuteProc:=NTools():ContainN(jFiles[nFile]["Call"],i)
             if (!lExecuteProc)
@@ -88,6 +98,8 @@ static procedure __fileIOPerform2()
             endif
             lSequential:=(i==1)
             oFileLogger:WriteLine("FileName["+cFile+"] "+if(!lSequential,"Not ","")+"Sequential reading")
+            cStopWathIntervalI:=cStopWathIntervalFile+"_"+tlpp.ToStr(i)
+            oStopWatch:GetInterval(@cStopWathIntervalFile):StartInterval(@cStopWathIntervalI)
             for j:=1 to Len(aPerform)
                 cFileReader:=aPerform[j]
                 //Call: 0-Not Call;1=Sequential;2=Not Sequential;3=Both
@@ -106,6 +118,16 @@ static procedure __fileIOPerform2()
                 jPerform[cFileReader]["PartialTimeStrHash"]:=0
                 jPerform[cFileReader]["PartialTimeLineSize"]:=0
                 jPerform[cFileReader]["PartialTimeIsDisqualifiedVerify"]:=0
+                *****************************************************************
+                cStopWathIntervalJ:=cStopWathIntervalI+"_"+tlpp.ToStr(j)
+                cStopWathIntervalFileFunction:=cStopWathIntervalJ
+                cStopWathIntervalFileFunction+="_"
+                cStopWathIntervalFileFunction+="__TST"
+                cStopWathIntervalFileFunction+="_"
+                cStopWathIntervalFileFunction+=cFileReader
+                *****************************************************************
+                oStopWatch:GetInterval(@cStopWathIntervalFile):GetInterval(cStopWathIntervalI):StartInterval(@cStopWathIntervalFileFunction)
+                jPerform[cFileReader]["StopWatch"]:=oStopWatch
                 if (cFileReader=="FT")
                     __TST_FT(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 elseif (cFileReader=="FWFILEREADER")
@@ -119,12 +141,25 @@ static procedure __fileIOPerform2()
                 else
                     __TST_FILEREADER(oFileLogger,jFiles[nFile],jPerform[cFileReader],lSequential)
                 endif
+                oStopWatch:GetInterval(@cStopWathIntervalFile):GetInterval(@cStopWathIntervalI):StopInterval(@cStopWathIntervalFileFunction)
             next j
+            oStopWatch:GetInterval(cStopWathIntervalFile):StopInterval(cStopWathIntervalI)
         next i
+        oStopWatch:StopInterval(@cStopWathIntervalFile)
         oFileLogger:WriteLine("")
     next nFile
 
+    oStopWatch:Stop()
+
     __SendToLogger(oFileLogger,jPerform,3)
+
+    oFileLogger:WriteLine("")
+    oFileLogger:WriteLine("************************************************************************************")
+    oFileLogger:WriteLine("")
+    oFileLogger:WriteLine(oStopWatch:PrintReport())
+
+    oStopWatch:Reset()
+    FreeObj(@oStopWatch)
 
     oFileLogger:Close()
     FreeObj(@oFileLogger)
@@ -177,6 +212,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
     if (nOption==1)
 
         jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
+        jLoggerOut:DelName("StopWatch")
 
         for i:=1 to Len(jLoggerOut)
             jLoggerOut[i]["TimeOutThresHold"]:=__MiliSecondsToTime(jLoggerOut[i]["TimeOutThresHold"])
@@ -211,6 +247,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
         jLogger["TotalTimeIsDisqualifiedVerify"]+=jLogger["PartialTimeIsDisqualifiedVerify"]
 
         jLoggerOut:=JSONObjectClone():CloneJSON(jLogger)
+        jLoggerOut:DelName("StopWatch")
 
         jLoggerOut["Reader"]:=PadR(jLoggerOut["Reader"],15)
         jLoggerOut["Owner"]:=PadR(jLoggerOut["Owner"],7)
@@ -240,6 +277,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
         aLoggerPerform:=jLoggerOut:GetNames()
         for i:=1 to Len(aLoggerPerform)
             cFileReader:=aLoggerPerform[i]
+            jLoggerOut[cFileReader]:DelName("StopWatch")
             if (jLoggerOut[cFileReader]["TotalTimeReader"]==0)
                 jLoggerOut:DelName(cFileReader)
                 loop
@@ -249,11 +287,12 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
                 cName:=aLoggerItem[j]
                 if (!"Total"$cName)
                     jLoggerOut[cFileReader]:DelName(cName)
+                    loop
                 endif
                 if ("TotalTimeRandom"==cName)
-                    jLoggerOut[cName]:=if(jLoggerOut[cName]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut[cName]))
+                    jLoggerOut[cFileReader][cName]:=if(jLoggerOut[cFileReader][cName]==0,"00:00:00:00.000000",__MiliSecondsToTime(jLoggerOut[cFileReader][cName]))
                 elseif ("TotalElapTimeReader"$cName)
-                    jLoggerOut[cName]:=__MiliSecondsToTime(jLoggerOut[cName])
+                    jLoggerOut[cFileReader][cName]:=__MiliSecondsToTime(jLoggerOut[cFileReader][cName])
                 endif
             next j
             jLoggerOut[cFileReader]["TotalElapTimeReader"]:=__MiliSecondsToTime(jLoggerOut[cFileReader]["TotalTimeReader"])
