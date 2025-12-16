@@ -356,6 +356,7 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
 
     local cName as character
     local cFileReader as character
+    local cStrHashDumpFile as character
 
     local jLoggerOut as json
 
@@ -420,8 +421,9 @@ static procedure __SendToLogger(oFileLogger as object,jLogger as json,nOption as
         if (lStrHashDump)
             jLogger["StrHashDumpLogger"]:Close()
             FreeObj(@jLogger["StrHashDumpLogger"])
-            DirTools():MakeFileDir("c:\"+jLogger["StrHashDumpFile"])
-            if (__CopyFile(jLogger["StrHashDumpFile"],"c:\"+jLogger["StrHashDumpFile"]))
+            cStrHashDumpFile:={"StrHashDumpFile":StrTran("c:\\"+jLogger["StrHashDumpFile"],"\\",BACK_SLASH)}["StrHashDumpFile"]
+            DirTools():MakeFileDir(cStrHashDumpFile)
+            if (__CopyFile(jLogger["StrHashDumpFile"],cStrHashDumpFile))
                 fErase(jLogger["StrHashDumpFile"])
             endif
             jLogger:DelName("StrHashDumpFile")
